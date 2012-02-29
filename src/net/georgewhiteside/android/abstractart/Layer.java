@@ -1,4 +1,4 @@
-package net.georgewhiteside.romhack;
+package net.georgewhiteside.android.abstractart;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -10,33 +10,11 @@ import java.util.List;
 
 import android.util.Log;
 
-/*
-Animation Bank
-
-0A0200-0AD9A0 (00d7a1) = Battle BGs: Primary Data Group
-0AD9A1-0ADB3C (00019c) = Battle BGs: Graphics Pointer Table
-0ADB3D-0ADCD8 (00019c) = Battle BGs: Arrangement Pointer Table
-0ADCD9-0ADEA0 (0001c8) = Battle BGs: Palette Pointer Table
-0ADEA1-0AF457 (0015b7) = Battle BGs: Rendering Data
-0AF458-0AF907 (0004b0) = Battle BGs: Scroll Table
-0AF908-0B01FE (0008f7) = Battle BGs: Distortion Table
-0B01FF-0B01FF (000001) = Nullspace
-0B0200-0BDA99 (00d89a) = Battle BGs: Secondary Data Group
-0BDA9A-0BE229 (000790) = Battle Group BG Association Data
-*/
-
-
-/*
-2012-02-22: added scrolling background effects
-			added scrolling background effect cycling
-			added distortion effect cycling
-*/
-
 // TODO: scrolling bug on background 227?
 
-public class BattleBackground
+public class Layer
 {
-	private final String TAG = "bbdebug";
+	private final String TAG = "Layer";
 	private ByteBuffer romData;
 	private static final int OFFSET = 0xA0200;
 	
@@ -63,9 +41,9 @@ public class BattleBackground
 	private int tileDataLength;
 	private int arrangeDataLength;	// in case I want to dynamically allocate space
 	
-	private byte[] image;
+	private int loadedIndex = -1;
 	
-	private List<short[]> LayerAssociationTable;
+	private byte[] image;
  	
  	public static final int DIST_NONE = 0;
  	public static final int DIST_HORIZONTAL = 1;
@@ -76,37 +54,24 @@ public class BattleBackground
  	public int getImageIndex() { return bgData.get(0); }
  	public int getPaletteIndex() { return bgData.get(1); }
  	public int getBPP() { return bgData.get(2); }
- 	public int getPaletteCycle1aIndex() { return bgData.get(4); }
- 	public int getPaletteCycle1bIndex() { return bgData.get(5); }
- 	public int getPaletteCycle2aIndex() { return bgData.get(6); }
- 	public int getPaletteCycle2bIndex() { return bgData.get(7); }
- 	public int getPaletteCycleSpeed() { return bgData.get(8); }
- 	public int getScrollMovement1() { return bgData.get(9); }
- 	public int getScrollMovement2() { return bgData.get(10); }
- 	public int getScrollMovement3() { return bgData.get(11); }
- 	public int getScrollMovement4() { return bgData.get(12); }
- 	public int getDistortion1() { return bgData.get(13); }
- 	public int getDistortion2() { return bgData.get(14); }
- 	public int getDistortion3() { return bgData.get(15); }
- 	public int getDistortion4() { return bgData.get(16); }
-	
+
+ 	// TODO: wrap these Distortion and Translation objects?
 	public Distortion distortion;
 	public Translation translation;
  	
-	public BattleBackground(InputStream input)
+	public Layer(ByteBuffer data)
 	{
 		image = new byte[256 * 256 * 3];
-		loadData(input);
-		LayerAssociationTable = new ArrayList<short[]>();
+		romData = data;
 	}
 	
-	private void compose(int index)
+	public void load(int index)
 	{
 		if( index < 0 || index > 326 ) {
 			return;
 		}
 
-		Log.d(TAG, "index: " + index);
+		Log.d(TAG, "layer index: " + index);
 
 		// load background attribute data
 		
@@ -139,9 +104,6 @@ public class BattleBackground
 		else
 			distortion.load(romData.slice(), bgData.slice());
 		
-		//distortion.dump(0);
-		translation.dump(0);
-
 		//Log.d(TAG, String.format("bbg: %d: image %d: %02X %02X %02X %02X", index, getImageIndex(), distortionData[0].get(2), distortionData[1].get(2), distortionData[2].get(2), distortionData[3].get(2)));
 		
 		// load graphic tile data
@@ -195,7 +157,7 @@ public class BattleBackground
 			
 		}
 		
-		//drawImage();
+		loadedIndex = index;
 		
 		romData.rewind();
 	}
@@ -282,27 +244,6 @@ public class BattleBackground
 		//Log.d(TAG, pal_string);
 	}
 	
-	
-	private void loadData(InputStream input)
-	{
-		// TODO: rewrite data loader
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		
-		int bytesRead;
-		byte[] buffer = new byte[16384];
-		
-		try {
-			while((bytesRead = input.read(buffer)) != -1) {
-				output.write(buffer, 0, bytesRead);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		romData = ByteBuffer.wrap(output.toByteArray());
-		romData.order(ByteOrder.LITTLE_ENDIAN);
-	}
-	
 	private List<byte[][]> tiles;
 	
 	protected void BuildTiles()
@@ -331,9 +272,12 @@ public class BattleBackground
 		}
 	}
 	
-	public byte[] getImage(int index)
+	public byte[] getImage()
 	{
-		compose(index);
+		if(loadedIndex == -1)
+		{
+			load(0);
+		}
 		return image;
 	}
 }

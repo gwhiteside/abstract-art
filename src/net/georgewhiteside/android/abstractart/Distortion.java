@@ -1,4 +1,4 @@
-package net.georgewhiteside.romhack;
+package net.georgewhiteside.android.abstractart;
 
 import java.nio.ByteBuffer;
 
@@ -34,6 +34,7 @@ bg		HH
 */
 
 
+// TODO: is the cycle checking really necessary, or do the loops neatly cycle?
 
 public class Distortion
 {
@@ -47,15 +48,47 @@ public class Distortion
 	private int mIndex;
 	private int mNumberOfEffects;
 	
+	// variables to track distortion sequence cycling
+	private int mEffectDuration;
+	private int mCurrentEffect;
+	private boolean mHasCycled;
+	
 	public Distortion(ByteBuffer distortionData, ByteBuffer distortionIndices)
 	{
 		load(distortionData, distortionIndices);
+		
+	}
+	
+	public boolean hasCycled()
+	{
+		return mHasCycled;
+	}
+	
+	public void doTick()
+	{
+		mHasCycled = false;
+		if(mEffectDuration != 0)
+		{
+			mEffectDuration--;
+			
+			if(mEffectDuration == 0)
+			{
+				mCurrentEffect++;
+				if(mCurrentEffect >= mNumberOfEffects)
+				{
+					mCurrentEffect = 0;
+				}
+				setIndex(mCurrentEffect);
+				
+				Log.d("Distortion", "effect change: " + mCurrentEffect);
+			}
+		}
 	}
 	
 	public void dump(int index)
 	{
-		int original = index;
-		setIndex(index);
+		//int original = index;
+		//setIndex(index);
 		Log.d("Distortion", "duration: " + getDuration());
 		Log.d("Distortion", "type: " + getType());
 		Log.d("Distortion", "frequency: " + getFrequency());
@@ -66,7 +99,8 @@ public class Distortion
 		Log.d("Distortion", "amplitude delta: " + getAmplitudeDelta());
 		Log.d("Distortion", "speed: " + getSpeed());
 		Log.d("Distortion", "compression delta: " + getCompressionDelta());
-		setIndex(original);
+		Log.d("Distortion", "number of effects: " + getNumberOfEffects());
+		//setIndex(original);
 	}
 	
 	public void load(ByteBuffer distortionData, ByteBuffer distortionIndices)
@@ -149,6 +183,10 @@ public class Distortion
 			index = -1; // TODO exception
 		
 		mIndex = index;
+		
+		mEffectDuration = getDuration();
+		mCurrentEffect = getIndex();
+		mHasCycled = true;
 	}
 	
 	

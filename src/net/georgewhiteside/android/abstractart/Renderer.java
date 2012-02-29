@@ -12,14 +12,13 @@ import java.util.Random;
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
-import net.georgewhiteside.romhack.BattleBackground;
-import net.georgewhiteside.romhack.Distortion;
-
 import android.content.Context;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
+
+// float refreshrate = getWindowManager().getDefaultDisplay().getRefreshRate();
 
 public class Renderer implements GLSurfaceView.Renderer
 {
@@ -40,6 +39,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mBaseMapLoc, hBaseMap;
 	private int mTimeLoc, hTimeLoc;
 	
+	private float mDistortionDuration;
 	private int mAmplitude, mFrequency, mCompression;
 	private int mAmplitudeDelta, mFrequencyDelta, mCompressionDelta;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
@@ -54,19 +54,14 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mHorizontalOffsetLoc;
 	private float mVerticalOffset;
 	private int mVerticalOffsetLoc;
+	private int mDistortionDurationLoc;
 	
-	private int mHorizontalAcceleration;
-	private float mHorizontalAccelerationAccumulator;
-	private int mVerticalAcceleration;
-	private float mVerticalAccelerationAccumulator;
-	
-	private int mTranslationDuration;
-	private int mNumberOfTranslations;
-	private int mCurrentTranslation;
-	
-	private int mEffectDuration;
-	private int mNumberOfEffects;
-	private int mCurrentEffect;
+	private float mHorizontalAcceleration;
+	private float mVerticalAcceleration;
+	private int mHorizontalAccelerationLoc;
+	private int mVerticalAccelerationLoc;
+	private float mTranslationDuration;
+	private int mTranslationDurationLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -77,7 +72,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int[] mFramebuffer = new int[1];
 	private int[] mRenderTexture = new int[1];
 	
-	private Boolean mHighRes = false;
+	private Boolean mHighRes = true;
 	
 	private BattleBackground bbg;
 	private int temp;
@@ -87,7 +82,9 @@ public class Renderer implements GLSurfaceView.Renderer
 	public void RandomBackground()
 	{
 		Random rand = new Random();
-		loadBattleBackground(rand.nextInt(327));
+		int number = rand.nextInt(bbg.getNumberOfBackgrounds());
+		//number = 133; // layer 95
+		loadBattleBackground(number);
 	}
 	
 	public Renderer(Context context)
@@ -101,82 +98,30 @@ public class Renderer implements GLSurfaceView.Renderer
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
 	}
 	
-	private void doDistortionTick()
-	{
-		if(mEffectDuration != 0)
-		{
-			mEffectDuration--;
-			
-			if(mEffectDuration == 0)
-			{
-				mCurrentEffect++;
-				if(mCurrentEffect >= mNumberOfEffects)
-				{
-					mCurrentEffect = 0;
-				}
-				setDistortion(mCurrentEffect);
-				mTick = 0;
-			}
-		}
-	}
-	
-	/*
-	 * This is based on observation and rough guesswork; be warned when referencing this implementation
-	 */
-	private void doTranslationTick()
-	{
-		if(mTranslationDuration != 0)
-		{
-			mTranslationDuration--;
-			
-			mHorizontalAccelerationAccumulator += (float)mHorizontalAcceleration / 256;
-			mHorizontalOffset += mHorizontalAccelerationAccumulator;
-			
-			mVerticalAccelerationAccumulator += (float)mVerticalAcceleration / 256;
-			mVerticalOffset += mVerticalAccelerationAccumulator;
-			
-			if(mTranslationDuration <= 0)
-			{
-				float hcarry = mHorizontalOffset;
-				float vcarry = mVerticalOffset;
-				
-				mCurrentTranslation++;
-				if(mCurrentTranslation >= mNumberOfTranslations)
-				{
-					mCurrentTranslation = 0;
-					mHorizontalAccelerationAccumulator = 0;
-					mVerticalAccelerationAccumulator = 0;
-				}
-				setTranslation(mCurrentTranslation);
-				
-				mHorizontalOffset = hcarry;
-				mVerticalOffset = vcarry;
-			}
-		}
-	}
-	
 	public void onDrawFrame(GL10 unused)
 	{
 		mFPSCounter.logFrame();
-
-
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
-		if(mHighRes)
-			renderBattleBackground();
-		else
-			renderToTexture();
+		updateShaderVariables();
 		
+		if(mHighRes)
+		{
+			renderBattleBackground();
+		}
+		else
+		{
+			renderToTexture();
+		}
+			
 		mFPSCounter.logEndFrame();
 		
 		mTick += 0.5;
 		
-		doDistortionTick();
-		doTranslationTick();
-		
-			
+		bbg.layerA.distortion.doTick();
+		bbg.layerA.translation.doTick();	
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -187,24 +132,12 @@ public class Renderer implements GLSurfaceView.Renderer
 
 		float ratio = (float) mSurfaceWidth / mSurfaceHeight;	
 		Matrix.orthoM(mProjMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 0.0f, 2.0f);			// configure projection matrix
-		//Matrix.setLookAtM(mViewMatrix, 0, 0f, 0f, 1.0f, 0f, 0f, 0f, 0f, 1.0f, 0.0f);	// configure view matrix ... (this is overkill?)
-		//Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mViewMatrix, 0);				// combine view and projection matrices
 	}
 	
 	private void setupQuad()
 	{
 		float quadVertices[] =
 		{
-//			-4.0f,	-4.0f,	 0.0f,
-//			 4.0f,	-4.0f,	 0.0f,
-//			-4.0f,	 4.0f,	 0.0f,
-//			 4.0f,	 4.0f,	 0.0f
-				
-//			-0.5f,	-0.5f,	 0.0f,
-//			 0.5f,	-0.5f,	 0.0f,
-//			-0.5f,	 0.5f,	 0.0f,
-//			 0.5f,	 0.5f,	 0.0f
-			 
 			-1.0f,	-1.0f,	 0.0f,
 			 1.0f,	-1.0f,	 0.0f,
 			-1.0f,	 1.0f,	 0.0f,
@@ -232,13 +165,6 @@ public class Renderer implements GLSurfaceView.Renderer
 				.asFloatBuffer(); 
 		textureVertexBuffer.put(textureMap);
 		textureVertexBuffer.position(0);
-		
-		
-		
-		
-		
-		
-		
 		
 		if(mHighRes == false)
 		{
@@ -281,11 +207,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		
 		
-		
-		
-		
-		
-		
 		hFXProgram = createProgram(readTextFile(R.raw.passthrough_vert), readTextFile(R.raw.passthrough_frag));
 		if(hFXProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
 		
@@ -314,67 +235,67 @@ public class Renderer implements GLSurfaceView.Renderer
 		mCompressionDeltaLoc = GLES20.glGetUniformLocation(mProgram, "u_comp_delta");
 		mSpeedLoc = GLES20.glGetUniformLocation(mProgram, "u_speed");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
+		mDistortionDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_duration");
 		mTickLoc = GLES20.glGetUniformLocation(mProgram, "u_tick");
 		mHorizontalOffsetLoc = GLES20.glGetUniformLocation(mProgram, "u_hoffset");
 		mVerticalOffsetLoc = GLES20.glGetUniformLocation(mProgram, "u_voffset");
+		mHorizontalAccelerationLoc = GLES20.glGetUniformLocation(mProgram, "u_haccel");
+		mVerticalAccelerationLoc = GLES20.glGetUniformLocation(mProgram, "u_vaccel");
+		mTranslationDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_trans_duration");
 		
 		Random rand = new Random();
-		temp = rand.nextInt(327);
+		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
+		
+		// layer entries
 		//temp = 223; // giygas
 		//temp = 226; // giygas
 		//temp = 250; // giygas
 		//temp = 262; // spiteful crow
 		
+		//temp = 1;
+		
 		mBaseMapTexId = loadBattleBackground(temp);
 		
 	}
 	
-	private void setDistortion(int index)
+	private void updateShaderVariables()
 	{
-		bbg.distortion.setIndex(index);
+		Layer layerA = bbg.getLayerA();
 		
-		mAmplitude = bbg.distortion.getAmplitude();
-		mFrequency = bbg.distortion.getFrequency();
-		mCompression = bbg.distortion.getCompression();
-		mAmplitudeDelta = bbg.distortion.getAmplitudeDelta();
-		mFrequencyDelta = bbg.distortion.getFrequencyDelta();
-		mCompressionDelta = bbg.distortion.getCompressionDelta();
-		mSpeed = bbg.distortion.getSpeed();
-		mDistType = bbg.distortion.getType();
+		mAmplitude = layerA.distortion.getAmplitude();
+		mFrequency = layerA.distortion.getFrequency();
+		mCompression = layerA.distortion.getCompression();
+		mAmplitudeDelta = layerA.distortion.getAmplitudeDelta();
+		mFrequencyDelta = layerA.distortion.getFrequencyDelta();
+		mCompressionDelta = layerA.distortion.getCompressionDelta();
+		mSpeed = layerA.distortion.getSpeed();
+		mDistType = layerA.distortion.getType();
+		mDistortionDuration = layerA.distortion.getDuration();
 		//mTick = 0;
-		
-		mEffectDuration = bbg.distortion.getDuration();
-		mNumberOfEffects = bbg.distortion.getNumberOfEffects();
 		
 		// TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
 		mDistType = mDistType == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : mDistType;
-	}
-	
-	private void setTranslation(int index)
-	{
-		bbg.translation.setIndex(index);
 		
-		mTranslationDuration = bbg.translation.getDuration();
-		mNumberOfTranslations = bbg.translation.getNumberOfTranslations();
 		
-		mHorizontalOffset = bbg.translation.getHorizontalOffset();
-		mHorizontalAcceleration = bbg.translation.getHorizontalAcceleration();
 		
-		mVerticalOffset = bbg.translation.getVerticalOffset();
-		mVerticalAcceleration = bbg.translation.getVerticalAcceleration();
+		
+		
+		
+		mHorizontalOffset = layerA.translation.getCurrentHorizontalOffset(); //layerA.translation.getHorizontalOffset();
+		mVerticalOffset = layerA.translation.getVerticalOffset();
+		mHorizontalAcceleration = ((float)layerA.translation.getHorizontalAcceleration()) / 256.0f;
+		mVerticalAcceleration = ((float)layerA.translation.getVerticalAcceleration()) / 256.0f;
+		mTranslationDuration = layerA.translation.getDuration();
 	}
 	
 	private int loadBattleBackground(int index)
 	{	
-		byte[] data = bbg.getImage(index);
+		bbg.setIndex(index);
+		byte[] data = bbg.getLayerA().getImage();
+		mTick = 0;
 		
-		mCurrentEffect = 0;
-		setDistortion(mCurrentEffect);
-		mCurrentTranslation = 0;
-		setTranslation(mCurrentTranslation);
-		
-		mHorizontalAccelerationAccumulator = 0;
-		mVerticalAccelerationAccumulator = 0;
+		bbg.layerA.distortion.dump(0);
+		bbg.layerA.translation.dump(0);
 		
 		int[] textureId = new int[1];
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
@@ -399,18 +320,9 @@ public class Renderer implements GLSurfaceView.Renderer
 	{
 		GLES20.glViewport(0, 0, 256, 256);	// render to native texture size, scale up later
 		
-		
-
-		
-		
-		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
-		
-		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]);
-		
-		
 		
 		/* it may be prudent to check the framebuffer status here before continuing... */
 		
@@ -422,11 +334,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
-		
-
-		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
-		
 		
 		/* load vertex positions */
 		
@@ -444,9 +352,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		GLES20.glUniform1i(hBaseMap, 0);
 		GLES20.glUniform1f(hTimeLoc, mTime);	// update uniform time variable
-		
-
-		
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 		
@@ -493,12 +398,16 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glUniform1f(mCompressionDeltaLoc, mCompressionDelta);
 		GLES20.glUniform1f(mSpeedLoc, mSpeed);
 		GLES20.glUniform1i(mDistTypeLoc, mDistType);
+		GLES20.glUniform1f(mDistortionDurationLoc, mDistortionDuration);
 		GLES20.glUniform1f(mTickLoc, mTick);
 		
 		// update translation effect variables for the shader program
 		
 		GLES20.glUniform1f(mHorizontalOffsetLoc, mHorizontalOffset);
 		GLES20.glUniform1f(mVerticalOffsetLoc, mVerticalOffset);
+		GLES20.glUniform1f(mHorizontalAccelerationLoc, mHorizontalAcceleration);
+		GLES20.glUniform1f(mVerticalAccelerationLoc, mVerticalAcceleration);
+		GLES20.glUniform1f(mTranslationDurationLoc, mTranslationDuration);
 		
 		/* apply model view projection transformation */
 		

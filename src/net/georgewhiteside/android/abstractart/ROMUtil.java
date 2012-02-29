@@ -1,14 +1,14 @@
-package net.georgewhiteside.romhack;
+package net.georgewhiteside.android.abstractart;
 
 import java.nio.ByteBuffer;
 import java.util.Arrays;
 
-public final class ROMUtil {
+public final class ROMUtil
+{
 	// This is an internal optimization for the comp/decomp methods.
 	// Every element in this array is the binary reverse of its index.
-	//private static byte[] bitrevs;
 	
-	private static short[] bitrevs = new short[] {	
+	private static final short[] bitrevs = {	
 		0,   128, 64,  192, 32,  160, 96,  224, 16,  144, 80,  208, 48,  176, 112, 240, 
 		8,   136, 72,  200, 40,  168, 104, 232, 24,  152, 88,  216, 56,  184, 120, 248, 
 		4,   132, 68,  196, 36,  164, 100, 228, 20,  148, 84,  212, 52,  180, 116, 244, 
@@ -25,69 +25,7 @@ public final class ROMUtil {
 		11,  139, 75,  203, 43,  171, 107, 235, 27,  155, 91,  219, 59,  187, 123, 251, 
 		7,   135, 71,  199, 39,  167, 103, 231, 23,  151, 87,  215, 55,  183, 119, 247, 
 		15,  143, 79,  207, 47,  175, 111, 239, 31,  159, 95,  223, 63,  191, 127, 255  };
-	
-/*
-	private int[] decompress() {
-		byte[] buffer = new byte[2048];
-		int bpos = 0, bpos2 = 0;
-		byte value;
-		
-		while((value = data.get()) != 0xFF)
-		{
-			int cmd = value >>> 5;
-			int len = (value & 0x1F) + 1;
-			
-			if(cmd == 7) { // long read
-				cmd = (value & 0x1C) >>> 2;
-				len = data.getShort(); // check later that I don't need to mask the 5 MSBs
-			}
-			if(cmd >= 4) {
-				bpos2 = data.getShort();
-			}
-            
-			switch(cmd) {
-				case 0:
-					data.get(buffer, bpos, len);
-					
-					System.arraycopy(rom.readByte(cdata, len), 0, buffer, bpos, len);
-					bpos += len;
-					cdata += len;
-					// for (int i = 0; i < len; i++)
-					// {
-					// buffer[bpos++] = rom.readByte(cdata++);
-					// }
-	            	break;
-	            	
-	            case 1:
-	            	break;
-	            	
-	            case 2:
-	            	break;
-	            	
-	            case 3:
-	            	break;
-	            	
-	            case 4:
-	            	break;
-	            	
-	            case 5:
-	            	break;
-	            	
-	            case 6:
-	            	break;
-	            	
-	            case 7:
-	            	break;
-            }
-    	}
-    	
-    	return null;
-    }
 
-   */
-	
-
-	
 	/**
 	 * It just copies some junk.
 	 * @return number of bytes decompressed, or -1 if there was an error
@@ -98,29 +36,35 @@ public final class ROMUtil {
         int start = cdata;
         int bpos = 0, bpos2 = 0;
         short tmp;
-        while (unsigned(rom[cdata]) != 0xFF) {
-            if (cdata >= rom.length) {
+        while (unsigned(rom[cdata]) != 0xFF)
+        {
+            if (cdata >= rom.length)
+            {
                 return -1;
             }
 
             int cmdtype = unsigned(rom[cdata]) >> 5;
             int len = (unsigned(rom[cdata]) & 0x1F) + 1;
             
-            if (cmdtype == 7) {
+            if (cmdtype == 7)
+            {
                 cmdtype = (unsigned(rom[cdata]) & 0x1C) >> 2;
                 len = ((unsigned(rom[cdata]) & 3) << 8) + unsigned(rom[cdata + 1]) + 1;
                 cdata++;
             }
             
-            if (bpos + len > maxlen || bpos + len < 0) {
+            if (bpos + len > maxlen || bpos + len < 0)
+            {
                 return -1;
             }
             
             cdata++;
             
-            if (cmdtype >= 4) {
+            if (cmdtype >= 4)
+            {
                 bpos2 = (unsigned(rom[cdata]) << 8) + unsigned(rom[cdata + 1]);
-                if (bpos2 >= maxlen || bpos2 < 0) {
+                if (bpos2 >= maxlen || bpos2 < 0)
+                {
                     return -1;
                 }
                 cdata += 2;
@@ -139,11 +83,13 @@ public final class ROMUtil {
                     cdata++;
                     break;
                 case 2: // ??? TODO way to do this with Arrays?
-                    if (bpos + 2 * len > maxlen || bpos < 0) {
+                    if (bpos + 2 * len > maxlen || bpos < 0)
+                    {
                         return -1;
                     }
                     
-                    while (len-- != 0) {
+                    while (len-- != 0)
+                    {
                         output[bpos++] = (byte) unsigned(rom[cdata]);
                         output[bpos++] = (byte) unsigned(rom[cdata + 1]);
                     }
@@ -151,32 +97,38 @@ public final class ROMUtil {
                     break;
                 case 3: // each byte is one more than previous ?
                     tmp = unsigned(rom[cdata++]);
-                    while (len-- != 0) {
+                    while (len-- != 0)
+                    {
                         output[bpos++] = (byte) tmp++;
                     }
                     break;
                 case 4: // use previous data ?
-                    if (bpos2 + len > maxlen || bpos2 < 0) {
+                    if (bpos2 + len > maxlen || bpos2 < 0)
+                    {
                         return -1;
                     }
                     System.arraycopy(output, bpos2, output, bpos, len);
                     bpos += len;
                     break;
                 case 5:
-                    if (bpos2 + len > maxlen || bpos2 < 0) {
+                    if (bpos2 + len > maxlen || bpos2 < 0)
+                    {
                     	return -1;
                     }
                     
-                    while (len-- != 0) {
+                    while (len-- != 0)
+                    {
                         output[bpos++] = reverseByte(output[bpos2++]);
                     }
                     break;
                 case 6:
-                    if (bpos2 - len + 1 < 0) {
+                    if (bpos2 - len + 1 < 0)
+                    {
                     	return -1;
                     }
                     
-                    while (len-- != 0) {
+                    while (len-- != 0)
+                    {
                         output[bpos++] = output[bpos2--];
                     }
                     break;
@@ -207,7 +159,8 @@ public final class ROMUtil {
 		return (long) (value & 0xFFFFFFFF);
 	}
 	
-	public static int getDecompressedSize(int start, byte[] data) {
+	public static int getDecompressedSize(int start, byte[] data)
+	{
 		int pos = start;
 		int bpos = 0, bpos2 = 0;
 		
@@ -283,32 +236,18 @@ public final class ROMUtil {
 		return bpos;
 	}
 	
-	private static void initBitrevs()
-    {
-        bitrevs = new short[256];
-        for(int temp = 0; temp < 256; temp++)
-        {
-            byte x = (byte)temp;
-            x = (byte)(((x >> 1) & 0x55) | ((x << 1) & 0xAA));
-            x = (byte)(((x >> 2) & 0x33) | ((x << 2) & 0xCC));
-            bitrevs[temp] = (byte)(((x >> 4) & 0x0F) | ((x << 4) & 0xF0));
-        }
-    }
-	
 	public static byte reverseByte(int value)
 	{
-		if(bitrevs == null)
-		{
-			initBitrevs();
-		}
 		return (byte) bitrevs[value & 0xFF];
 	}
 	
-	public static int toHex(int address) {
+	public static int toHex(int address)
+	{
 		return address - 0xC00000 + 0x200;
 	}
 	
-	public static int toSnes(int address) {
+	public static int toSnes(int address)
+	{
 		return address + 0xC00000 - 0x200;
 	}
 }
