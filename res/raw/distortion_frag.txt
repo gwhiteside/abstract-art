@@ -16,6 +16,8 @@ varying vec2 v_texCoord;
 uniform sampler2D s_texture;
 uniform int u_tick;
 
+uniform vec2 resolution;
+
 uniform float u_ampl, u_freq, u_comp;
 uniform float u_ampl_delta, u_freq_delta, u_comp_delta;
 uniform float u_speed;
@@ -31,7 +33,6 @@ uniform int u_dist_type;
 
 void main()
 {
-	vec2 resolution = vec2(256.0, 256.0);
 	vec2 offset = vec2(0.0, 0.0);
 	
 	float time = mod(float(u_tick), u_dist_duration);
@@ -60,7 +61,7 @@ void main()
 	}
 	else if(u_dist_type == 3)	// vertical effect
 	{
-		offset.y = mod(dist, 256.0);
+		offset.y = mod(dist, resolution.y);
 		//dy = mod(y * (compression / 256.0) + dist, 256.0);
 		//if(dy < 0.0) dy = 256.0 + dy;
 		//if(dy > 255.0) dy = 256.0 - dy;
@@ -71,7 +72,7 @@ void main()
 	}
 	
 	// compression effect
-	offset.y += (y * (compression / 256.0));
+	offset.y += (y * (compression / resolution.y));
 	
 	// translation effect
 	offset += scroll;

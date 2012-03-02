@@ -41,6 +41,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	private int mTick;
 	
+	private int mResolutionLoc;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
 	private int mAmplitudeDeltaLoc, mFrequencyDeltaLoc, mCompressionDeltaLoc;
 	private int mSpeedLoc;
@@ -58,7 +59,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int[] mFramebuffer = new int[1];
 	private int[] mRenderTexture = new int[1];
 	
-	private Boolean mHighRes = true;
+	private Boolean mHighRes = false;
 	
 	private BattleBackground bbg;
 	private int temp;
@@ -121,9 +122,9 @@ public class Renderer implements GLSurfaceView.Renderer
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-
+		
 		float ratio = (float) mSurfaceWidth / mSurfaceHeight;	
-		Matrix.orthoM(mProjMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 0.0f, 2.0f);			// configure projection matrix
+		Matrix.orthoM(mProjMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
 	}
 	
 	private void setupQuad()
@@ -217,6 +218,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
 		mBaseMapLoc = GLES20.glGetUniformLocation(mProgram, "s_texture"); // get sampler locations
 		
+		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
 		mAmplitudeLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl");
 		mFrequencyLoc = GLES20.glGetUniformLocation(mProgram, "u_freq");
 		mCompressionLoc = GLES20.glGetUniformLocation(mProgram, "u_comp");
@@ -257,6 +259,10 @@ public class Renderer implements GLSurfaceView.Renderer
 		// have this method take an argument to determine which program to apply to
 		
 		Layer layerA = bbg.getLayerA();
+		
+		// update shader resolution
+		
+		GLES20.glUniform2f(mResolutionLoc, (float)mSurfaceWidth, (float)mSurfaceHeight);
 		
 		// update distortion effect variables for the shader program
 		
