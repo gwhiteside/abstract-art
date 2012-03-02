@@ -39,21 +39,14 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mBaseMapTexId;
 	private int mBaseMapLoc, hBaseMap;
 	
+	private int mTick;
 	
-	private int mAmplitude, mFrequency, mCompression;
-	private int mAmplitudeDelta, mFrequencyDelta, mCompressionDelta;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
 	private int mAmplitudeDeltaLoc, mFrequencyDeltaLoc, mCompressionDeltaLoc;
-	private int mSpeed;
 	private int mSpeedLoc;
-	private int mDistType;
 	private int mDistTypeLoc;
-	private int mTick;
 	private int mTickLoc;
-	private float mHorizontalOffset;
-	private float mVerticalOffset;
 	private int mOffsetLoc;
-	private float mDistortionDuration;
 	private int mDistortionDurationLoc;
 
 	// TODO: can the translation durations be easily worked into the shader programs instead? does the same even need to be done for the distortion durations?
@@ -266,51 +259,28 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// 
 		
-		mAmplitude = layerA.distortion.getAmplitude();
-		mFrequency = layerA.distortion.getFrequency();
-		mCompression = layerA.distortion.getCompression();
-		mAmplitudeDelta = layerA.distortion.getAmplitudeDelta();
-		mFrequencyDelta = layerA.distortion.getFrequencyDelta();
-		mCompressionDelta = layerA.distortion.getCompressionDelta();
-		mSpeed = layerA.distortion.getSpeed();
-		mDistType = layerA.distortion.getType();
-		mDistortionDuration = layerA.distortion.getDuration();
+
+
 		
-		// TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
-		mDistType = mDistType == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : mDistType;
-		
-		
-		
-		
-	
-		mHorizontalOffset = layerA.translation.getHorizontalOffset();
-		mVerticalOffset = layerA.translation.getVerticalOffset();
+
 //		mTranslationDuration = layerA.translation.getDuration();
-		
-		
-		
-		
-		// 50, 51, 53 ... 0x33 0x34 0x36
-		
-		
-		
 		
 		// update distortion effect variables for the shader program
 		
-		GLES20.glUniform1f(mAmplitudeLoc, mAmplitude);
-		GLES20.glUniform1f(mFrequencyLoc, mFrequency);
-		GLES20.glUniform1f(mCompressionLoc, mCompression);
-		GLES20.glUniform1f(mAmplitudeDeltaLoc, mAmplitudeDelta);
-		GLES20.glUniform1f(mFrequencyDeltaLoc, mFrequencyDelta);
-		GLES20.glUniform1f(mCompressionDeltaLoc, mCompressionDelta);
-		GLES20.glUniform1f(mSpeedLoc, mSpeed);
-		GLES20.glUniform1i(mDistTypeLoc, mDistType);
-		GLES20.glUniform1f(mDistortionDurationLoc, mDistortionDuration);
+		GLES20.glUniform1f(mAmplitudeLoc, layerA.distortion.getAmplitude());
+		GLES20.glUniform1f(mFrequencyLoc, layerA.distortion.getFrequency());
+		GLES20.glUniform1f(mCompressionLoc, layerA.distortion.getCompression());
+		GLES20.glUniform1f(mAmplitudeDeltaLoc, layerA.distortion.getAmplitudeDelta());
+		GLES20.glUniform1f(mFrequencyDeltaLoc, layerA.distortion.getFrequencyDelta());
+		GLES20.glUniform1f(mCompressionDeltaLoc, layerA.distortion.getCompressionDelta());
+		GLES20.glUniform1f(mSpeedLoc, layerA.distortion.getSpeed());
+		GLES20.glUniform1i(mDistTypeLoc, layerA.distortion.getType() == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : layerA.distortion.getType()); // TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
+		GLES20.glUniform1f(mDistortionDurationLoc, layerA.distortion.getDuration());
 		GLES20.glUniform1i(mTickLoc, mTick);
 		
 		// update translation effect variables for the shader program
 		
-		GLES20.glUniform2f(mOffsetLoc, mHorizontalOffset, mVerticalOffset);
+		GLES20.glUniform2f(mOffsetLoc, layerA.translation.getHorizontalOffset(), layerA.translation.getVerticalOffset());
 	}
 	
 	private int loadBattleBackground(int index)
