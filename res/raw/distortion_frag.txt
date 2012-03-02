@@ -10,73 +10,74 @@
 
 // see also OpenGL ES 2.0 Programming Guide, pg. 158
 
-precision highp float;
-varying highp vec2 v_texCoord;
-uniform lowp sampler2D s_texture;
-uniform lowp float u_time;
-uniform mediump float u_tick;
+precision mediump float;
 
-uniform lowp float u_ampl, u_freq, u_comp;
-uniform lowp float u_ampl_delta, u_freq_delta, u_comp_delta;
-uniform lowp float u_speed;
-uniform lowp float u_dist_duration;
+varying vec2 v_texCoord;
+uniform sampler2D s_texture;
+uniform int u_tick;
 
-uniform lowp float u_hoffset, u_voffset;
-uniform lowp float u_haccel, u_vaccel;
-uniform lowp float u_trans_duration;
+uniform float u_ampl, u_freq, u_comp;
+uniform float u_ampl_delta, u_freq_delta, u_comp_delta;
+uniform float u_speed;
+uniform float u_dist_duration;
+
+uniform vec2 scroll;
 
 uniform int u_dist_type;
 
-#define PI 3.141592653589793238462643383279
+#define C1 0.001953125		// 1.0 / 512.0; // amplitude unit is 1/512ths of a pixel
+#define C2 0.000095873799	// 8.0 * PI / (1024.0 * 256.0);
+#define C3 0.026179939		// PI / 120.0; // or 60?
 
 void main()
 {
-	vec2 resolution = vec2(256, 256);
-	float dx = 0.0;
-	float dy = 0.0;
-
-	float C1 = 1.0 / 512.0; // amplitude unit is 1/512ths of a pixel
-	float C2 = 8.0 * PI / (1024.0 * 256.0);
-	float C3 = PI / 60.0;
+	vec2 resolution = vec2(255.0, 255.0);
+	vec2 offset = vec2(0.0, 0.0);
 	
-	float amplitude = (u_ampl + u_ampl_delta * u_tick * 2.0);
-	float frequency = (u_freq + u_freq_delta * u_tick * 2.0);
-	float compression = (u_comp + u_comp_delta * mod(u_tick, u_dist_duration / 2.0) * 2.0);
+	float time = mod(float(u_tick), u_dist_duration);
+	
+	//float amplitude = (u_ampl + u_ampl_delta * u_tick * 2.0);
+	//float frequency = (u_freq + u_freq_delta * u_tick * 2.0);
+	float amplitude = (u_ampl + u_ampl_delta * time); // 
+	float frequency = (u_freq + u_freq_delta * time); //
+	float compression = (u_comp + u_comp_delta * time); // "time" necessary for correct compression effect
 	
 	float y = v_texCoord.y * resolution.y;
-	float x = v_texCoord.x * resolution.x;
 
-	float dist = (C1 * amplitude * sin(C2 * frequency * y + C3 * u_speed * u_tick));
+	float dist = (C1 * amplitude * sin(C2 * frequency * y + C3 * u_speed * time));
 
 	if(u_dist_type == 0)	// none
 	{
-		dx = 0.0;
+		offset.x = 0.0;
 	}
-	else if(u_dist_type == 1)	// horizontal
+	else if(u_dist_type == 1)	// horizontal effect
 	{
-		dx = dist;
-		dx /= resolution.y;
+		offset.x = dist;
 	}
-	else if(u_dist_type == 2)	// horizontal interlaced
+	else if(u_dist_type == 2)	// horizontal interlaced effect
 	{
-		dx = floor(mod(y, 2.0)) == 0.0 ? dist : -dist;
-		dx /= resolution.y;
+		offset.x = floor(mod(y, 2.0)) == 0.0 ? dist : -dist;
 	}
-	else if(u_dist_type == 3)	// vertical
+	else if(u_dist_type == 3)	// vertical effect
 	{
-		dy = mod(y * (compression / 256.0) + dist, 256.0);
-		if(dy < 0.0) dy = 256.0 + dy;
-		if(dy > 255.0) dy = 256.0 - dy;
-		
-		dy /= resolution.y;
+		offset.y = mod(dist, 256.0);
+		//dy = mod(y * (compression / 256.0) + dist, 256.0);
+		//if(dy < 0.0) dy = 256.0 + dy;
+		//if(dy > 255.0) dy = 256.0 - dy;
 	}
 	else
 	{
 		// well this is awkward
 	}
 	
-	dx += u_hoffset / resolution.x;
-	dy += u_voffset / resolution.y;
+	// compression effect
+	offset.y += (y * (compression / 256.0));
+	
+	// translation effect
+	offset += scroll;
+	
+	// scale values down to 0.0-1.0
+	offset /= resolution;
 
-	gl_FragColor = texture2D(s_texture, vec2(dx + v_texCoord.x, dy + v_texCoord.y) );
+	gl_FragColor = texture2D(s_texture, offset + v_texCoord );
 }

@@ -35,6 +35,7 @@ bg		HH
 
 
 // TODO: is the cycle checking really necessary, or do the loops neatly cycle?
+// TODO: what's up with 223? it starts out with a compression effect, then just slides diagonally nw then ne in a loop ... 222 is fine though
 
 public class Distortion
 {

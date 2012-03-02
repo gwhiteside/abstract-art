@@ -20,14 +20,15 @@ import android.util.Log;
 
 // float refreshrate = getWindowManager().getDefaultDisplay().getRefreshRate();
 
+// "The PowerVR 530/535 is very slow. Andreno 200 and PowerVR 530/535 are first GPU generation
+// (OpenGL ES 2.x) for hdpi resolution. You can't redraw a full screen at 60FPS with a simple texture."
+
 public class Renderer implements GLSurfaceView.Renderer
 {
 	private static final String TAG = "Renderer";
 	private Context mContext;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
-	
-	private float mTime;
 	
 	private FloatBuffer quadVertexBuffer;
 	private FloatBuffer textureVertexBuffer;
@@ -37,9 +38,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mTextureHandle, hTexture;
 	private int mBaseMapTexId;
 	private int mBaseMapLoc, hBaseMap;
-	private int mTimeLoc, hTimeLoc;
 	
-	private float mDistortionDuration;
+	
 	private int mAmplitude, mFrequency, mCompression;
 	private int mAmplitudeDelta, mFrequencyDelta, mCompressionDelta;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
@@ -48,20 +48,17 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mSpeedLoc;
 	private int mDistType;
 	private int mDistTypeLoc;
-	private float mTick;
+	private int mTick;
 	private int mTickLoc;
 	private float mHorizontalOffset;
-	private int mHorizontalOffsetLoc;
 	private float mVerticalOffset;
-	private int mVerticalOffsetLoc;
+	private int mOffsetLoc;
+	private float mDistortionDuration;
 	private int mDistortionDurationLoc;
-	
-	private float mHorizontalAcceleration;
-	private float mVerticalAcceleration;
-	private int mHorizontalAccelerationLoc;
-	private int mVerticalAccelerationLoc;
-	private float mTranslationDuration;
-	private int mTranslationDurationLoc;
+
+	// TODO: can the translation durations be easily worked into the shader programs instead? does the same even need to be done for the distortion durations?
+//	private float mTranslationDuration;
+//	private int mTranslationDurationLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -93,7 +90,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		//temp = rand.nextInt(327);
 		
 		mContext = context;
-		mTime = 0.0f;
 		mTick = 0;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
 	}
@@ -105,7 +101,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
-		updateShaderVariables();
+		// used to update shader variables here; remove me
 		
 		if(mHighRes)
 		{
@@ -118,7 +114,7 @@ public class Renderer implements GLSurfaceView.Renderer
 			
 		mFPSCounter.logEndFrame();
 		
-		mTick += 0.5;
+		mTick += 1;
 		
 		bbg.layerA.distortion.doTick();
 		bbg.layerA.translation.doTick();	
@@ -205,7 +201,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
-		
+		/* shader for texture (the "low res") output */
 		
 		hFXProgram = createProgram(readTextFile(R.raw.passthrough_vert), readTextFile(R.raw.passthrough_frag));
 		if(hFXProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
@@ -213,7 +209,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		hPosition = GLES20.glGetAttribLocation(hFXProgram, "a_position"); // a_position
 		hTexture = GLES20.glGetAttribLocation(hFXProgram, "a_texCoord"); // a_texCoord
 		hBaseMap = GLES20.glGetUniformLocation(hFXProgram, "s_texture"); // get sampler locations
-		hTimeLoc = GLES20.glGetUniformLocation(hFXProgram, "u_time"); // get time location
 		/******** experimental FBO shit ********/
 		
 
@@ -225,7 +220,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
 		mBaseMapLoc = GLES20.glGetUniformLocation(mProgram, "s_texture"); // get sampler locations
-		mTimeLoc = GLES20.glGetUniformLocation(mProgram, "u_time"); // get time location
 		
 		mAmplitudeLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl");
 		mFrequencyLoc = GLES20.glGetUniformLocation(mProgram, "u_freq");
@@ -237,11 +231,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
 		mDistortionDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_duration");
 		mTickLoc = GLES20.glGetUniformLocation(mProgram, "u_tick");
-		mHorizontalOffsetLoc = GLES20.glGetUniformLocation(mProgram, "u_hoffset");
-		mVerticalOffsetLoc = GLES20.glGetUniformLocation(mProgram, "u_voffset");
-		mHorizontalAccelerationLoc = GLES20.glGetUniformLocation(mProgram, "u_haccel");
-		mVerticalAccelerationLoc = GLES20.glGetUniformLocation(mProgram, "u_vaccel");
-		mTranslationDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_trans_duration");
+		mOffsetLoc = GLES20.glGetUniformLocation(mProgram, "scroll");
+//		mTranslationDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_trans_duration");
 		
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
@@ -250,9 +241,16 @@ public class Renderer implements GLSurfaceView.Renderer
 		//temp = 223; // giygas
 		//temp = 226; // giygas
 		//temp = 250; // giygas
-		//temp = 262; // spiteful crow
+		//temp = 1; // spiteful crow
 		
-		//temp = 1;
+		//temp = 155;
+		//temp = 31;
+		//temp = 148;
+		
+		//temp = 175;	// 4-way linear translation
+		//temp = 75; // 0-duration linear translation
+		
+		temp = 220;
 		
 		mBaseMapTexId = loadBattleBackground(temp);
 		
@@ -260,7 +258,13 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	private void updateShaderVariables()
 	{
+		// glUniform* calls always act on the current program that is bound with glUseProgram
+		
+		// have this method take an argument to determine which program to apply to
+		
 		Layer layerA = bbg.getLayerA();
+		
+		// 
 		
 		mAmplitude = layerA.distortion.getAmplitude();
 		mFrequency = layerA.distortion.getFrequency();
@@ -271,7 +275,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		mSpeed = layerA.distortion.getSpeed();
 		mDistType = layerA.distortion.getType();
 		mDistortionDuration = layerA.distortion.getDuration();
-		//mTick = 0;
 		
 		// TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
 		mDistType = mDistType == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : mDistType;
@@ -279,23 +282,47 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		
 		
-		
-		
-		mHorizontalOffset = layerA.translation.getCurrentHorizontalOffset(); //layerA.translation.getHorizontalOffset();
+	
+		mHorizontalOffset = layerA.translation.getHorizontalOffset();
 		mVerticalOffset = layerA.translation.getVerticalOffset();
-		mHorizontalAcceleration = ((float)layerA.translation.getHorizontalAcceleration()) / 256.0f;
-		mVerticalAcceleration = ((float)layerA.translation.getVerticalAcceleration()) / 256.0f;
-		mTranslationDuration = layerA.translation.getDuration();
+//		mTranslationDuration = layerA.translation.getDuration();
+		
+		
+		
+		
+		// 50, 51, 53 ... 0x33 0x34 0x36
+		
+		
+		
+		
+		// update distortion effect variables for the shader program
+		
+		GLES20.glUniform1f(mAmplitudeLoc, mAmplitude);
+		GLES20.glUniform1f(mFrequencyLoc, mFrequency);
+		GLES20.glUniform1f(mCompressionLoc, mCompression);
+		GLES20.glUniform1f(mAmplitudeDeltaLoc, mAmplitudeDelta);
+		GLES20.glUniform1f(mFrequencyDeltaLoc, mFrequencyDelta);
+		GLES20.glUniform1f(mCompressionDeltaLoc, mCompressionDelta);
+		GLES20.glUniform1f(mSpeedLoc, mSpeed);
+		GLES20.glUniform1i(mDistTypeLoc, mDistType);
+		GLES20.glUniform1f(mDistortionDurationLoc, mDistortionDuration);
+		GLES20.glUniform1i(mTickLoc, mTick);
+		
+		// update translation effect variables for the shader program
+		
+		GLES20.glUniform2f(mOffsetLoc, mHorizontalOffset, mVerticalOffset);
 	}
 	
 	private int loadBattleBackground(int index)
 	{	
+		//bbg.setLayers(296, 296);
 		bbg.setIndex(index);
 		byte[] data = bbg.getLayerA().getImage();
 		mTick = 0;
 		
 		bbg.layerA.distortion.dump(0);
 		bbg.layerA.translation.dump(0);
+
 		
 		int[] textureId = new int[1];
 		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
@@ -316,7 +343,7 @@ public class Renderer implements GLSurfaceView.Renderer
         return textureId[0];
 	}
 	
-	private void renderToTexture()
+	private void renderToTexture() // "low res" render
 	{
 		GLES20.glViewport(0, 0, 256, 256);	// render to native texture size, scale up later
 		
@@ -351,7 +378,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mRenderTexture[0]);
 		
 		GLES20.glUniform1i(hBaseMap, 0);
-		GLES20.glUniform1f(hTimeLoc, mTime);	// update uniform time variable
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0);
 		
@@ -360,7 +386,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
 	}
 	
-	private void renderBattleBackground()
+	private void renderBattleBackground() // "high res" render
 	{
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");/* projection and camera */
@@ -386,28 +412,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBaseMapTexId);
 		GLES20.glUniform1i(mBaseMapLoc, 0);
 		
-		GLES20.glUniform1f(mTimeLoc, mTime);	// update uniform time variable
-		
-		// update distortion effect variables for the shader program
-		
-		GLES20.glUniform1f(mAmplitudeLoc, mAmplitude);
-		GLES20.glUniform1f(mFrequencyLoc, mFrequency);
-		GLES20.glUniform1f(mCompressionLoc, mCompression);
-		GLES20.glUniform1f(mAmplitudeDeltaLoc, mAmplitudeDelta);
-		GLES20.glUniform1f(mFrequencyDeltaLoc, mFrequencyDelta);
-		GLES20.glUniform1f(mCompressionDeltaLoc, mCompressionDelta);
-		GLES20.glUniform1f(mSpeedLoc, mSpeed);
-		GLES20.glUniform1i(mDistTypeLoc, mDistType);
-		GLES20.glUniform1f(mDistortionDurationLoc, mDistortionDuration);
-		GLES20.glUniform1f(mTickLoc, mTick);
-		
-		// update translation effect variables for the shader program
-		
-		GLES20.glUniform1f(mHorizontalOffsetLoc, mHorizontalOffset);
-		GLES20.glUniform1f(mVerticalOffsetLoc, mVerticalOffset);
-		GLES20.glUniform1f(mHorizontalAccelerationLoc, mHorizontalAcceleration);
-		GLES20.glUniform1f(mVerticalAccelerationLoc, mVerticalAcceleration);
-		GLES20.glUniform1f(mTranslationDurationLoc, mTranslationDuration);
+		updateShaderVariables(); // be mindful of which active program this applies to!!
 		
 		/* apply model view projection transformation */
 		

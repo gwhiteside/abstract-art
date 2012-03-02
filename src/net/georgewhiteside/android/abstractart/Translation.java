@@ -4,15 +4,15 @@ import java.nio.ByteBuffer;
 
 import android.util.Log;
 
-/*
+/* TODO: figure this out for real... are fields 1 & 2 offset or velocity?
 
 AF458
 
 [AAAA BBBB CCCC DDDD EEEE] 10-byte entries (5 shorts)
 
 AA AA - duration, given in 1/60ths of a second
-BB BB - horizontal offset
-CC CC - vertical offset
+BB BB - horizontal velocity
+CC CC - vertical velocity
 DD DD - horizontal acceleration
 EE EE - vertical acceleration
 
@@ -28,8 +28,6 @@ Positive and negative directions:
       
  */
 
-// TODO: scrolling bug on some background changes; new layer scrolls for about a second (when it shouldn't) if the previous background had scrolling
-
 public class Translation
 {
 	private ByteBuffer[] data = new ByteBuffer[4];
@@ -39,19 +37,45 @@ public class Translation
 	private int mTranslationDuration;
 	private float mHorizontalVelocity;
 	private float mVerticalVelocity;
+	private float mHorizontalAcceleration;
+	private float mVerticalAcceleration;
 	private float mHorizontalOffset;
 	private float mVerticalOffset;
+	private float mHorizontalInitial;
+	private float mVerticalInitial;
 	
+	private int mTicker;
 	
 	public Translation(ByteBuffer translationData, ByteBuffer translationIndices)
 	{
 		load(translationData, translationIndices);
 	}
 	
-	public float getCurrentHorizontalOffset()
+	/**
+	 * Calculates the total X offset for this frame
+	 * @return X offset of layer
+	 */
+	public float getHorizontalOffset()
 	{
 		return mHorizontalOffset;
 	}
+	
+	/**
+	 * Calculates the total Y offset for this frame
+	 * @return Y offset of layer
+	 */
+	public float getVerticalOffset()
+	{
+		return mVerticalOffset;
+	}
+	
+	// translation effect
+	
+	// v(t) = v(0) + a*t
+	// x(t) = x(0) + v(0)*t + 0.5*a*t^2
+	
+	//dx += (x_velocity / 256.0) * time + 0.5 * (x_acceleration / 256.0) * time * time;
+	//dy += (y_velocity / 256.0) * time + 0.5 * (y_acceleration / 256.0) * time * time;
 	
 	/*
 	 * This is based on observation and rough guesswork; be warned when referencing this implementation
@@ -59,13 +83,57 @@ public class Translation
 	public void doTick()
 	{
 		// x(t) = x0 + v0*t + 1/2*a*t^2
-
+		
+		// translation effect
+		//dx += (x_velocity / 256.0) * time + 0.5 * (x_acceleration / 256.0) * time * time;
+		//dy += (y_velocity / 256.0) * time + 0.5 * (y_acceleration / 256.0) * time * time;
+		
+		// TODO make this a more efficient check, like once per setIndex()
+		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0)
+		{
+			//float time = getDuration() - mTranslationDuration;
+			float time;
+			
+			if(getDuration() != 0) time = mTicker % getDuration();
+			else time = mTicker;
+			
+			mHorizontalOffset = mHorizontalInitial + mHorizontalVelocity * time + 0.5f * mHorizontalAcceleration * time * time;
+			mVerticalOffset = mVerticalInitial + mVerticalVelocity * time + 0.5f * mVerticalAcceleration * time * time;
+			
+			mTicker++;
+		}
+		
 		if(mTranslationDuration != 0)
 		{
 			mTranslationDuration--;
 			
-			mHorizontalVelocity += (float)getHorizontalAcceleration() / 256.0f;
-			mHorizontalOffset += mHorizontalVelocity;
+			if(mTranslationDuration == 0)
+			{
+				mIndex++;
+				
+				mHorizontalInitial = mHorizontalOffset;
+				mVerticalInitial = mVerticalOffset;
+				
+				if(mIndex >= mNumberOfTranslations)
+				{
+					mIndex = 0;
+					mTicker = 0;
+				}
+				
+				setIndex(mIndex);
+			}
+		}
+
+		/*
+		if(mTranslationDuration != 0)
+		{
+			mTranslationDuration--;
+			
+			float time = getDuration() - mTranslationDuration;
+			
+			//mHorizontalVelocity += (float)getHorizontalAcceleration() / 256.0f;
+			mHorizontalVelocity = 0 + getHorizontalAcceleration() / 256.0f * time;
+			mHorizontalOffset = 0 + getHorizontalVelocity() * time + 0.5f * getHorizontalAcceleration() * time * time;
 			
 			mVerticalVelocity += (float)getVerticalAcceleration() / 256.0f;
 			mVerticalOffset += mVerticalVelocity;
@@ -91,7 +159,8 @@ public class Translation
 				
 				
 			}
-		}
+			
+		}*/
 	}
 	
 	public void dump(int index)
@@ -99,9 +168,9 @@ public class Translation
 		//int original = index;
 		//setIndex(index);
 		Log.d("Translation", "duration: " + getDuration());
-		Log.d("Translation", "horizontal offset: " + getHorizontalOffset());
+		Log.d("Translation", "horizontal velocity: " + getHorizontalVelocity());
 		Log.d("Translation", "horizontal accel: " + getHorizontalAcceleration());
-		Log.d("Translation", "vertical offset: " + getVerticalOffset());
+		Log.d("Translation", "vertical velocity: " + getVerticalVelocity());
 		Log.d("Translation", "vertical accel: " + getVerticalAcceleration());
 		//setIndex(original);
 	}
@@ -111,7 +180,7 @@ public class Translation
 		return ROMUtil.unsigned(data[mIndex].getShort(0));
 	}
 	
-	public int getHorizontalOffset()
+	public int getHorizontalVelocity()
 	{
 		return data[mIndex].getShort(2);
 	}
@@ -126,7 +195,7 @@ public class Translation
 		return mNumberOfTranslations;
 	}
 	
-	public int getVerticalOffset()
+	public int getVerticalVelocity()
 	{
 		return data[mIndex].getShort(4);
 	}
@@ -147,6 +216,12 @@ public class Translation
 			data[i] = translationData.slice();
 		}
 		
+		mHorizontalOffset = 0;
+		mVerticalOffset = 0;
+		mHorizontalInitial = 0;
+		mVerticalInitial = 0;
+		mTicker = 0;
+		
 		setIndex(0);
 	}
 	
@@ -158,7 +233,9 @@ public class Translation
 		mIndex = index;
 		
 		mTranslationDuration = getDuration();
-		mHorizontalOffset = getHorizontalOffset();
-		mVerticalOffset = getVerticalOffset();
+		mHorizontalAcceleration = getHorizontalAcceleration() / 256.0f;
+		mVerticalAcceleration = getVerticalAcceleration() / 256.0f;
+		mHorizontalVelocity = getHorizontalVelocity() / 256.0f;
+		mVerticalVelocity = getVerticalVelocity() / 256.0f;
 	}
 }
