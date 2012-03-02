@@ -31,7 +31,7 @@ uniform int u_dist_type;
 
 void main()
 {
-	vec2 resolution = vec2(255.0, 255.0);
+	vec2 resolution = vec2(256.0, 256.0);
 	vec2 offset = vec2(0.0, 0.0);
 	
 	float time = mod(float(u_tick), u_dist_duration);
