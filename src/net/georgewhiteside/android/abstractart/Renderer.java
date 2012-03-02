@@ -48,10 +48,6 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mTickLoc;
 	private int mOffsetLoc;
 	private int mDistortionDurationLoc;
-
-	// TODO: can the translation durations be easily worked into the shader programs instead? does the same even need to be done for the distortion durations?
-//	private float mTranslationDuration;
-//	private int mTranslationDurationLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -96,6 +92,13 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// used to update shader variables here; remove me
 		
+		
+		
+		if(bbg.layerA.distortion.hasCycled() == true)
+		{
+			mTick = 0;
+		}
+		
 		if(mHighRes)
 		{
 			renderBattleBackground();
@@ -107,10 +110,10 @@ public class Renderer implements GLSurfaceView.Renderer
 			
 		mFPSCounter.logEndFrame();
 		
-		mTick += 1;
-		
 		bbg.layerA.distortion.doTick();
 		bbg.layerA.translation.doTick();	
+		
+		mTick += 1;
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -225,7 +228,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		mDistortionDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_duration");
 		mTickLoc = GLES20.glGetUniformLocation(mProgram, "u_tick");
 		mOffsetLoc = GLES20.glGetUniformLocation(mProgram, "scroll");
-//		mTranslationDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_trans_duration");
 		
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
@@ -252,18 +254,9 @@ public class Renderer implements GLSurfaceView.Renderer
 	private void updateShaderVariables()
 	{
 		// glUniform* calls always act on the current program that is bound with glUseProgram
-		
 		// have this method take an argument to determine which program to apply to
 		
 		Layer layerA = bbg.getLayerA();
-		
-		// 
-		
-
-
-		
-
-//		mTranslationDuration = layerA.translation.getDuration();
 		
 		// update distortion effect variables for the shader program
 		

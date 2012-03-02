@@ -36,7 +36,7 @@ Animation Bank
 // TODO: background 34 doesn't render correctly, related to cycling code?
 // fixed xTODO: background index 59 (layer index 43) incorrect, keeps increasing each iteration
 // TODO: is 31(21) correct? must be some sort of skew parameter possibly...? also, should it have the very slight jump? see http://youtu.be/9XGrP7zrVUE?t=3m44s
-// TODO: 220 (223) glitchy on transition (along with some others) 221
+// TODO: is 220 (223) 100% correct? I see a *very* minor jump at the transition from effect 3 -> 0, like a single frame is skipped; verify against SNES 
 // TODO: 129 & 130 are pretty glitchy
 
 // 0BDA9A-0BE229 (000790) = Battle Group BG Association Data
