@@ -60,11 +60,14 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int[] mRenderTexture = new int[1];
 	
 	private Boolean mHighRes = false;
+	private Boolean mFilterOutput = true;
 	
 	private BattleBackground bbg;
 	private int temp;
 	
 	private FloatBuffer textureVertexBufferUpsideDown;
+	
+	ByteBuffer byteBuffer;
 	
 	public void RandomBackground()
 	{
@@ -82,6 +85,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		mContext = context;
 		mTick = 0;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
+		byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -248,6 +252,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		//temp = 75; // 0-duration linear translation
 		
 		temp = 220;
+		temp = 113;
+		temp = 206;
 		
 		mBaseMapTexId = loadBattleBackground(temp);
 		
@@ -294,7 +300,7 @@ public class Renderer implements GLSurfaceView.Renderer
 
 		
 		int[] textureId = new int[1];
-		ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
+		//ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
         byteBuffer.put(data).position(0);
             
         GLES20.glGenTextures ( 1, textureId, 0 );
@@ -302,8 +308,10 @@ public class Renderer implements GLSurfaceView.Renderer
 
         GLES20.glTexImage2D ( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, byteBuffer );
     
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST );
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST );
+        int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
+        
+        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
+        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
         GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT );
         GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT );
         
