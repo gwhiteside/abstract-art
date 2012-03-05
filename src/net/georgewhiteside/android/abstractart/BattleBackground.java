@@ -53,6 +53,7 @@ public class BattleBackground
 	private static final int OFFSET = 0xA0200;
 	
 	private ByteBuffer romData;
+	private int currentIndex;
 
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
@@ -74,6 +75,8 @@ public class BattleBackground
 
 		layerA = new Layer(romData);
 		layerB = new Layer(romData);
+		
+		currentIndex = -1;
 	}
 	
 	public Layer getLayerA()
@@ -163,8 +166,12 @@ public class BattleBackground
 	
 	public void setIndex(int index)
 	{
-		Log.d(TAG, "background group index: " + index);
-		setLayers(layerTable[index][0], layerTable[index][1]);
+		if(currentIndex != index)
+		{
+			Log.d(TAG, "background group index: " + index);
+			setLayers(layerTable[index][0], layerTable[index][1]);
+			currentIndex = index;
+		}
 	}
 	
 	public void setLayers(int A, int B)

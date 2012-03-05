@@ -256,7 +256,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		temp = 206;
 		temp = 223;
 		
-		mBaseMapTexId = loadBattleBackground(temp);
+		loadBattleBackground(temp);
 		
 	}
 	
@@ -289,7 +289,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glUniform2f(mOffsetLoc, layerA.translation.getHorizontalOffset(), layerA.translation.getVerticalOffset());
 	}
 	
-	private int loadBattleBackground(int index)
+	public void loadBattleBackground(int index)
 	{	
 		//bbg.setLayers(296, 296);
 		bbg.setIndex(index);
@@ -317,8 +317,6 @@ public class Renderer implements GLSurfaceView.Renderer
         GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT );
         
         mBaseMapTexId = textureId[0];
-        
-        return textureId[0];
 	}
 	
 	private void renderToTexture() // "low res" render
