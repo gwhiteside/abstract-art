@@ -5,12 +5,12 @@
 //entries. The number of vec4 uniform entries that can actually be used 
 //by a developer can vary from implementation to implementation and 
 //from one fragment shader to another. This issue is described in 
-//Chapter 8, Vertex Shaders, and the same issue applies to fragment 
+//Chapter 8, “Vertex Shaders,” and the same issue applies to fragment 
 //shaders.
 
 // see also OpenGL ES 2.0 Programming Guide, pg. 158
 
-precision mediump float;
+precision highp float;
 
 varying vec2 v_texCoord;
 uniform sampler2D s_texture;

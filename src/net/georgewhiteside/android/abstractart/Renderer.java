@@ -52,6 +52,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
+	private float mRenderWidth;
+	private float mRenderHeight;
 	
 	private int hMVPMatrix;
 	private float[] mProjMatrix = new float[16];
@@ -94,6 +96,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
+		mRenderWidth = mSurfaceWidth;
+		mRenderHeight = mSurfaceHeight;
 		
 		// used to update shader variables here; remove me
 		
@@ -254,7 +258,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		temp = 220;
 		temp = 113;
 		temp = 206;
-		temp = 223;
+		temp = 139;
 		
 		loadBattleBackground(temp);
 		
@@ -269,7 +273,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update shader resolution
 		
-		GLES20.glUniform2f(mResolutionLoc, (float)mSurfaceWidth, (float)mSurfaceHeight);
+		GLES20.glUniform2f(mResolutionLoc, mRenderWidth, mRenderHeight);
 		
 		// update distortion effect variables for the shader program
 		
@@ -322,6 +326,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	private void renderToTexture() // "low res" render
 	{
 		GLES20.glViewport(0, 0, 256, 256);	// render to native texture size, scale up later
+		mRenderWidth = 256.0f;
+		mRenderHeight = 256.0f;
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
