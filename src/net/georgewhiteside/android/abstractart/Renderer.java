@@ -59,7 +59,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int[] mRenderTexture = new int[1];
 	
 	private Boolean mHighRes = false;
-	private Boolean mFilterOutput = true;
+	private Boolean mFilterOutput = false;
 	
 	private BattleBackground bbg;
 	private int temp;
@@ -84,8 +84,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		mContext = context;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
-		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 3);
-		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 3);
+		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 4);
+		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 4);
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -183,14 +183,17 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		setupQuad();
 		
-		GLES20.glClearColor( 0.5f, 0.5f, 0.5f, 0.0f );	// set surface background color
+		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
 		GLES20.glDisable(GLES20.GL_DITHER); // dithering causes really crappy/distracting visual artifacts when distorting the textures
+		
+		GLES20.glEnable(GLES20.GL_BLEND);
+		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
 		
 		/* */
 		GLES20.glGenFramebuffers(1, mFramebuffer, 0);
 		GLES20.glGenTextures(1, mRenderTexture, 0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mRenderTexture[0]);
-		GLES20.glTexImage2D( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, null );//GLES20.GL_UNSIGNED_SHORT_5_6_5, null ); //GLES20.GL_UNSIGNED_BYTE, null );
+		GLES20.glTexImage2D( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null );//GLES20.GL_UNSIGNED_SHORT_5_6_5, null ); //GLES20.GL_UNSIGNED_BYTE, null );
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
@@ -288,8 +291,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	public void loadBattleBackground(int index)
 	{	
-		bbg.setLayers(168, 167);
-		//bbg.setIndex(index);
+		//bbg.setLayers(172, 171);
+		bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
@@ -309,7 +312,7 @@ public class Renderer implements GLSurfaceView.Renderer
         
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
 
-        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, mTextureA);
+        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mTextureA);
         
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
@@ -326,7 +329,7 @@ public class Renderer implements GLSurfaceView.Renderer
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
 
-        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, mTextureB);
+        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mTextureB);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);

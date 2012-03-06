@@ -23,7 +23,21 @@ void main()
 	vec4 colorA = texture2D(s_textureA, offsetA + v_texCoord);
 	vec4 colorB = texture2D(s_textureB, offsetB + v_texCoord);
 	
-	gl_FragColor = (colorA + colorB) * 0.5;
+
+	//colorB.a *= 0.5;
+	//gl_FragColor.a = colorB.a + colorA.a - (colorB.a * colorA.a);
+	//gl_FragColor.rgb = (1.0 - (colorB.a / gl_FragColor.a)) * colorA.rgb + (colorB.a / gl_FragColor.a) * ((1.0 - colorA.a) * colorB.rgb + colorA.a * colorB.rgb);
+	
+	
+	// blend(src, dest) = source.rgb * source.a + dest.rgb * (1 - source.a)
+	colorB.a *= 0.5;
+	gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);
+	gl_FragColor.a = 1.0;
+	
+	
+	
+
+	//gl_FragColor = (colorA + colorB) * 0.5;
 }
 
 vec2 compute_offset(int layer)

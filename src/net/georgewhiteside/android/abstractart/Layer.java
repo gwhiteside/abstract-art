@@ -61,7 +61,7 @@ public class Layer
  	
 	public Layer(ByteBuffer data)
 	{
-		image = new byte[256 * 256 * 3];
+		image = new byte[256 * 256 * 4];
 		romData = data;
 	}
 	
@@ -225,14 +225,15 @@ public class Layer
 						else
 						py = (y * 8) + j;
 
-						int rowstride = 3*256;
-						int pos = (px * 3) + (py * rowstride);
+						int rowstride = 4*256;
+						int pos = (px * 4) + (py * rowstride);
 						
 						int index = tiles.get(tile)[i][j];
 						
 						image[pos + 0] = palette[subpal][index][0];
 						image[pos + 1] = palette[subpal][index][1];
 						image[pos + 2] = palette[subpal][index][2];
+						image[pos + 3] = (byte)(index == 0 ? 0x00 : 0xFF);
 					}
 				}
 			}
