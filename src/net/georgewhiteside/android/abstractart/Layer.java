@@ -280,4 +280,9 @@ public class Layer
 		}
 		return image;
 	}
+	
+	public int getIndex()
+	{
+		return loadedIndex;
+	}
 }
