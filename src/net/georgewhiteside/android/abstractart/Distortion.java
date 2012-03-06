@@ -52,7 +52,8 @@ public class Distortion
 	// variables to track distortion sequence cycling
 	private int mEffectDuration;
 	private int mCurrentEffect;
-	private boolean mHasCycled;
+	
+	private int mTick;
 	
 	public Distortion(ByteBuffer distortionData, ByteBuffer distortionIndices)
 	{
@@ -60,14 +61,47 @@ public class Distortion
 		
 	}
 	
-	public boolean hasCycled()
+	public float computeShaderAmplitude()
 	{
-		return mHasCycled;
+		// returns C1 * amplitude
+		// where C1 = 1.0 / 512.0
+		// where amplitude = u_ampl + u_ampl_delta * time
+		double amplitude = getAmplitude() + getAmplitudeDelta() * mTick;
+		amplitude /= 512.0;
+		return (float)amplitude;
 	}
+	
+	public float computeShaderCompression()
+	{
+		// returns compression
+		// where compression = u_comp + u_comp_delta * time
+		double compression = getCompression() + getCompressionDelta() * mTick;
+		return (float)compression;
+	}
+	
+	public float computeShaderFrequency()
+	{
+		// returns C2 * frequency
+		// where C2 = 0.000095873799 = 8.0 * PI / (1024.0 * 256.0);
+		// where frequency = u_freq + u_freq_delta * time
+		
+		double frequency = getFrequency() + getFrequencyDelta() * mTick;
+		frequency *= 8.0 * Math.PI / (1024.0 * 256.0);
+		return (float)frequency;
+	}
+	
+	public float computeShaderSpeed()
+	{
+		// returns C3 * u_speed * u_tick
+		// where C3 = PI / 120.0
+		
+		return (float)(Math.PI * getSpeed() * mTick) / 120.0f;
+	}
+	
+	
 	
 	public void doTick()
 	{
-		mHasCycled = false;
 		if(mEffectDuration != 0)
 		{
 			mEffectDuration--;
@@ -79,11 +113,14 @@ public class Distortion
 				{
 					mCurrentEffect = 0;
 				}
-				setIndex(mCurrentEffect);
+				setIndex(mCurrentEffect); // also loads next mEffectDuration and resets mTick to 0
 				
 				Log.d("Distortion", "effect change: " + mCurrentEffect);
+				return;
 			}
 		}
+		
+		mTick++;
 	}
 	
 	public void dump(int index)
@@ -187,7 +224,7 @@ public class Distortion
 		
 		mEffectDuration = getDuration();
 		mCurrentEffect = getIndex();
-		mHasCycled = true;
+		mTick = 0;
 	}
 	
 	

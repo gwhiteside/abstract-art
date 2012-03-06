@@ -1,53 +1,26 @@
-//gl_MaxFragmentUniformVectors
-//This is the maximum number of 
-//vec4 uniform entries that can be used inside a fragment shader. The 
-//minimum value supported by all ES 2.0 implementations is 16 vec4
-//entries. The number of vec4 uniform entries that can actually be used 
-//by a developer can vary from implementation to implementation and 
-//from one fragment shader to another. This issue is described in 
-//Chapter 8, “Vertex Shaders,” and the same issue applies to fragment 
-//shaders.
-
-// see also OpenGL ES 2.0 Programming Guide, pg. 158
-
-precision highp float;
+precision mediump float;
 
 varying vec2 v_texCoord;
 uniform sampler2D s_texture;
-uniform int u_tick;
 
 uniform vec2 resolution;
 
 uniform float u_ampl, u_freq, u_comp;
-uniform float u_ampl_delta, u_freq_delta, u_comp_delta;
 uniform float u_speed;
-uniform float u_dist_duration;
 
 uniform vec2 scroll;
 
 uniform int u_dist_type;
 
-#define C1 0.001953125		// 1.0 / 512.0; // amplitude unit is 1/512ths of a pixel
-#define C2 0.000095873799	// 8.0 * PI / (1024.0 * 256.0);
-#define C3 0.026179939		// PI / 120.0; // or 60?
-
 void main()
 {
 	vec2 offset = vec2(0.0, 0.0);
 	
-	float time = mod(float(u_tick), u_dist_duration);
-	
-	//float amplitude = (u_ampl + u_ampl_delta * u_tick * 2.0);
-	//float frequency = (u_freq + u_freq_delta * u_tick * 2.0);
-	float amplitude = (u_ampl + u_ampl_delta * time); // 
-	float frequency = (u_freq + u_freq_delta * time); //
-	float compression = (u_comp + u_comp_delta * time); // "time" necessary for correct compression effect
-	
 	float y = v_texCoord.y * resolution.y;
-
-	float dist = (C1 * amplitude * sin(C2 * frequency * y + C3 * u_speed * time));
-
-	if(u_dist_type == 0)	// none
+	
+	float dist = (u_ampl * sin(u_freq * y + u_speed));
+	
+	if(u_dist_type == 0)		// none
 	{
 		offset.x = 0.0;
 	}
@@ -62,23 +35,15 @@ void main()
 	else if(u_dist_type == 3)	// vertical effect
 	{
 		offset.y = mod(dist, resolution.y);
-		//dy = mod(y * (compression / 256.0) + dist, 256.0);
-		//if(dy < 0.0) dy = 256.0 + dy;
-		//if(dy > 255.0) dy = 256.0 - dy;
 	}
-	else
+	else						// well this is awkward
 	{
-		// well this is awkward
+		
 	}
 	
-	// compression effect
-	offset.y += (y * (compression / resolution.y));
+	offset.y += (y * (u_comp / resolution.y));	// compression effect
+	offset += scroll;							// translation effect
+	offset /= resolution;						// scale values down to 0.0-1.0
 	
-	// translation effect
-	offset += scroll;
-	
-	// scale values down to 0.0-1.0
-	offset /= resolution;
-
 	gl_FragColor = texture2D(s_texture, offset + v_texCoord );
 }

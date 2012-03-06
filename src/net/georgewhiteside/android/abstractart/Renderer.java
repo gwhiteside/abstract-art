@@ -39,16 +39,11 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mBaseMapTexId;
 	private int mBaseMapLoc, hBaseMap;
 	
-	private int mTick;
-	
 	private int mResolutionLoc;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
-	private int mAmplitudeDeltaLoc, mFrequencyDeltaLoc, mCompressionDeltaLoc;
 	private int mSpeedLoc;
 	private int mDistTypeLoc;
-	private int mTickLoc;
 	private int mOffsetLoc;
-	private int mDistortionDurationLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -85,14 +80,13 @@ public class Renderer implements GLSurfaceView.Renderer
 		//temp = rand.nextInt(327);
 		
 		mContext = context;
-		mTick = 0;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
 		byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
 	}
 	
 	public void onDrawFrame(GL10 unused)
 	{
-		mFPSCounter.logFrame();
+		//mFPSCounter.logFrame();
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
@@ -100,13 +94,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		mRenderHeight = mSurfaceHeight;
 		
 		// used to update shader variables here; remove me
-		
-		
-		
-		if(bbg.layerA.distortion.hasCycled() == true)
-		{
-			mTick = 0;
-		}
 		
 		if(mHighRes)
 		{
@@ -117,12 +104,10 @@ public class Renderer implements GLSurfaceView.Renderer
 			renderToTexture();
 		}
 			
-		mFPSCounter.logEndFrame();
+		//mFPSCounter.logEndFrame();
 		
 		bbg.layerA.distortion.doTick();
 		bbg.layerA.translation.doTick();	
-		
-		mTick += 1;
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -231,13 +216,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		mAmplitudeLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl");
 		mFrequencyLoc = GLES20.glGetUniformLocation(mProgram, "u_freq");
 		mCompressionLoc = GLES20.glGetUniformLocation(mProgram, "u_comp");
-		mAmplitudeDeltaLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl_delta");
-		mFrequencyDeltaLoc = GLES20.glGetUniformLocation(mProgram, "u_freq_delta");
-		mCompressionDeltaLoc = GLES20.glGetUniformLocation(mProgram, "u_comp_delta");
 		mSpeedLoc = GLES20.glGetUniformLocation(mProgram, "u_speed");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
-		mDistortionDurationLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_duration");
-		mTickLoc = GLES20.glGetUniformLocation(mProgram, "u_tick");
 		mOffsetLoc = GLES20.glGetUniformLocation(mProgram, "scroll");
 		
 		Random rand = new Random();
@@ -260,6 +240,10 @@ public class Renderer implements GLSurfaceView.Renderer
 		temp = 113;
 		temp = 206;
 		temp = 139;
+		//temp = 42;
+		//temp = 89;
+		temp = 120;
+		temp = 52;
 		
 		loadBattleBackground(temp);
 		
@@ -278,16 +262,11 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update distortion effect variables for the shader program
 		
-		GLES20.glUniform1f(mAmplitudeLoc, layerA.distortion.getAmplitude());
-		GLES20.glUniform1f(mFrequencyLoc, layerA.distortion.getFrequency());
-		GLES20.glUniform1f(mCompressionLoc, layerA.distortion.getCompression());
-		GLES20.glUniform1f(mAmplitudeDeltaLoc, layerA.distortion.getAmplitudeDelta());
-		GLES20.glUniform1f(mFrequencyDeltaLoc, layerA.distortion.getFrequencyDelta());
-		GLES20.glUniform1f(mCompressionDeltaLoc, layerA.distortion.getCompressionDelta());
-		GLES20.glUniform1f(mSpeedLoc, layerA.distortion.getSpeed());
+		GLES20.glUniform1f(mAmplitudeLoc, layerA.distortion.computeShaderAmplitude());
+		GLES20.glUniform1f(mFrequencyLoc, layerA.distortion.computeShaderFrequency());
+		GLES20.glUniform1f(mCompressionLoc, layerA.distortion.computeShaderCompression());
+		GLES20.glUniform1f(mSpeedLoc, layerA.distortion.computeShaderSpeed());
 		GLES20.glUniform1i(mDistTypeLoc, layerA.distortion.getType() == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : layerA.distortion.getType()); // TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
-		GLES20.glUniform1f(mDistortionDurationLoc, layerA.distortion.getDuration());
-		GLES20.glUniform1i(mTickLoc, mTick);
 		
 		// update translation effect variables for the shader program
 		
@@ -299,7 +278,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		//bbg.setLayers(296, 296);
 		bbg.setIndex(index);
 		byte[] data = bbg.getLayerA().getImage();
-		mTick = 0;
 		
 		bbg.layerA.distortion.dump(0);
 		bbg.layerA.translation.dump(0);
