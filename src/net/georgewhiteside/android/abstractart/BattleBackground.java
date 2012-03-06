@@ -33,6 +33,16 @@ Animation Bank
 			added distortion effect cycling
 */
 
+/*
+
+SNES BG3 (main) and BG4 (sub)
+
+"In all modes and for all BGs, color 0 in any palette is considered transparent."
+ 
+*/
+
+// spiteful crow entry rom location: 0xAE930
+
 // TODO: background 34 doesn't render correctly, related to cycling code?
 // fixed xTODO: background index 59 (layer index 43) incorrect, keeps increasing each iteration
 // TODO: is 31(21) correct? must be some sort of skew parameter possibly...? also, should it have the very slight jump? see http://youtu.be/9XGrP7zrVUE?t=3m44s
@@ -169,7 +179,18 @@ public class BattleBackground
 		if(currentIndex != index)
 		{
 			Log.d(TAG, "background group index: " + index);
-			setLayers(layerTable[index][0], layerTable[index][1]);
+			int layerA = layerTable[index][0];
+			int layerB = layerTable[index][1];
+			
+			if(layerB == 0)
+			{
+				// the blend function for the two layers in the fragment shader is layerA * 0.5 + layerB * 0.5
+				// so if layerB == 0, 0 being the blank/black layer, single-layer backgrounds are too dark.
+				// TODO just don't compute or blend the second layer altogether if it's 0; this is just a quick hack to test the blending
+				layerB = layerA;
+			}
+			
+			setLayers(layerA, layerB);
 			currentIndex = index;
 		}
 	}

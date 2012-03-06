@@ -37,13 +37,15 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mPositionHandle, hPosition;
 	private int mTextureHandle, hTexture;
 	private int mBaseMapTexId;
-	private int mBaseMapLoc, hBaseMap;
+	private int mTextureALoc, hTextureA;
+	private int mTextureBLoc;
+	private int hBaseMap;
 	
 	private int mResolutionLoc;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
 	private int mSpeedLoc;
 	private int mDistTypeLoc;
-	private int mOffsetLoc;
+	private int mOffsetXLoc, mOffsetYLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -64,7 +66,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	private FloatBuffer textureVertexBufferUpsideDown;
 	
-	ByteBuffer byteBuffer;
+	int[] mTextureId = new int[2];
+	ByteBuffer mTextureA, mTextureB;
 	
 	public void RandomBackground()
 	{
@@ -81,7 +84,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		mContext = context;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
-		byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
+		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 3);
+		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 3);
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -108,6 +112,9 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		bbg.layerA.distortion.doTick();
 		bbg.layerA.translation.doTick();	
+		
+		bbg.layerB.distortion.doTick();
+		bbg.layerB.translation.doTick();	
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -210,7 +217,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
-		mBaseMapLoc = GLES20.glGetUniformLocation(mProgram, "s_texture"); // get sampler locations
+		mTextureALoc = GLES20.glGetUniformLocation(mProgram, "s_textureA"); // get sampler locations
+		mTextureBLoc = GLES20.glGetUniformLocation(mProgram, "s_textureB"); // get sampler locations
 		
 		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
 		mAmplitudeLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl");
@@ -218,7 +226,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		mCompressionLoc = GLES20.glGetUniformLocation(mProgram, "u_comp");
 		mSpeedLoc = GLES20.glGetUniformLocation(mProgram, "u_speed");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
-		mOffsetLoc = GLES20.glGetUniformLocation(mProgram, "scroll");
+		mOffsetXLoc = GLES20.glGetUniformLocation(mProgram, "scroll_x");
+		mOffsetYLoc = GLES20.glGetUniformLocation(mProgram, "scroll_y");
 		
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
@@ -244,6 +253,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		//temp = 89;
 		temp = 120;
 		temp = 52;
+		temp = 149;
 		
 		loadBattleBackground(temp);
 		
@@ -255,6 +265,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		// have this method take an argument to determine which program to apply to
 		
 		Layer layerA = bbg.getLayerA();
+		Layer layerB = bbg.getLayerB();
 		
 		// update shader resolution
 		
@@ -262,44 +273,65 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update distortion effect variables for the shader program
 		
-		GLES20.glUniform1f(mAmplitudeLoc, layerA.distortion.computeShaderAmplitude());
-		GLES20.glUniform1f(mFrequencyLoc, layerA.distortion.computeShaderFrequency());
-		GLES20.glUniform1f(mCompressionLoc, layerA.distortion.computeShaderCompression());
-		GLES20.glUniform1f(mSpeedLoc, layerA.distortion.computeShaderSpeed());
-		GLES20.glUniform1i(mDistTypeLoc, layerA.distortion.getType() == Distortion.UNKNOWN ? Distortion.HORIZONTAL_INTERLACED : layerA.distortion.getType()); // TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
+		GLES20.glUniform2f(mAmplitudeLoc, layerA.distortion.computeShaderAmplitude(), layerB.distortion.computeShaderAmplitude());
+		GLES20.glUniform2f(mFrequencyLoc, layerA.distortion.computeShaderFrequency(), layerB.distortion.computeShaderFrequency());
+		GLES20.glUniform2f(mCompressionLoc, layerA.distortion.computeShaderCompression(), layerB.distortion.computeShaderCompression());
+		GLES20.glUniform2f(mSpeedLoc, layerA.distortion.computeShaderSpeed(), layerB.distortion.computeShaderSpeed());
+		GLES20.glUniform2i(mDistTypeLoc, layerA.distortion.getType(), layerB.distortion.getType());
 		
 		// update translation effect variables for the shader program
 		
-		GLES20.glUniform2f(mOffsetLoc, layerA.translation.getHorizontalOffset(), layerA.translation.getVerticalOffset());
+		//GLES20.glUniform4f(mOffsetLoc, layerA.translation.getHorizontalOffset(), layerA.translation.getVerticalOffset(), layerB.translation.getHorizontalOffset(), layerB.translation.getVerticalOffset());
+		GLES20.glUniform2f(mOffsetXLoc, layerA.translation.getHorizontalOffset(), layerB.translation.getHorizontalOffset());
+		GLES20.glUniform2f(mOffsetYLoc, layerA.translation.getVerticalOffset(), layerB.translation.getVerticalOffset());
 	}
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(296, 296);
-		bbg.setIndex(index);
-		byte[] data = bbg.getLayerA().getImage();
+		bbg.setLayers(168, 167);
+		//bbg.setIndex(index);
+		byte[] dataA = bbg.getLayerA().getImage();
+		byte[] dataB = bbg.getLayerB().getImage();
+		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		
-		bbg.layerA.distortion.dump(0);
-		bbg.layerA.translation.dump(0);
-
+		//bbg.layerA.distortion.dump(0);
+		//bbg.layerA.translation.dump(0);
 		
-		int[] textureId = new int[1];
-		//ByteBuffer byteBuffer = ByteBuffer.allocateDirect(256 * 256 * 3);
-        byteBuffer.put(data).position(0);
-            
-        GLES20.glGenTextures ( 1, textureId, 0 );
-        GLES20.glBindTexture ( GLES20.GL_TEXTURE_2D, textureId[0] );
+        mTextureA.put(dataA).position(0);
+        mTextureB.put(dataB).position(0);
+          
+        GLES20.glGenTextures(2, mTextureId, 0);
+        
+        
+        
+        
+        
+        
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
 
-        GLES20.glTexImage2D ( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, byteBuffer );
-    
-        int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
+        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, mTextureA);
         
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT );
-        GLES20.glTexParameteri ( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT );
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
         
-        mBaseMapTexId = textureId[0];
+        
+        
+        
+        
+        
+        
+        
+
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
+
+        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGB, 256, 256, 0, GLES20.GL_RGB, GLES20.GL_UNSIGNED_BYTE, mTextureB);
+
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
 	}
 	
 	private void renderToTexture() // "low res" render
@@ -369,9 +401,13 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glVertexAttribPointer(mTextureHandle, 2, GLES20.GL_FLOAT, false, 8, textureVertexBuffer);
 		GLES20.glEnableVertexAttribArray(mTextureHandle);
 		
-		//GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
-		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBaseMapTexId);
-		GLES20.glUniform1i(mBaseMapLoc, 0);
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
+		GLES20.glUniform1i(mTextureALoc, 0);
+		
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
+		GLES20.glUniform1i(mTextureBLoc, 1);
 		
 		updateShaderVariables(); // be mindful of which active program this applies to!!
 		

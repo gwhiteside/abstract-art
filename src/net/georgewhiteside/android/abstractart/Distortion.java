@@ -115,7 +115,7 @@ public class Distortion
 				}
 				setIndex(mCurrentEffect); // also loads next mEffectDuration and resets mTick to 0
 				
-				Log.d("Distortion", "effect change: " + mCurrentEffect);
+				//Log.d("Distortion", "effect change: " + mCurrentEffect);
 				return;
 			}
 		}
@@ -205,9 +205,17 @@ public class Distortion
 		return data[mIndex].get(14);
 	}
 	
+	// TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
 	public int getType()
 	{
-		return data[mIndex].get(2);
+		int type = data[mIndex].get(2);
+		
+		if(type == Distortion.UNKNOWN)
+		{
+			type = Distortion.HORIZONTAL_INTERLACED;
+		}
+		
+		return type;
 	}
 	
 	public int getUnknownHH()
