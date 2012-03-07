@@ -65,7 +65,15 @@ vec2 compute_offset(int layer)
 		offset.y = mod(dist, resolution.y);
 	}
 	
-	offset.y += (y * (u_comp[layer] / resolution.y));	// compression effect
+	if(u_dist_type[layer] == 4)	// horizontal interlaced + shear
+	{
+		offset.x = floor(mod(y, 2.0)) == 0.0 ? dist : -dist;
+		offset.x += (y * (u_comp[layer] / resolution.y));
+	}
+	else
+	{
+		offset.y += (y * (u_comp[layer] / resolution.y));	// compression effect
+	}
 	
 	offset.x += scroll_x[layer];							// translation effect
 	offset.y += scroll_y[layer];

@@ -291,8 +291,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(172, 171);
-		bbg.setIndex(index);
+		bbg.setLayers(21, 0);
+		//bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;

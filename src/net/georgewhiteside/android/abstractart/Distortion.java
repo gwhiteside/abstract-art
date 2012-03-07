@@ -205,17 +205,9 @@ public class Distortion
 		return data[mIndex].get(14);
 	}
 	
-	// TODO I'm currently treating distortion type 4 as 2 ... figure it must mean "horizontal interlaced + (something else)"
 	public int getType()
 	{
-		int type = data[mIndex].get(2);
-		
-		if(type == Distortion.UNKNOWN)
-		{
-			type = Distortion.HORIZONTAL_INTERLACED;
-		}
-		
-		return type;
+		return data[mIndex].get(2);
 	}
 	
 	public int getUnknownHH()
