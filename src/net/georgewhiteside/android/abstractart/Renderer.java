@@ -115,11 +115,7 @@ public class Renderer implements GLSurfaceView.Renderer
 			
 		//mFPSCounter.logEndFrame();
 		
-		bbg.layerA.distortion.doTick();
-		bbg.layerA.translation.doTick();	
-		
-		bbg.layerB.distortion.doTick();
-		bbg.layerB.translation.doTick();	
+		bbg.doTick();
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)

@@ -69,6 +69,12 @@ public class Layer
 		romData = data;
 	}
 	
+	public void doTick()
+	{
+		distortion.doTick();
+		translation.doTick();
+	}
+	
 	public float getPaletteCycle1Begin()
 	{
 		return bgData.get(4);

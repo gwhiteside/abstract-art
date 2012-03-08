@@ -89,6 +89,12 @@ public class BattleBackground
 		currentIndex = -1;
 	}
 	
+	public void doTick()
+	{
+		layerA.doTick();
+		layerB.doTick();
+	}
+	
 	public Layer getLayerA()
 	{
 		return layerA;
