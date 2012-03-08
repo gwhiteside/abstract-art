@@ -65,6 +65,12 @@ public class Layer
 		romData = data;
 	}
 	
+	public void doTick()
+	{
+		distortion.doTick();
+		translation.doTick();
+	}
+	
 	public void load(int index)
 	{
 		if( index < 0 || index > 326 ) {

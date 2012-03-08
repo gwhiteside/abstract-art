@@ -110,11 +110,7 @@ public class Renderer implements GLSurfaceView.Renderer
 			
 		//mFPSCounter.logEndFrame();
 		
-		bbg.layerA.distortion.doTick();
-		bbg.layerA.translation.doTick();	
-		
-		bbg.layerB.distortion.doTick();
-		bbg.layerB.translation.doTick();	
+		bbg.doTick();
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -291,8 +287,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	public void loadBattleBackground(int index)
 	{	
-		bbg.setLayers(21, 0);
-		//bbg.setIndex(index);
+		//bbg.setLayers(21, 0);
+		bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
