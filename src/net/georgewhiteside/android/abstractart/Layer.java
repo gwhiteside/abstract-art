@@ -12,6 +12,8 @@ import android.util.Log;
 
 // TODO: scrolling bug on background 227?
 
+// layers with second palette cycle: 60 61 (probably others, haven't checked them all)
+
 public class Layer
 {
 	private final String TAG = "Layer";
@@ -36,7 +38,7 @@ public class Layer
 	
 	private byte[] tileData = new byte[TILE_MAX];
 	private byte[] arrangeData = new byte[ARRANGE_MAX];
-	private byte[][][] palette = new byte[8][PALETTE_MAX][3];
+	private byte[][][] paletteData = new byte[8][PALETTE_MAX][3];
 	
 	private int tileDataLength;
 	private int arrangeDataLength;	// in case I want to dynamically allocate space
@@ -44,6 +46,7 @@ public class Layer
 	private int loadedIndex = -1;
 	
 	private byte[] image;
+	private byte[] palette;
  	
  	public static final int DIST_NONE = 0;
  	public static final int DIST_HORIZONTAL = 1;
@@ -62,7 +65,28 @@ public class Layer
 	public Layer(ByteBuffer data)
 	{
 		image = new byte[256 * 256 * 4];
+		palette = new byte[16 * 1 * 4];
 		romData = data;
+	}
+	
+	public float getPaletteCycle1Begin()
+	{
+		return bgData.get(4);
+	}
+	
+	public float getPaletteCycle1End()
+	{
+		return bgData.get(5);
+	}
+	
+	public float getPaletteCycleSpeed()
+	{
+		return bgData.get(8);
+	}
+	
+	public float getPaletteCycleStep()
+	{
+		return 6;
 	}
 	
 	public void load(int index)
@@ -77,6 +101,8 @@ public class Layer
 		
 		romData.position(0xADEA1 - OFFSET + index * 17);
 		bgData = romData.slice();
+		
+		Log.d(TAG, String.format("layer %d bytes 3-8: %02X %02X %02X %02X %02X %02X", index, bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		
 		for (int i = 0; i < 4; i++) {
 			// bytes 9 - 12 are scrolling background effect indices in the 0xAF458 table; 10 bytes (5 shorts) each
@@ -141,9 +167,9 @@ public class Layer
 				r = color & 0x1F;
 				
 				// scale to rgb888 values
-				palette[p][c][0] = (byte)(r << 3 | r >> 2);
-				palette[p][c][1] = (byte)(g << 3 | g >> 2);
-				palette[p][c][2] = (byte)(b << 3 | b >> 2);
+				paletteData[p][c][0] = (byte)(r << 3 | r >> 2);
+				paletteData[p][c][1] = (byte)(g << 3 | g >> 2);
+				paletteData[p][c][2] = (byte)(b << 3 | b >> 2);
 			}
 		}
 		
@@ -230,16 +256,36 @@ public class Layer
 						
 						int index = tiles.get(tile)[i][j];
 						
-						image[pos + 0] = palette[subpal][index][0];
-						image[pos + 1] = palette[subpal][index][1];
-						image[pos + 2] = palette[subpal][index][2];
-						image[pos + 3] = (byte)(index == 0 ? 0x00 : 0xFF);
+						//image[pos + 0] = paletteData[subpal][index][0];
+						//image[pos + 1] = paletteData[subpal][index][1];
+						//image[pos + 2] = paletteData[subpal][index][2];
+						//image[pos + 3] = (byte)(index == 0 ? 0x00 : 0xFF);
+						
+						// TODO: initial palette code; just doing this inefficiently till everything gets up and running
+						image[pos + 0] = (byte)index;
+						image[pos + 1] = (byte)index;
+						image[pos + 2] = (byte)index;
+						image[pos + 3] = (byte)0xFF;
 					}
 				}
+				
+				
 			}
 			//tile_string += "\n";
 			//pal_string += "\n";
 		}
+		
+		// put together the palette image too
+		
+		subpal = 0; // just a temp thing
+		for(int i = 0; i < (1 << getBPP()); i++)
+		{
+			palette[i * 4 + 0] = paletteData[subpal][i][0];
+			palette[i * 4 + 1] = paletteData[subpal][i][1];
+			palette[i * 4 + 2] = paletteData[subpal][i][2];
+			palette[i * 4 + 3] = (byte)0xFF;
+		}
+		palette[3] = (byte)0x00; // opacity 0 for color 0
 		
 		//Log.d(TAG, tile_string + "\n\n");
 		//Log.d(TAG, pal_string);
@@ -285,5 +331,14 @@ public class Layer
 	public int getIndex()
 	{
 		return loadedIndex;
+	}
+	
+	public byte[] getPalette()
+	{
+		if(loadedIndex == -1)
+		{
+			load(0);
+		}
+		return palette;
 	}
 }

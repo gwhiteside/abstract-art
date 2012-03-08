@@ -1,12 +1,14 @@
 precision mediump float;
 
 varying vec2 v_texCoord;
-uniform sampler2D s_textureA, s_textureB;
+uniform sampler2D s_textureA, s_textureB, s_palette;
 
 uniform vec2 resolution;
 
 uniform vec2 u_ampl, u_freq, u_comp;
 uniform vec2 u_speed;
+uniform vec2 u_pal_cycle_begin, u_pal_cycle_end;
+uniform vec2 u_pal_cycle_step;
 
 uniform vec2 scroll_x;
 uniform vec2 scroll_y;
@@ -18,26 +20,35 @@ vec2 compute_offset(int layer);
 void main()
 {
 	vec2 offsetA = compute_offset(0);
-	vec2 offsetB = compute_offset(1);
+	//vec2 offsetB = compute_offset(1);
 	
-	vec4 colorA = texture2D(s_textureA, offsetA + v_texCoord);
-	vec4 colorB = texture2D(s_textureB, offsetB + v_texCoord);
 	
+	float indexA = texture2D(s_textureA, offsetA + v_texCoord).r * 16.0;
+	//float indexB = texture2D(s_textureB, offsetB + v_texCoord).r;
+	
+	
+	
+	
+	
+	
+	
+	vec4 colorA = texture2D(s_palette, vec2(indexA, 0.0));
+	//vec4 colorB = texture2D(s_palette, vec2(indexB, 0.0));
+	
+
+	gl_FragColor = colorA;
+
+
 
 	//colorB.a *= 0.5;
 	//gl_FragColor.a = colorB.a + colorA.a - (colorB.a * colorA.a);
 	//gl_FragColor.rgb = (1.0 - (colorB.a / gl_FragColor.a)) * colorA.rgb + (colorB.a / gl_FragColor.a) * ((1.0 - colorA.a) * colorB.rgb + colorA.a * colorB.rgb);
 	
 	
-	// blend(src, dest) = source.rgb * source.a + dest.rgb * (1 - source.a)
-	colorB.a *= 0.5;
-	gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);
-	gl_FragColor.a = 1.0;
-	
-	
-	
 
-	//gl_FragColor = (colorA + colorB) * 0.5;
+	//colorB.a *= 0.5;
+	//gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);
+	//gl_FragColor.a = 1.0;
 }
 
 vec2 compute_offset(int layer)
