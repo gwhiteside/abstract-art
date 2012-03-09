@@ -42,7 +42,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int hBaseMap;
 	private int mPaletteLoc;
 	
-	private int mPaletteCycleBegin, mPaletteCycleEnd, mPaletteCycleStep;
+	private int mPaletteCycleBegin, mPaletteCycleEnd, mPaletteRotation;
 	
 	private int mResolutionLoc;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
@@ -236,7 +236,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		mPaletteCycleBegin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle_begin");
 		mPaletteCycleEnd = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle_end");
-		mPaletteCycleStep = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle_step");
+		mPaletteRotation = GLES20.glGetUniformLocation(mProgram, "u_pal_rotation");
 		
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
@@ -297,12 +297,12 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		GLES20.glUniform2f(mPaletteCycleBegin, layerA.getPaletteCycle1Begin(), layerB.getPaletteCycle1Begin());
 		GLES20.glUniform2f(mPaletteCycleEnd, layerA.getPaletteCycle1End(), layerB.getPaletteCycle1End());
-		GLES20.glUniform2f(mPaletteCycleStep, layerA.getPaletteCycleStep(), layerB.getPaletteCycleStep());
+		GLES20.glUniform2f(mPaletteRotation, layerA.getPaletteRotation(), layerB.getPaletteRotation());
 	}
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(21, 0); // effect 4 (with shearing)
+		//bbg.setLayers(198, 198);
 		bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();

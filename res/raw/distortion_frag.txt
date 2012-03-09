@@ -8,7 +8,7 @@ uniform vec2 resolution;
 uniform vec2 u_ampl, u_freq, u_comp;
 uniform vec2 u_speed;
 uniform vec2 u_pal_cycle_begin, u_pal_cycle_end;
-uniform vec2 u_pal_cycle_step;
+uniform vec2 u_pal_rotation;
 
 uniform vec2 scroll_x;
 uniform vec2 scroll_y;
@@ -20,23 +20,32 @@ vec2 compute_offset(int layer);
 void main()
 {
 	vec2 offsetA = compute_offset(0);
-	//vec2 offsetB = compute_offset(1);
+	vec2 offsetB = compute_offset(1);
 	
 	
-	float indexA = texture2D(s_textureA, offsetA + v_texCoord).r * 16.0;
-	//float indexB = texture2D(s_textureB, offsetB + v_texCoord).r;
+	float indexA = texture2D(s_textureA, offsetA + v_texCoord).r * 256.0; // get index number
+	float indexB = texture2D(s_textureB, offsetB + v_texCoord).r * 256.0;
 	
+	// perform palette cycle animation
+	if(indexA >= u_pal_cycle_begin[0] && indexA <= u_pal_cycle_end[0])
+	{
+		//indexA = indexA + u_pal_cycle_begin[0]- u_pal_rotation[0] + u_pal_cycle_end[0] + 1.0;
+		indexA = mod(indexA + u_pal_rotation[0], u_pal_cycle_end[0]) + u_pal_cycle_begin[0];
+	}
+
+	if(indexB >= u_pal_cycle_begin[1] && indexB <= u_pal_cycle_end[1] + 1.0)
+	{
+		indexB = mod(indexB + u_pal_rotation[1], u_pal_cycle_end[1]) + u_pal_cycle_begin[1];
+	}
 	
-	
-	
+	indexA /= 16.0;
+	indexB /= 16.0;
 	
 	
 	
 	vec4 colorA = texture2D(s_palette, vec2(indexA, 0.0));
-	//vec4 colorB = texture2D(s_palette, vec2(indexB, 0.0));
+	vec4 colorB = texture2D(s_palette, vec2(indexB, 0.0));
 	
-
-	gl_FragColor = colorA;
 
 
 
@@ -46,9 +55,9 @@ void main()
 	
 	
 
-	//colorB.a *= 0.5;
-	//gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);
-	//gl_FragColor.a = 1.0;
+	colorB.a *= 0.5;
+	gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);
+	gl_FragColor.a = 1.0;
 }
 
 vec2 compute_offset(int layer)

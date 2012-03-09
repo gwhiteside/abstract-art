@@ -47,12 +47,21 @@ public class Layer
 	
 	private byte[] image;
 	private byte[] palette;
+	
+	private int paletteRotation;
+	private int paletteStepDirection;
+	private int mTick;
  	
- 	public static final int DIST_NONE = 0;
- 	public static final int DIST_HORIZONTAL = 1;
- 	public static final int DIST_INTERLACED = 2;
- 	public static final int DIST_VERTICAL = 3;
- 	public static final int DIST_UNKNOWN = 4;
+ 	public static final int DIST_NONE = 0x00;
+ 	public static final int DIST_HORIZONTAL = 0x01;
+ 	public static final int DIST_INTERLACED = 0x02;
+ 	public static final int DIST_VERTICAL = 0x03;
+ 	public static final int DIST_UNKNOWN = 0x04;
+ 	
+ 	public static final int CYCLE_NONE = 0x00;
+	public static final int CYCLE_ROTATE1 = 0x01;
+	public static final int CYCLE_ROTATE2 = 0x02;
+	public static final int CYCLE_PINGPONG = 0x03;
  	
  	public int getImageIndex() { return bgData.get(0); }
  	public int getPaletteIndex() { return bgData.get(1); }
@@ -73,26 +82,90 @@ public class Layer
 	{
 		distortion.doTick();
 		translation.doTick();
+		
+		// handle palette cycling animation
+		if(getPaletteCycleType() != Layer.CYCLE_NONE)
+		{
+			mTick++;
+			if(mTick == getPaletteCycleSpeed())
+			{
+				mTick = 0;
+				//paletteStep -= 1;
+				
+				switch(getPaletteCycleType())
+				{
+					case Layer.CYCLE_ROTATE1:
+					case Layer.CYCLE_ROTATE2:
+					case Layer.CYCLE_PINGPONG:
+						if(paletteRotation > getPaletteCycle1End() - getPaletteCycle1Begin())
+						{
+							paletteRotation = 0;
+						}
+						else
+						{
+							//Log.e(TAG, "palette rotation: " + paletteRotation);
+							paletteRotation += 1;
+						}
+						
+						break;
+					
+					case 23:
+						if(	paletteRotation + getPaletteCycle1Begin() > getPaletteCycle1End() && paletteStepDirection == 1 ||
+								paletteRotation + getPaletteCycle1Begin() < getPaletteCycle1Begin() && paletteStepDirection == -1 )
+						{
+							paletteStepDirection = -paletteStepDirection;
+						}
+						else
+						{
+							paletteRotation += paletteStepDirection;
+						}
+						break;
+				}
+				
+				/*if(paletteStep < getPaletteCycle1Begin())
+				{
+					paletteStep = getPaletteCycle1End();
+				}*/
+			}
+		}
 	}
 	
-	public float getPaletteCycle1Begin()
+	public int getPaletteCycle1Begin()
 	{
 		return bgData.get(4);
 	}
 	
-	public float getPaletteCycle1End()
+	public int getPaletteCycle1End()
 	{
 		return bgData.get(5);
 	}
 	
-	public float getPaletteCycleSpeed()
+	public int getPaletteCycleSpeed()
 	{
-		return bgData.get(8);
+		return ROMUtil.unsigned(bgData.get(8));
 	}
 	
-	public float getPaletteCycleStep()
+	/**
+	 * Gets the type of palette cycling animation for this layer:
+	 * 
+	 * <ul><li><code>0x00</code> - no cycling</li>
+	 * <li><code>0x01</code> - rotate right</li>
+	 * <li><code>0x02</code> - rotate right</li>
+	 * <li><code>0x03</code> - rotate right then back left</ul>
+	 * 
+	 * <p>There is very likely a difference between values <code>0x01</code> and <code>0x02</code>, but I haven't investigated it yet.</p>
+	 * 
+	 * @return the type of palette cycling animation for this layer
+	 */
+	public int getPaletteCycleType()
 	{
-		return 6;
+		// seem to have: none, rotate right?, rotate right?, and ping-pong
+		return bgData.get(3);
+	}
+	
+	public int getPaletteRotation()
+	{
+		return paletteRotation;
 	}
 	
 	public void load(int index)
@@ -190,6 +263,9 @@ public class Layer
 		}
 		
 		loadedIndex = index;
+		paletteRotation = 0;
+		paletteStepDirection = 1;
+		mTick = 0;
 		
 		romData.rewind();
 	}
