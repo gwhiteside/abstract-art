@@ -48,7 +48,7 @@ public class Layer
 	private byte[] image;
 	private byte[] palette;
 	
-	private int paletteRotation;
+	private int paletteRotation, triangle;
 	private int paletteStepDirection;
 	private int mTick;
  	
@@ -96,8 +96,7 @@ public class Layer
 				{
 					case Layer.CYCLE_ROTATE1:
 					case Layer.CYCLE_ROTATE2:
-					case Layer.CYCLE_PINGPONG:
-						if(paletteRotation > getPaletteCycle1End() - getPaletteCycle1Begin())
+						/*if(paletteRotation > getPaletteCycle1End() - getPaletteCycle1Begin())
 						{
 							paletteRotation = 0;
 						}
@@ -107,7 +106,28 @@ public class Layer
 							paletteRotation += 1;
 						}
 						
+						break;*/
+						
+					case Layer.CYCLE_PINGPONG:
+						
+						//y = abs((x++ % 6) - 3);
+						//This gives a triangular wave of period 6, oscillating between 3 and 0.
+						
+						//int cycle = getPaletteCycle1End() - getPaletteCycle1Begin();
+						//paletteRotation = Math.abs((triangle++ % (cycle * 2)) - cycle);
+						//break;
+						
+						
+						if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin()) * 2)
+						{
+							paletteRotation = 1;
+						}
+						else
+						{
+							paletteRotation++;
+						}
 						break;
+						
 					
 					case 23:
 						if(	paletteRotation + getPaletteCycle1Begin() > getPaletteCycle1End() && paletteStepDirection == 1 ||
@@ -151,7 +171,7 @@ public class Layer
 	 * <ul><li><code>0x00</code> - no cycling</li>
 	 * <li><code>0x01</code> - rotate right</li>
 	 * <li><code>0x02</code> - rotate right</li>
-	 * <li><code>0x03</code> - rotate right then back left</ul>
+	 * <li><code>0x03</code> - a sort of "mirror" palette rotation</ul>
 	 * 
 	 * <p>There is very likely a difference between values <code>0x01</code> and <code>0x02</code>, but I haven't investigated it yet.</p>
 	 * 
@@ -159,7 +179,7 @@ public class Layer
 	 */
 	public int getPaletteCycleType()
 	{
-		// seem to have: none, rotate right?, rotate right?, and ping-pong
+		// seem to have: none, rotate right?, rotate right?, and triangle
 		return bgData.get(3);
 	}
 	
@@ -263,7 +283,7 @@ public class Layer
 		}
 		
 		loadedIndex = index;
-		paletteRotation = 0;
+		paletteRotation = 0; triangle = 0;
 		paletteStepDirection = 1;
 		mTick = 0;
 		

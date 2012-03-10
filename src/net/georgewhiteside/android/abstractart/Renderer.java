@@ -295,9 +295,9 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update palette cycle
 		
-		GLES20.glUniform2f(mPaletteCycleBegin, layerA.getPaletteCycle1Begin(), layerB.getPaletteCycle1Begin());
-		GLES20.glUniform2f(mPaletteCycleEnd, layerA.getPaletteCycle1End(), layerB.getPaletteCycle1End());
-		GLES20.glUniform2f(mPaletteRotation, layerA.getPaletteRotation(), layerB.getPaletteRotation());
+		GLES20.glUniform2f(mPaletteCycleBegin, (float)layerA.getPaletteCycle1Begin(), (float)layerB.getPaletteCycle1Begin());
+		GLES20.glUniform2f(mPaletteCycleEnd, (float)layerA.getPaletteCycle1End(), (float)layerB.getPaletteCycle1End());
+		GLES20.glUniform2f(mPaletteRotation,  (float)layerA.getPaletteRotation(), (float)layerB.getPaletteRotation());
 	}
 	
 	public void loadBattleBackground(int index)
@@ -348,7 +348,7 @@ public class Renderer implements GLSurfaceView.Renderer
         
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
 
-        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 1, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
+        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 16, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
