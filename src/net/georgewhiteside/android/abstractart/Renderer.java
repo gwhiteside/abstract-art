@@ -302,8 +302,8 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(198, 198);
-		bbg.setIndex(index);
+		bbg.setLayers(198, 198);
+		//bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();
 		byte[] paletteA = bbg.getLayerA().getPalette();

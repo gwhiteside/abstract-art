@@ -61,7 +61,7 @@ public class Layer
  	public static final int CYCLE_NONE = 0x00;
 	public static final int CYCLE_ROTATE1 = 0x01;
 	public static final int CYCLE_ROTATE2 = 0x02;
-	public static final int CYCLE_PINGPONG = 0x03;
+	public static final int CYCLE_TRIANGLE = 0x03;
  	
  	public int getImageIndex() { return bgData.get(0); }
  	public int getPaletteIndex() { return bgData.get(1); }
@@ -108,17 +108,8 @@ public class Layer
 						
 						break;*/
 						
-					case Layer.CYCLE_PINGPONG:
-						
-						//y = abs((x++ % 6) - 3);
-						//This gives a triangular wave of period 6, oscillating between 3 and 0.
-						
-						//int cycle = getPaletteCycle1End() - getPaletteCycle1Begin();
-						//paletteRotation = Math.abs((triangle++ % (cycle * 2)) - cycle);
-						//break;
-						
-						
-						if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin()) * 2)
+					case Layer.CYCLE_TRIANGLE:
+						if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin() + 1) * 2)
 						{
 							paletteRotation = 1;
 						}
@@ -127,25 +118,7 @@ public class Layer
 							paletteRotation++;
 						}
 						break;
-						
-					
-					case 23:
-						if(	paletteRotation + getPaletteCycle1Begin() > getPaletteCycle1End() && paletteStepDirection == 1 ||
-								paletteRotation + getPaletteCycle1Begin() < getPaletteCycle1Begin() && paletteStepDirection == -1 )
-						{
-							paletteStepDirection = -paletteStepDirection;
-						}
-						else
-						{
-							paletteRotation += paletteStepDirection;
-						}
-						break;
 				}
-				
-				/*if(paletteStep < getPaletteCycle1Begin())
-				{
-					paletteStep = getPaletteCycle1End();
-				}*/
 			}
 		}
 	}
@@ -171,7 +144,7 @@ public class Layer
 	 * <ul><li><code>0x00</code> - no cycling</li>
 	 * <li><code>0x01</code> - rotate right</li>
 	 * <li><code>0x02</code> - rotate right</li>
-	 * <li><code>0x03</code> - a sort of "mirror" palette rotation</ul>
+	 * <li><code>0x03</code> - triangle rotation</ul>
 	 * 
 	 * <p>There is very likely a difference between values <code>0x01</code> and <code>0x02</code>, but I haven't investigated it yet.</p>
 	 * 
