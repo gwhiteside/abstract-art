@@ -49,7 +49,6 @@ public class Layer
 	private byte[] palette;
 	
 	private int paletteRotation, triangle;
-	private int paletteStepDirection;
 	private int mTick;
  	
  	public static final int DIST_NONE = 0x00;
@@ -269,8 +268,7 @@ public class Layer
 		}
 		
 		loadedIndex = index;
-		paletteRotation = 0; triangle = 0;
-		paletteStepDirection = 1;
+		paletteRotation = 0;
 		mTick = 0;
 		
 		romData.rewind();

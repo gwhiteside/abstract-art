@@ -27,10 +27,8 @@ void main()
 	float indexA = texture2D(s_textureA, offsetA + v_texCoord).r * 256.0; // get index number
 	float indexB = texture2D(s_textureB, offsetB + v_texCoord).r * 256.0;
 	
-	if(v_texCoord.y * resolution.y >= 224.0)
-		discard;
-	
 	indexA = floor(indexA + 0.5);
+	indexB = floor(indexB + 0.5);
 	
 	if(u_cycle_type[0] == 1) // circular palette rotation
 	{
@@ -89,6 +87,63 @@ void main()
 	
 	
 	
+	if(u_cycle_type[1] == 1) // circular palette rotation
+	{
+		if(indexB >= u_pal_cycle1_begin[1] - 0.5 && indexB <= u_pal_cycle1_end[1] + 0.5)
+		{
+			float range = u_pal_cycle1_end[1] - u_pal_cycle1_begin[1];
+			indexB = indexB - u_pal_rotation[1];
+			
+			if(indexB < u_pal_cycle1_begin[1]) {
+				indexB = u_pal_cycle1_end[1] + 1.0 - abs(u_pal_cycle1_begin[1] - indexB);
+			}
+		}
+	}
+	else if(u_cycle_type[1] == 2) //
+	{
+		if(indexB >= u_pal_cycle1_begin[1] - 0.5 && indexB <= u_pal_cycle1_end[1] + 0.5)
+		{
+			float range = u_pal_cycle1_end[1] - u_pal_cycle1_begin[1];
+			indexB = indexB - u_pal_rotation[1];
+			
+			if(indexB < u_pal_cycle1_begin[1]) {
+				indexB = u_pal_cycle1_end[1] + 1.0 - abs(u_pal_cycle1_begin[1] - indexB);
+			}
+		}
+		else if(indexB >= u_pal_cycle2_begin[1] - 0.5 && indexB <= u_pal_cycle2_end[1] + 0.5)
+		{
+			float range = u_pal_cycle2_end[1] - u_pal_cycle2_begin[1];
+			indexB = indexB - u_pal_rotation[1];
+			
+			if(indexB < u_pal_cycle2_begin[1]) {
+				indexB = u_pal_cycle2_end[1] + 1.0 - abs(u_pal_cycle2_begin[1] - indexB);
+			}
+		}
+	}
+	else if(u_cycle_type[1] == 3) // triangle palette rotation
+	{
+		if(indexB >= u_pal_cycle1_begin[1] - 0.5 && indexB <= u_pal_cycle1_end[1] + 0.5)
+		{
+			float range = u_pal_cycle1_end[1] - u_pal_cycle1_begin[1];
+			indexB = indexB + u_pal_rotation[1] - u_pal_cycle1_begin[1];
+			
+			range = floor(range + 0.5);
+			indexB = floor(indexB + 0.5);
+			
+			if(indexB > range * 2.0 + 1.0) {
+				indexB = u_pal_cycle1_begin[1] + (indexB - ((range * 2.0) + 2.0));
+			}
+			else if(indexB > range) {
+				indexB = u_pal_cycle1_end[1] - (indexB - (range + 1.0));
+			}
+			else {
+				indexB += u_pal_cycle1_begin[1];
+			}
+		}
+	}
+	
+	
+	
 
 	
 	indexA /= 16.0;
@@ -96,10 +151,8 @@ void main()
 	
 	
 	
-	vec4 colorA = texture2D(s_palette, vec2(indexA, 0.0));
-	//vec4 colorB = texture2D(s_palette, vec2(indexB, 0.0));
-	vec4 colorB = vec4(0.0);
-
+	vec4 colorA = texture2D(s_palette, vec2(indexA, 0.0 / 16.0));
+	vec4 colorB = texture2D(s_palette, vec2(indexB, 1.0 / 16.0));
 
 	//colorB.a *= 0.5;
 	//gl_FragColor.a = colorB.a + colorA.a - (colorB.a * colorA.a);

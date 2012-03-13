@@ -69,8 +69,8 @@ public class BattleBackground
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
 
-	public Layer layerA;
-	public Layer layerB;
+	public Layer bg3;
+	public Layer bg4;
  	
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
@@ -84,26 +84,26 @@ public class BattleBackground
 		//romData.position(0xBDA9A - OFFSET);
 		//layerAssociationTable = romData.slice();
 
-		layerA = new Layer(romData);
-		layerB = new Layer(romData);
+		bg3 = new Layer(romData);
+		bg4 = new Layer(romData);
 		
 		currentIndex = -1;
 	}
 	
 	public void doTick()
 	{
-		layerA.doTick();
-		layerB.doTick();
+		bg3.doTick();
+		bg4.doTick();
 	}
 	
-	public Layer getLayerA()
+	public Layer getBg3()
 	{
-		return layerA;
+		return bg3;
 	}
 	
-	public Layer getLayerB()
+	public Layer getBg4()
 	{
-		return layerB;
+		return bg4;
 	}
 	
 	/**
@@ -204,7 +204,7 @@ public class BattleBackground
 	
 	public void setLayers(int A, int B)
 	{
-		layerA.load(A);
-		layerB.load(B);
+		bg3.load(A);
+		bg4.load(B);
 	}
 }

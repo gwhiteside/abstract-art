@@ -246,29 +246,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
 		
-		// layer entries
-		//temp = 223; // giygas
-		//temp = 226; // giygas
-		//temp = 250; // giygas
-		//temp = 1; // spiteful crow
-		
-		//temp = 155;
-		//temp = 31;
-		//temp = 148;
-		
-		//temp = 175;	// 4-way linear translation
-		//temp = 75; // 0-duration linear translation
-		
-		temp = 220;
-		temp = 113;
-		temp = 206;
-		temp = 139;
-		//temp = 42;
-		//temp = 89;
-		temp = 120;
-		temp = 52;
-		temp = 149;
-		
 		loadBattleBackground(temp);
 		
 	}
@@ -278,8 +255,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		// glUniform* calls always act on the current program that is bound with glUseProgram
 		// have this method take an argument to determine which program to apply to
 		
-		Layer layerA = bbg.getLayerA();
-		Layer layerB = bbg.getLayerB();
+		Layer bg3 = bbg.getBg3();
+		Layer bg4 = bbg.getBg4();
 		
 		// update shader resolution
 		
@@ -287,34 +264,35 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update distortion effect variables for the shader program
 		
-		GLES20.glUniform2f(mAmplitudeLoc, layerA.distortion.computeShaderAmplitude(), layerB.distortion.computeShaderAmplitude());
-		GLES20.glUniform2f(mFrequencyLoc, layerA.distortion.computeShaderFrequency(), layerB.distortion.computeShaderFrequency());
-		GLES20.glUniform2f(mCompressionLoc, layerA.distortion.computeShaderCompression(), layerB.distortion.computeShaderCompression());
-		GLES20.glUniform2f(mSpeedLoc, layerA.distortion.computeShaderSpeed(), layerB.distortion.computeShaderSpeed());
-		GLES20.glUniform2i(mDistTypeLoc, layerA.distortion.getType(), layerB.distortion.getType());
-		GLES20.glUniform2i(mCycleTypeLoc, layerA.getPaletteCycleType(), layerB.getPaletteCycleType());
+		GLES20.glUniform2f(mAmplitudeLoc, bg3.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderAmplitude());
+		GLES20.glUniform2f(mFrequencyLoc, bg3.distortion.computeShaderFrequency(), bg4.distortion.computeShaderFrequency());
+		GLES20.glUniform2f(mCompressionLoc, bg3.distortion.computeShaderCompression(), bg4.distortion.computeShaderCompression());
+		GLES20.glUniform2f(mSpeedLoc, bg3.distortion.computeShaderSpeed(), bg4.distortion.computeShaderSpeed());
+		GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
+		GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
 		
 		// update translation effect variables for the shader program
 		
-		GLES20.glUniform2f(mOffsetXLoc, layerA.translation.getHorizontalOffset(), layerB.translation.getHorizontalOffset());
-		GLES20.glUniform2f(mOffsetYLoc, layerA.translation.getVerticalOffset(), layerB.translation.getVerticalOffset());
+		GLES20.glUniform2f(mOffsetXLoc, bg3.translation.getHorizontalOffset(), bg4.translation.getHorizontalOffset());
+		GLES20.glUniform2f(mOffsetYLoc, bg3.translation.getVerticalOffset(), bg4.translation.getVerticalOffset());
 		
 		// update palette cycle
 		
-		GLES20.glUniform2f(mPaletteCycle1Begin, (float)layerA.getPaletteCycle1Begin(), (float)layerB.getPaletteCycle1Begin());
-		GLES20.glUniform2f(mPaletteCycle1End, (float)layerA.getPaletteCycle1End(), (float)layerB.getPaletteCycle1End());
-		GLES20.glUniform2f(mPaletteCycle2Begin, (float)layerA.getPaletteCycle2Begin(), (float)layerB.getPaletteCycle2Begin());
-		GLES20.glUniform2f(mPaletteCycle2End, (float)layerA.getPaletteCycle2End(), (float)layerB.getPaletteCycle2End());
-		GLES20.glUniform2f(mPaletteRotation,  (float)layerA.getPaletteRotation(), (float)layerB.getPaletteRotation());
+		GLES20.glUniform2f(mPaletteCycle1Begin, (float)bg3.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1Begin());
+		GLES20.glUniform2f(mPaletteCycle1End, (float)bg3.getPaletteCycle1End(), (float)bg4.getPaletteCycle1End());
+		GLES20.glUniform2f(mPaletteCycle2Begin, (float)bg3.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2Begin());
+		GLES20.glUniform2f(mPaletteCycle2End, (float)bg3.getPaletteCycle2End(), (float)bg4.getPaletteCycle2End());
+		GLES20.glUniform2f(mPaletteRotation,  (float)bg3.getPaletteRotation(), (float)bg4.getPaletteRotation());
 	}
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(144, 144);
+		//bbg.setLayers(174, 173);
 		bbg.setIndex(index);
-		byte[] dataA = bbg.getLayerA().getImage();
-		byte[] dataB = bbg.getLayerB().getImage();
-		byte[] paletteA = bbg.getLayerA().getPalette();
+		byte[] dataA = bbg.getBg3().getImage();
+		byte[] dataB = bbg.getBg4().getImage();
+		byte[] paletteBg3 = bbg.getBg3().getPalette();
+		byte[] paletteBg4 = bbg.getBg4().getPalette();
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		
 		//bbg.layerA.distortion.dump(0);
@@ -322,9 +300,14 @@ public class Renderer implements GLSurfaceView.Renderer
 		
         mTextureA.put(dataA).position(0);
         mTextureB.put(dataB).position(0);
-        mPalette.put(paletteA).position(0);
         
-        GLES20.glGenTextures(2, mTextureId, 0);
+        mPalette.position(0);
+        mPalette.put(paletteBg3).position(0);
+        
+        mPalette.position(16 * 1 * 4);
+        mPalette.put(paletteBg4).position(0);
+        
+        GLES20.glGenTextures(3, mTextureId, 0);
         
         // BG3 background layer
         
@@ -339,33 +322,25 @@ public class Renderer implements GLSurfaceView.Renderer
         
         // BG4 background layer
 
-        /*GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
 
         GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mTextureB);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);*/
+        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
         
+        // palettes
         
-        
-        
-        
-        // palette
-        
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
+        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[2]);
 
-        GLES20.glTexImage2D (GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 16, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 16, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        
-        
-        
-        
 	}
 	
 	private void renderToTexture() // "low res" render
@@ -439,13 +414,13 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
 		GLES20.glUniform1i(mTextureALoc, 0);
 		
-		//GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
-		//GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
-		//GLES20.glUniform1i(mTextureBLoc, 1);
-		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
-		GLES20.glUniform1i(mPaletteLoc, 1);
+		GLES20.glUniform1i(mTextureBLoc, 1);
+		
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[2]);
+		GLES20.glUniform1i(mPaletteLoc, 2);
 		
 		updateShaderVariables(); // be mindful of which active program this applies to!!
 		
