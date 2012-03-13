@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 varying vec2 v_texCoord;
 uniform sampler2D s_textureA, s_textureB, s_palette;
@@ -7,13 +7,14 @@ uniform vec2 resolution;
 
 uniform vec2 u_ampl, u_freq, u_comp;
 uniform vec2 u_speed;
-uniform vec2 u_pal_cycle_begin, u_pal_cycle_end;
+uniform vec2 u_pal_cycle1_begin, u_pal_cycle1_end;
+uniform vec2 u_pal_cycle2_begin, u_pal_cycle2_end;
 uniform vec2 u_pal_rotation;
 
 uniform vec2 scroll_x;
 uniform vec2 scroll_y;
 
-uniform ivec2 u_dist_type;
+uniform ivec2 u_dist_type, u_cycle_type;
 
 vec2 compute_offset(int layer);
 
@@ -26,67 +27,69 @@ void main()
 	float indexA = texture2D(s_textureA, offsetA + v_texCoord).r * 256.0; // get index number
 	float indexB = texture2D(s_textureB, offsetB + v_texCoord).r * 256.0;
 	
+	if(v_texCoord.y * resolution.y >= 224.0)
+		discard;
+	
 	indexA = floor(indexA + 0.5);
 	
-	// perform palette cycle animation
-//	if(indexA >= u_pal_cycle_begin[0] - 0.5 && indexA <= u_pal_cycle_end[0] + 0.5)
+	if(u_cycle_type[0] == 1) // circular palette rotation
 	{
-//		float range;
-//		indexA += u_pal_rotation[0];
-//		indexA = floor(indexA + 0.5);
-		
-		// this type of palette cycle (type 3) looks a lot like a triangle wave (the pattern
-		// the palette index offsets make, that is)... except the actual game has the edge
-		// values twice--this skips it at the moment
-//		range = u_pal_cycle_end[0] - u_pal_cycle_begin[0];
-//		indexA = u_pal_cycle_end[0] - abs(mod(indexA, range * 2.0) - range);
-//		indexA = floor(indexA + 0.5);
+		if(indexA >= u_pal_cycle1_begin[0] - 0.5 && indexA <= u_pal_cycle1_end[0] + 0.5)
+		{
+			float range = u_pal_cycle1_end[0] - u_pal_cycle1_begin[0];
+			indexA = indexA - u_pal_rotation[0];
+			
+			if(indexA < u_pal_cycle1_begin[0]) {
+				indexA = u_pal_cycle1_end[0] + 1.0 - abs(u_pal_cycle1_begin[0] - indexA);
+			}
+		}
+	}
+	else if(u_cycle_type[0] == 2) //
+	{
+		if(indexA >= u_pal_cycle1_begin[0] - 0.5 && indexA <= u_pal_cycle1_end[0] + 0.5)
+		{
+			float range = u_pal_cycle1_end[0] - u_pal_cycle1_begin[0];
+			indexA = indexA - u_pal_rotation[0];
+			
+			if(indexA < u_pal_cycle1_begin[0]) {
+				indexA = u_pal_cycle1_end[0] + 1.0 - abs(u_pal_cycle1_begin[0] - indexA);
+			}
+		}
+		else if(indexA >= u_pal_cycle2_begin[0] - 0.5 && indexA <= u_pal_cycle2_end[0] + 0.5)
+		{
+			float range = u_pal_cycle2_end[0] - u_pal_cycle2_begin[0];
+			indexA = indexA - u_pal_rotation[0];
+			
+			if(indexA < u_pal_cycle2_begin[0]) {
+				indexA = u_pal_cycle2_end[0] + 1.0 - abs(u_pal_cycle2_begin[0] - indexA);
+			}
+		}
+	}
+	else if(u_cycle_type[0] == 3) // triangle palette rotation
+	{
+		if(indexA >= u_pal_cycle1_begin[0] - 0.5 && indexA <= u_pal_cycle1_end[0] + 0.5)
+		{
+			float range = u_pal_cycle1_end[0] - u_pal_cycle1_begin[0];
+			indexA = indexA + u_pal_rotation[0] - u_pal_cycle1_begin[0];
+			
+			range = floor(range + 0.5);
+			indexA = floor(indexA + 0.5);
+			
+			if(indexA > range * 2.0 + 1.0) {
+				indexA = u_pal_cycle1_begin[0] + (indexA - ((range * 2.0) + 2.0));
+			}
+			else if(indexA > range) {
+				indexA = u_pal_cycle1_end[0] - (indexA - (range + 1.0));
+			}
+			else {
+				indexA += u_pal_cycle1_begin[0];
+			}
+		}
+	}
+	
+	
+	
 
-		//indexA = mod(indexA + u_pal_rotation[0], u_pal_cycle_end[0]) + u_pal_cycle_begin[0];
-	}
-	
-	if(indexA >= u_pal_cycle_begin[0] - 0.5 && indexA <= u_pal_cycle_end[0] + 0.5)
-	{
-		float range = u_pal_cycle_end[0] - u_pal_cycle_begin[0];
-		indexA = indexA + u_pal_rotation[0] - u_pal_cycle_begin[0];
-		
-		range = floor(range + 0.5);
-		indexA = floor(indexA + 0.5);
-		
-		
-		if(indexA > range * 2.0 + 1.0)
-		{
-			//indexA = u_pal_cycle_begin[0] + mod(indexA, range + 1.0);
-			indexA = u_pal_cycle_begin[0] + (indexA - ((range * 2.0) + 2.0));
-		}
-		else if(indexA > range)
-		{
-			//indexA = u_pal_cycle_end[0] - mod(indexA, range + 1.0);
-			indexA = u_pal_cycle_end[0] - (indexA - (range + 1.0));
-		}
-		else
-		{
-			indexA += u_pal_cycle_begin[0];
-		}
-		
-		
-		//indexA = u_pal_cycle_end[0] - abs(mod(indexA, range * 2.0) - range);
-		//indexA = floor(indexA + 0.5);
-	}
-	
-	if(indexB >= u_pal_cycle_begin[1] - 0.5 && indexB <= u_pal_cycle_end[1] + 0.5)
-	{
-		float range;
-		indexB += u_pal_rotation[1];
-		indexB = floor(indexB + 0.5);
-		
-		// this type of palette cycle (type 3) looks a lot like a triangle wave (the pattern
-		// the palette index offsets make, that is)... except the actual game has the edge
-		// values twice--this skips it at the moment
-		range = u_pal_cycle_end[1] - u_pal_cycle_begin[1];
-		indexB = u_pal_cycle_end[1] - abs(mod(indexB, range * 2.0) - range);
-		indexB = floor(indexB + 0.5);
-	}
 	
 	indexA /= 16.0;
 	indexB /= 16.0;
@@ -101,8 +104,6 @@ void main()
 	//colorB.a *= 0.5;
 	//gl_FragColor.a = colorB.a + colorA.a - (colorB.a * colorA.a);
 	//gl_FragColor.rgb = (1.0 - (colorB.a / gl_FragColor.a)) * colorA.rgb + (colorB.a / gl_FragColor.a) * ((1.0 - colorA.a) * colorB.rgb + colorA.a * colorB.rgb);
-	
-	
 
 	colorB.a *= 0.5;
 	gl_FragColor.rgb = colorB.rgb * colorB.a + colorA.rgb * (1.0 - colorB.a);

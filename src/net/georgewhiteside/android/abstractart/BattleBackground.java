@@ -49,6 +49,7 @@ SNES BG3 (main) and BG4 (sub)
 // TODO: 129 & 130 are pretty glitchy
 // TODO: layers working on droid x: 33 34 63 84 95 110 224 225 227(briefly) 286 320
 // TODO: background index 223 works briefly, then breaks? effect 0 is fine, effect 1 is fine, then the transition to 2 breaks
+// TODO: layer 304 305 is screwy
 
 // 0BDA9A-0BE229 (000790) = Battle Group BG Association Data
 

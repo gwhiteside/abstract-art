@@ -4,8 +4,7 @@ import java.nio.ByteBuffer;
 
 import android.util.Log;
 
-/* TODO: figure this out for real... are fields 1 & 2 offset or velocity?
-
+/*
 AF458
 
 [AAAA BBBB CCCC DDDD EEEE] 10-byte entries (5 shorts)

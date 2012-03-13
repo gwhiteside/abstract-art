@@ -42,13 +42,15 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int hBaseMap;
 	private int mPaletteLoc;
 	
-	private int mPaletteCycleBegin, mPaletteCycleEnd, mPaletteRotation;
+	private int mPaletteCycle1Begin, mPaletteCycle1End, mPaletteRotation;
+	private int mPaletteCycle2Begin, mPaletteCycle2End;
 	
 	private int mResolutionLoc;
 	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
 	private int mSpeedLoc;
 	private int mDistTypeLoc;
 	private int mOffsetXLoc, mOffsetYLoc;
+	private int mCycleTypeLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -233,9 +235,12 @@ public class Renderer implements GLSurfaceView.Renderer
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
 		mOffsetXLoc = GLES20.glGetUniformLocation(mProgram, "scroll_x");
 		mOffsetYLoc = GLES20.glGetUniformLocation(mProgram, "scroll_y");
+		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 		
-		mPaletteCycleBegin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle_begin");
-		mPaletteCycleEnd = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle_end");
+		mPaletteCycle1Begin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle1_begin");
+		mPaletteCycle1End = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle1_end");
+		mPaletteCycle2Begin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle2_begin");
+		mPaletteCycle2End = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle2_end");
 		mPaletteRotation = GLES20.glGetUniformLocation(mProgram, "u_pal_rotation");
 		
 		Random rand = new Random();
@@ -287,6 +292,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glUniform2f(mCompressionLoc, layerA.distortion.computeShaderCompression(), layerB.distortion.computeShaderCompression());
 		GLES20.glUniform2f(mSpeedLoc, layerA.distortion.computeShaderSpeed(), layerB.distortion.computeShaderSpeed());
 		GLES20.glUniform2i(mDistTypeLoc, layerA.distortion.getType(), layerB.distortion.getType());
+		GLES20.glUniform2i(mCycleTypeLoc, layerA.getPaletteCycleType(), layerB.getPaletteCycleType());
 		
 		// update translation effect variables for the shader program
 		
@@ -295,15 +301,17 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update palette cycle
 		
-		GLES20.glUniform2f(mPaletteCycleBegin, (float)layerA.getPaletteCycle1Begin(), (float)layerB.getPaletteCycle1Begin());
-		GLES20.glUniform2f(mPaletteCycleEnd, (float)layerA.getPaletteCycle1End(), (float)layerB.getPaletteCycle1End());
+		GLES20.glUniform2f(mPaletteCycle1Begin, (float)layerA.getPaletteCycle1Begin(), (float)layerB.getPaletteCycle1Begin());
+		GLES20.glUniform2f(mPaletteCycle1End, (float)layerA.getPaletteCycle1End(), (float)layerB.getPaletteCycle1End());
+		GLES20.glUniform2f(mPaletteCycle2Begin, (float)layerA.getPaletteCycle2Begin(), (float)layerB.getPaletteCycle2Begin());
+		GLES20.glUniform2f(mPaletteCycle2End, (float)layerA.getPaletteCycle2End(), (float)layerB.getPaletteCycle2End());
 		GLES20.glUniform2f(mPaletteRotation,  (float)layerA.getPaletteRotation(), (float)layerB.getPaletteRotation());
 	}
 	
 	public void loadBattleBackground(int index)
 	{	
-		bbg.setLayers(198, 198);
-		//bbg.setIndex(index);
+		//bbg.setLayers(144, 144);
+		bbg.setIndex(index);
 		byte[] dataA = bbg.getLayerA().getImage();
 		byte[] dataB = bbg.getLayerB().getImage();
 		byte[] paletteA = bbg.getLayerA().getPalette();
