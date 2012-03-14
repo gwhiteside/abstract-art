@@ -204,11 +204,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		Random rand = new Random();
 		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
-		//loadBattleBackground(temp);
-		for(int i = 0; i < 5; i++)
-		{
-			loadBattleBackground(100 + i);
-		}
+		loadBattleBackground(temp);
 		
 		
 		/* shader for final output texture (the "low res") output */
