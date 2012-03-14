@@ -94,8 +94,8 @@ public class Renderer implements GLSurfaceView.Renderer
 		mContext = context;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
 		shader = new ShaderFactory();
-		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 4);
-		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 4);
+		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
+		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 	}
 	
@@ -315,7 +315,7 @@ public class Renderer implements GLSurfaceView.Renderer
         
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
 
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mTextureA);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, 256, 256, 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, mTextureA);
         
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
@@ -326,7 +326,7 @@ public class Renderer implements GLSurfaceView.Renderer
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
 
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mTextureB);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, 256, 256, 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, mTextureB);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);

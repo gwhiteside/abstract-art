@@ -8,6 +8,7 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.graphics.Bitmap;
 import android.util.Log;
 
 // TODO: scrolling bug on background 227?
@@ -73,7 +74,7 @@ public class Layer
 	
 	public Layer(ByteBuffer data)
 	{
-		image = new byte[256 * 256 * 4];
+		image = new byte[256 * 256 * 1];
 		palette = new byte[16 * 1 * 4];
 		romData = data;
 	}
@@ -282,14 +283,9 @@ public class Layer
 		int n;
 		boolean vflip, hflip;
 		
-		//String tile_string = "";
-		//String pal_string = "";
-		
 		// for every tile location
 		for (int y = 0; y < 32; y++)
 		{
-			
-			
 			for (int x = 0; x < 32; x++)
 			{
 				// prepare the attributes
@@ -304,11 +300,6 @@ public class Layer
 				hflip = (block & 0x4000) != 0;
 				subpal = (block >> 10) & 7;
 				
-				
-				
-				//tile_string += String.format("%3X ", tile);
-				//pal_string += String.format("%3X ", subpal);
-				
 				// TODO what am I doing wrong/different that I had to make this hack???
 				// BEGIN HACK
 				if(tile >= 0x80 && tile <= 0xFF) {
@@ -321,42 +312,28 @@ public class Layer
 				// END HACK
 				
 				// and draw its pixels
-				for (int i = 0; i < 8; i++) {
-					for (int j = 0; j < 8; j++) {
+				for (int i = 0; i < 8; i++)
+				{
+					for (int j = 0; j < 8; j++)
+					{
 						int px = 0, py = 0;
 						
 						if (hflip)
-						px = (x * 8) + 7 - i;
+							px = (x * 8) + 7 - i;
 						else
-						px = (x * 8) + i;
+							px = (x * 8) + i;
 
 						if (vflip)
-						py = (y * 8) + 7 - j;
+							py = (y * 8) + 7 - j;
 						else
-						py = (y * 8) + j;
+							py = (y * 8) + j;
 
-						int rowstride = 4*256;
-						int pos = (px * 4) + (py * rowstride);
+						int pos = px + (py * 256);
 						
-						int index = tiles.get(tile)[i][j];
-						
-						//image[pos + 0] = paletteData[subpal][index][0];
-						//image[pos + 1] = paletteData[subpal][index][1];
-						//image[pos + 2] = paletteData[subpal][index][2];
-						//image[pos + 3] = (byte)(index == 0 ? 0x00 : 0xFF);
-						
-						// TODO: initial palette code; just doing this inefficiently till everything gets up and running
-						image[pos + 0] = (byte)index;
-						//image[pos + 1] = (byte)index;
-						//image[pos + 2] = (byte)index;
-						image[pos + 3] = (byte)0xFF;
+						image[pos] = tiles.get(tile)[i][j];
 					}
 				}
-				
-				
 			}
-			//tile_string += "\n";
-			//pal_string += "\n";
 		}
 		
 		// put together the palette image too
@@ -370,9 +347,6 @@ public class Layer
 			palette[i * 4 + 3] = (byte)0xFF;
 		}
 		palette[3] = (byte)0x00; // opacity 0 for color 0
-		
-		//Log.d(TAG, tile_string + "\n\n");
-		//Log.d(TAG, pal_string);
 	}
 	
 	protected void BuildTiles()
@@ -387,15 +361,17 @@ public class Layer
 
 			int o = i * 8 * getBPP();
 
-			for (int x = 0; x < 8; x++)
+			for (int y = 0; y < 8; y++)
 			{
-				tiles.get(i)[x] = new byte[8];
-				for (int y = 0; y < 8; y++)
+				tiles.get(i)[y] = new byte[8];
+				for (int x = 0; x < 8; x++)
 				{
 					int c = 0;
 					for (int bp = 0; bp < getBPP(); bp++)
-						c += (((tileData[o + y * 2 + ((bp / 2) * 16 + (bp & 1))]) & (1 << 7 - x)) >> 7 - x) << bp;
-					tiles.get(i)[x][y] = (byte)c;
+					{
+						c += (( (tileData[o + x * 2 + ((bp / 2) * 16 + (bp & 1))]) & (1 << 7 - y)) >> 7 - y) << bp;
+					}
+					tiles.get(i)[y][x] = (byte)c;
 				}
 			}
 		}
