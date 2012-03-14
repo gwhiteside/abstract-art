@@ -194,7 +194,7 @@ public class BattleBackground
 				// the blend function for the two layers in the fragment shader is layerA * 0.5 + layerB * 0.5
 				// so if layerB == 0, 0 being the blank/black layer, single-layer backgrounds are too dark.
 				// TODO just don't compute or blend the second layer altogether if it's 0; this is just a quick hack to test the blending
-				layerB = layerA;
+				//layerB = layerA;
 			}
 			
 			setLayers(layerA, layerB);

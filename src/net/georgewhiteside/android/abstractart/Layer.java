@@ -45,6 +45,7 @@ public class Layer
 	
 	private int loadedIndex = -1;
 	
+	private List<byte[][]> tiles;
 	private byte[] image;
 	private byte[] palette;
 	
@@ -69,7 +70,7 @@ public class Layer
  	// TODO: wrap these Distortion and Translation objects?
 	public Distortion distortion;
 	public Translation translation;
- 	
+	
 	public Layer(ByteBuffer data)
 	{
 		image = new byte[256 * 256 * 4];
@@ -274,9 +275,6 @@ public class Layer
 		romData.rewind();
 	}
 	
-	
-	
-	
 	private void drawImage()
 	{
 		int b1, b2;
@@ -349,8 +347,8 @@ public class Layer
 						
 						// TODO: initial palette code; just doing this inefficiently till everything gets up and running
 						image[pos + 0] = (byte)index;
-						image[pos + 1] = (byte)index;
-						image[pos + 2] = (byte)index;
+						//image[pos + 1] = (byte)index;
+						//image[pos + 2] = (byte)index;
 						image[pos + 3] = (byte)0xFF;
 					}
 				}
@@ -376,8 +374,6 @@ public class Layer
 		//Log.d(TAG, tile_string + "\n\n");
 		//Log.d(TAG, pal_string);
 	}
-	
-	private List<byte[][]> tiles;
 	
 	protected void BuildTiles()
 	{

@@ -37,19 +37,21 @@ public class Renderer implements GLSurfaceView.Renderer
 	private int mPositionHandle, hPosition;
 	private int mTextureHandle, hTexture;
 	private int mBaseMapTexId;
-	private int mTextureALoc, hTextureA;
-	private int mTextureBLoc;
+	private int mBg3TextureLoc, hTextureA;
+	private int mBg4TextureLoc;
 	private int hBaseMap;
 	private int mPaletteLoc;
 	
-	private int mPaletteCycle1Begin, mPaletteCycle1End, mPaletteRotation;
-	private int mPaletteCycle2Begin, mPaletteCycle2End;
+	private int mPaletteRotation;
 	
 	private int mResolutionLoc;
-	private int mAmplitudeLoc, mFrequencyLoc, mCompressionLoc;
-	private int mSpeedLoc;
+	private int mCompressionLoc;
+	private int mBg3DistLoc, mBg4DistLoc;
 	private int mDistTypeLoc;
-	private int mOffsetXLoc, mOffsetYLoc;
+	private int mBg3Scroll, mBg4Scroll;
+	private int mBg3PaletteLoc, mBg4PaletteLoc;
+	private int mBg3CompressionLoc, mBg4CompressionLoc;
+	private int mBg3RotationLoc, mBg4RotationLoc;
 	private int mCycleTypeLoc;
 	
 	private int mSurfaceWidth;
@@ -67,6 +69,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private Boolean mFilterOutput = false;
 	
 	private BattleBackground bbg;
+	private ShaderFactory shader;
 	private int temp;
 	
 	private FloatBuffer textureVertexBufferUpsideDown;
@@ -90,6 +93,7 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		mContext = context;
 		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
+		shader = new ShaderFactory();
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 4);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 4);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
@@ -97,14 +101,12 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	public void onDrawFrame(GL10 unused)
 	{
-		//mFPSCounter.logFrame();
-		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		mRenderWidth = mSurfaceWidth;
 		mRenderHeight = mSurfaceHeight;
 		
-		// used to update shader variables here; remove me
+		//mFPSCounter.logStartFrame();
 		
 		if(mHighRes)
 		{
@@ -183,16 +185,11 @@ public class Renderer implements GLSurfaceView.Renderer
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
-		
 		setupQuad();
 		
 		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
 		GLES20.glDisable(GLES20.GL_DITHER); // dithering causes really crappy/distracting visual artifacts when distorting the textures
 		
-		GLES20.glEnable(GLES20.GL_BLEND);
-		GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-		
-		/* */
 		GLES20.glGenFramebuffers(1, mFramebuffer, 0);
 		GLES20.glGenTextures(1, mRenderTexture, 0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mRenderTexture[0]);
@@ -205,6 +202,15 @@ public class Renderer implements GLSurfaceView.Renderer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
+		Random rand = new Random();
+		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
+		//loadBattleBackground(temp);
+		for(int i = 0; i < 5; i++)
+		{
+			loadBattleBackground(100 + i);
+		}
+		
+		
 		/* shader for final output texture (the "low res") output */
 		
 		hFXProgram = createProgram(readTextFile(R.raw.passthrough_vert), readTextFile(R.raw.passthrough_frag));
@@ -213,41 +219,35 @@ public class Renderer implements GLSurfaceView.Renderer
 		hPosition = GLES20.glGetAttribLocation(hFXProgram, "a_position"); // a_position
 		hTexture = GLES20.glGetAttribLocation(hFXProgram, "a_texCoord"); // a_texCoord
 		hBaseMap = GLES20.glGetUniformLocation(hFXProgram, "s_texture"); // get sampler locations
-		/******** experimental FBO shit ********/
-		
 
-		/* shader for effects */
+		/* shader for effects 
 		
-		mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
+		mProgram = shader.getShader(bbg);
+		
+		//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
 		if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
 		
 		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
-		mTextureALoc = GLES20.glGetUniformLocation(mProgram, "s_textureA"); // get sampler locations
-		mTextureBLoc = GLES20.glGetUniformLocation(mProgram, "s_textureB"); // get sampler locations
+		mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
+		mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
 		mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
 		
 		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
-		mAmplitudeLoc = GLES20.glGetUniformLocation(mProgram, "u_ampl");
-		mFrequencyLoc = GLES20.glGetUniformLocation(mProgram, "u_freq");
-		mCompressionLoc = GLES20.glGetUniformLocation(mProgram, "u_comp");
-		mSpeedLoc = GLES20.glGetUniformLocation(mProgram, "u_speed");
-		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
-		mOffsetXLoc = GLES20.glGetUniformLocation(mProgram, "scroll_x");
-		mOffsetYLoc = GLES20.glGetUniformLocation(mProgram, "scroll_y");
+		mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
+		mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
+		mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
+		mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
+		mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
+		mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
+		mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
+		mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
+		mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
+		mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
+		
+		// old stuff
 		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
-		
-		mPaletteCycle1Begin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle1_begin");
-		mPaletteCycle1End = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle1_end");
-		mPaletteCycle2Begin = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle2_begin");
-		mPaletteCycle2End = GLES20.glGetUniformLocation(mProgram, "u_pal_cycle2_end");
-		mPaletteRotation = GLES20.glGetUniformLocation(mProgram, "u_pal_rotation");
-		
-		Random rand = new Random();
-		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
-		
-		loadBattleBackground(temp);
-		
+		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
 	}
 	
 	private void updateShaderVariables()
@@ -264,31 +264,33 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		// update distortion effect variables for the shader program
 		
-		GLES20.glUniform2f(mAmplitudeLoc, bg3.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderAmplitude());
-		GLES20.glUniform2f(mFrequencyLoc, bg3.distortion.computeShaderFrequency(), bg4.distortion.computeShaderFrequency());
-		GLES20.glUniform2f(mCompressionLoc, bg3.distortion.computeShaderCompression(), bg4.distortion.computeShaderCompression());
-		GLES20.glUniform2f(mSpeedLoc, bg3.distortion.computeShaderSpeed(), bg4.distortion.computeShaderSpeed());
-		GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
-		GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
+		GLES20.glUniform3f(mBg3DistLoc, bg3.distortion.computeShaderAmplitude(), bg3.distortion.computeShaderFrequency(), bg3.distortion.computeShaderSpeed());
+		GLES20.glUniform3f(mBg4DistLoc, bg4.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderFrequency(), bg4.distortion.computeShaderSpeed());
+		GLES20.glUniform1f(mBg3CompressionLoc, bg3.distortion.computeShaderCompression());
+		GLES20.glUniform1f(mBg4CompressionLoc, bg4.distortion.computeShaderCompression());
 		
 		// update translation effect variables for the shader program
 		
-		GLES20.glUniform2f(mOffsetXLoc, bg3.translation.getHorizontalOffset(), bg4.translation.getHorizontalOffset());
-		GLES20.glUniform2f(mOffsetYLoc, bg3.translation.getVerticalOffset(), bg4.translation.getVerticalOffset());
+		GLES20.glUniform2f(mBg3Scroll, bg3.translation.getHorizontalOffset(), bg3.translation.getVerticalOffset());
+		GLES20.glUniform2f(mBg4Scroll, bg4.translation.getHorizontalOffset(), bg4.translation.getVerticalOffset());
 		
-		// update palette cycle
+		// update palette
 		
-		GLES20.glUniform2f(mPaletteCycle1Begin, (float)bg3.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1Begin());
-		GLES20.glUniform2f(mPaletteCycle1End, (float)bg3.getPaletteCycle1End(), (float)bg4.getPaletteCycle1End());
-		GLES20.glUniform2f(mPaletteCycle2Begin, (float)bg3.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2Begin());
-		GLES20.glUniform2f(mPaletteCycle2End, (float)bg3.getPaletteCycle2End(), (float)bg4.getPaletteCycle2End());
-		GLES20.glUniform2f(mPaletteRotation,  (float)bg3.getPaletteRotation(), (float)bg4.getPaletteRotation());
+		GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3.getPaletteCycle1Begin(), (float)bg3.getPaletteCycle1End(), (float)bg3.getPaletteCycle2Begin(), (float)bg3.getPaletteCycle2End());
+		GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
+		GLES20.glUniform1f(mBg3RotationLoc, (float)bg3.getPaletteRotation());
+		GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());
+		
+		// old stuff
+		GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
+		GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
 	}
 	
 	public void loadBattleBackground(int index)
 	{	
 		//bbg.setLayers(174, 173);
 		bbg.setIndex(index);
+		
 		byte[] dataA = bbg.getBg3().getImage();
 		byte[] dataB = bbg.getBg4().getImage();
 		byte[] paletteBg3 = bbg.getBg3().getPalette();
@@ -341,6 +343,39 @@ public class Renderer implements GLSurfaceView.Renderer
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+        
+        
+        
+        
+        
+        /* shader for effects, update program uniforms */
+		
+		mProgram = shader.getShader(bbg);
+		
+		//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
+		if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		
+		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
+		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
+		mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
+		mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
+		mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
+		
+		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
+		mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
+		mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
+		mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
+		mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
+		mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
+		mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
+		mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
+		mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
+		mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
+		mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
+		
+		// old stuff
+		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
+		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
 	}
 	
 	private void renderToTexture() // "low res" render
@@ -372,7 +407,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		/* load texture mapping */
 
-		
 		GLES20.glVertexAttribPointer(hTexture, 2, GLES20.GL_FLOAT, false, 8, textureVertexBufferUpsideDown);
 		GLES20.glEnableVertexAttribArray(hTexture);
 		
@@ -390,7 +424,6 @@ public class Renderer implements GLSurfaceView.Renderer
 	
 	private void renderBattleBackground() // "high res" render
 	{
-		
 		hMVPMatrix = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");/* projection and camera */
 		
 		//GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // render to screen buffer
@@ -406,17 +439,16 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		/* load texture mapping */
 
-		
 		GLES20.glVertexAttribPointer(mTextureHandle, 2, GLES20.GL_FLOAT, false, 8, textureVertexBuffer);
 		GLES20.glEnableVertexAttribArray(mTextureHandle);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
-		GLES20.glUniform1i(mTextureALoc, 0);
+		GLES20.glUniform1i(mBg3TextureLoc, 0);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE1);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
-		GLES20.glUniform1i(mTextureBLoc, 1);
+		GLES20.glUniform1i(mBg4TextureLoc, 1);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE2);
 		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[2]);
@@ -426,7 +458,6 @@ public class Renderer implements GLSurfaceView.Renderer
 		
 		/* apply model view projection transformation */
 		
-		//Matrix.multiplyMM(mMVPMatrix, 0, mProjMatrix, 0, mVMatrix, 0);			/* projection and camera */
 		GLES20.glUniformMatrix4fv(hMVPMatrix, 1, false, mProjMatrix, 0);	/* projection and camera */
 		
 		/* draw the triangles */
