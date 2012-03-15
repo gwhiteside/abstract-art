@@ -3,11 +3,14 @@ package net.georgewhiteside.android.abstractart;
 import android.opengl.GLES20;
 import android.util.Log;
 
+//import com.badlogic.gdx.backends.android.AndroidGL20;
+
 // TODO: cache programs in a hashmap or something
 
 /**
  * Constructs the smallest shader possible for the given <code>BattleBackground</code>. This is a terrible mess, but it's
- * a necessary sacrifice to get the best performance out of the mobile platform.
+ * a necessary sacrifice to get the best performance out of the mobile platform. (There are quiet whisperings about the
+ * mobile shader compilers sucking.)
  * @author George
  *
  */
@@ -66,9 +69,8 @@ public class ShaderFactory
 	public int getShader(BattleBackground bbg)
 	{
 		// TODO: build this shader with a StringBuilder instead
-		String fragmentShader = "";
 		
-		fragmentShader += fragmentHeader;
+		String fragmentShader = new String(fragmentHeader);
 		
 		fragmentShader +=
 			"void main()\n" +
@@ -241,7 +243,8 @@ public class ShaderFactory
 		
 		fragmentShader += "}\n";
 		
-		Log.d("shader", fragmentShader);
+		//Log.d("shader", vertexShader);
+		//Log.d("shader", fragmentShader);
 		
 		return createProgram(vertexShader, fragmentShader);
 	}
@@ -250,17 +253,20 @@ public class ShaderFactory
 	{
 		// courtesy of android.developer.com
 		int vertexShader = loadShader(GLES20.GL_VERTEX_SHADER, vertexSource);
-		if(vertexShader == 0) {
+		if(vertexShader == 0)
+		{
 			return 0;
 		}
 
 		int pixelShader = loadShader(GLES20.GL_FRAGMENT_SHADER, fragmentSource);
-		if(pixelShader == 0) {
+		if(pixelShader == 0)
+		{
 			return 0;
 		}
 
 		int program = GLES20.glCreateProgram();
-		if(program != 0) {
+		if(program != 0)
+		{
 			GLES20.glAttachShader(program, vertexShader);
 			checkGlError("glAttachShader");
 			GLES20.glAttachShader(program, pixelShader);
@@ -268,7 +274,8 @@ public class ShaderFactory
 			GLES20.glLinkProgram(program);
 			int[] linkStatus = new int[1];
 			GLES20.glGetProgramiv(program, GLES20.GL_LINK_STATUS, linkStatus, 0);
-			if(linkStatus[0] != GLES20.GL_TRUE) {
+			if(linkStatus[0] != GLES20.GL_TRUE)
+			{
 				Log.e(TAG, "Could not link program: ");
 				Log.e(TAG, GLES20.glGetProgramInfoLog(program));
 				GLES20.glDeleteProgram(program);
@@ -289,14 +296,23 @@ public class ShaderFactory
 //	}
 		
 		int shader = GLES20.glCreateShader(shaderType);
-		if(shader != 0) {
+		if(shader != 0)
+		{
 			GLES20.glShaderSource(shader, source);
 			GLES20.glCompileShader(shader);
 			int[] compiled = new int[1];
 			GLES20.glGetShaderiv(shader, GLES20.GL_COMPILE_STATUS, compiled, 0);
-			if(compiled[0] == 0) {
+			if(compiled[0] == 0 && shaderType != GLES20.GL_VERTEX_SHADER)
+			{
 				Log.e(TAG, "Could not compile shader " + shaderType + ":");
+
+				/*
+				 * Apparently, glGetShaderInfoLog is actually broken, which is... great. The next line does nothing.
+				 * see http://stackoverflow.com/questions/4588800/glgetshaderinfolog-returns-empty-string-android
+				 */
+
 				Log.e(TAG, GLES20.glGetShaderInfoLog(shader));
+				
 				GLES20.glDeleteShader(shader);
 				shader = 0;
 			}
@@ -308,7 +324,8 @@ public class ShaderFactory
 	{
 		/* from developer.android.com */
 		int error;
-		while((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR) {
+		while((error = GLES20.glGetError()) != GLES20.GL_NO_ERROR)
+		{
 			Log.e(TAG, op + ": glError " + error);
 			throw new RuntimeException(op + ": glError " + error);
 		}

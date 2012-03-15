@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Abstract Art</string>
+    <string name="app_description">100s of psychedelic animated backgrounds based on the classic SNES game Earthbound.</string>
 
 </resources>

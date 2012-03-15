@@ -18,15 +18,17 @@ import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.util.Log;
 
+import org.jf.GLWallpaper.GLWallpaperService;
+
 // float refreshrate = getWindowManager().getDefaultDisplay().getRefreshRate();
 
 // "The PowerVR 530/535 is very slow. Andreno 200 and PowerVR 530/535 are first GPU generation
 // (OpenGL ES 2.x) for hdpi resolution. You can't redraw a full screen at 60FPS with a simple texture."
 
-public class Renderer implements GLSurfaceView.Renderer
+public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Renderer
 {
 	private static final String TAG = "Renderer";
-	private Context mContext;
+	private Context context;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
 	
@@ -78,21 +80,17 @@ public class Renderer implements GLSurfaceView.Renderer
 	ByteBuffer mTextureA, mTextureB;
 	ByteBuffer mPalette;
 	
-	public void RandomBackground()
+	public void setRandomBackground()
 	{
 		Random rand = new Random();
 		int number = rand.nextInt(bbg.getNumberOfBackgrounds());
-		//number = 133; // layer 95
 		loadBattleBackground(number);
 	}
 	
 	public Renderer(Context context)
 	{
-		//Random rand = new Random();
-		//temp = rand.nextInt(327);
-		
-		mContext = context;
-		bbg = new BattleBackground(mContext.getResources().openRawResource(R.raw.bgbank));
+		this.context = context;
+		bbg = new BattleBackground(this.context.getResources().openRawResource(R.raw.bgbank));
 		shader = new ShaderFactory();
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -532,7 +530,7 @@ public class Renderer implements GLSurfaceView.Renderer
 	private String readTextFile(final int resourceId)
 	{
 		/* method lifted from learnopengles.com */
-		final InputStream inputStream = mContext.getResources().openRawResource(resourceId);
+		final InputStream inputStream = context.getResources().openRawResource(resourceId);
 		final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
 		final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
  
