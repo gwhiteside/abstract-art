@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<wallpaper xmlns:android="http://schemas.android.com/apk/res/android"
+           android:settingsActivity="net.georgewhiteside.android.abstractart.Settings"
+           android:description="@string/app_description"
+           android:thumbnail="@drawable/icon" />

@@ -1,7 +1,6 @@
 package net.georgewhiteside.android.abstractart;
 
 import org.jf.GLWallpaper.GLWallpaperService;
-import org.jf.GLWallpaper.GLWallpaperService.GLEngine;
 
 import android.app.Activity;
 import android.app.WallpaperManager;
@@ -17,18 +16,14 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.View.OnTouchListener;
 
-public class AbstractArtLiveWallpaper extends GLWallpaperService 
+public class Wallpaper extends GLWallpaperService 
 {
+	public static final String SHARED_PREFS_NAME = "AbstractArtSettings";
 	/*private GestureDetector gestureDetector;*/
 	
-	public AbstractArtLiveWallpaper()
+	public Wallpaper()
 	{
 		super();
-	}
-	
-	public void shithead()
-	{
-		
 	}
 	
 	@Override
