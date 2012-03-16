@@ -19,8 +19,6 @@ uniform vec2 bg4_scroll;
 uniform float bg4_compression;
 uniform float bg4_rotation;
 
-
-
 uniform ivec2 u_dist_type, u_cycle_type;
 
 #define AMPL	0
@@ -31,9 +29,6 @@ uniform ivec2 u_dist_type, u_cycle_type;
 #define END1	1
 #define BEGIN2	2
 #define END2	3
-
-// total approximate cycles: 230 ... emulated worst/best: 172:211
-// 278 ... 147:186
 
 void main()
 {
@@ -200,6 +195,10 @@ void main()
 			}
 		}
 	}
+	
+	
+	
+	
 	
 	
 	

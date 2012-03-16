@@ -90,8 +90,8 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	public Renderer(Context context)
 	{
 		this.context = context;
-		bbg = new BattleBackground(this.context.getResources().openRawResource(R.raw.bgbank));
-		shader = new ShaderFactory();
+		bbg = new BattleBackground(context.getResources().openRawResource(R.raw.bgbank));
+		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);

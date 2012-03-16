@@ -1,5 +1,11 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+
+import android.content.Context;
 import android.opengl.GLES20;
 import android.util.Log;
 
@@ -16,7 +22,10 @@ import android.util.Log;
  */
 public class ShaderFactory
 {
+	private Context context;
 	private static final String TAG = "shader";
+	
+	private boolean knobMonolithic = false;	// this option is kept for development reasons
 	
 	private static final String[] bgPrefix = {"bg3_", "bg4_"};
 	
@@ -61,187 +70,196 @@ public class ShaderFactory
 		"#define BEGIN2 2\n" +
 		"#define END2   3\n";
 	
-	public ShaderFactory()
+	public ShaderFactory(Context context)
 	{
-		
+		this.context = context;
 	}
 	
 	public int getShader(BattleBackground bbg)
 	{
-		// TODO: build this shader with a StringBuilder instead
+		String fragmentShader = "";
 		
-		String fragmentShader = new String(fragmentHeader);
-		
-		fragmentShader +=
-			"void main()\n" +
-			"{\n" +
-				"float y = v_texCoord.y * resolution.y;\n";
-		
-		// iterate over both layers and construct the smallest shader possible
-		
-		for(int i = 0; i < 2; i++)
+		if(knobMonolithic)
 		{
-			Layer layer = i == 0 ? bbg.bg3 : bbg.bg4;
-			
-			// we always want the bottom layer, but skip the top layer if it's null
-			if(layer == bbg.bg3 || layer == bbg.bg4 && layer.getIndex() != 0)
-			{
-				String id = bgPrefix[i];
-				fragmentShader += "vec2 " + id + "offset = vec2(0.0);\n";
-				
-				// distortion
-				
-				if(layer.distortion.getType() != 0)
-				{
-					fragmentShader += "float " + id + "distortion_offset = (" + id + "dist[AMPL] * sin(" + id + "dist[FREQ] * y + " + id + "dist[SPEED]));\n";
-					
-					switch(layer.distortion.getType())
-					{
-						default:
-							break;
-							
-						case 1:
-							fragmentShader += id + "offset.x = " + id + "distortion_offset;\n";
-							break;
-							
-						case 2:
-							fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n";
-							break;
-							
-						case 3:
-							fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
-							break;
-							
-						case 4:
-							fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
-												id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
-							break;
-					}
-				}
-				
-				// vertical compression
-				
-				if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
-				{
-					fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n";
-				}
-				
-				// layer scrolling
-				
-				if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
-					layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
-				{
-					fragmentShader += id + "offset += bg3_scroll;\n";
-				}
-				
-				// divide offset down to correct range
-				
-				fragmentShader += id + "offset /= resolution;\n";
-				
-				// get palette index
-				
-				fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r * 256.0;\n";
-				
-				// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
-				
-				fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
-				
-				// add palette cycling code if required
-				
-				switch(layer.getPaletteCycleType())
-				{
-					default:
-						// no palette cycling
-						break;
-						
-					case 1:
-						// rotate palette subrange left
-						fragmentShader +=
-							"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-							"{\n" +
-							"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-							"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-							"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-							"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
-							"    }\n" +
-							"}\n";
-						break;
-					
-					case 2:
-						// rotate two palette subranges left
-						fragmentShader +=
-							"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-							"{\n" +
-							"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-							"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-							"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-							"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
-							"    }\n" +
-							"}\n" +
-							"else if(" + id + "index >= " + id + "palette[BEGIN2] - 0.5 && " + id + "index <= " + id + "palette[END2] + 0.5)\n" +
-							"{\n" +
-							"    float range = " + id + "palette[END2] - " + id + "palette[BEGIN2];\n" +
-							"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-							"    if(" + id + "index < " + id + "palette[BEGIN2]) {\n" +
-							"        " + id + "index = " + id + "palette[END2] + 1.0 - abs(" + id + "palette[BEGIN2] - " + id + "index);\n" +
-							"    }\n" +
-							"}\n";
-						break;
-					
-					case 3:
-						// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
-						fragmentShader +=
-							"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-							"{\n" +
-							"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-							"    " + id + "index = " + id + "index + " + id + "rotation - " + id + "palette[BEGIN1];\n" +
-							"    range = floor(range + 0.5);\n" +
-							"    " + id + "index = floor(" + id + "index + 0.5);\n" +
-							"    if(" + id + "index > range * 2.0 + 1.0) {\n" +
-							"        " + id + "index = " + id + "palette[BEGIN1] + (" + id + "index - ((range * 2.0) + 2.0));\n" +
-							"    }\n" +
-							"    else if(" + id + "index > range) {\n" +
-							"        " + id + "index = " + id + "palette[END1] - (" + id + "index - (range + 1.0));\n" +
-							"    }\n" +
-							"    else {\n" +
-							"        " + id + "index += " + id + "palette[BEGIN1];\n" +
-							"    }\n" +
-							"}\n";
-						break;
-				}
-				
-				// divide color index down into texture lookup range
-				
-				fragmentShader += id + "index /= 16.0;\n";
-				
-				// actual palette color lookup
-				
-				float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
-				fragmentShader += "vec4 " + id + "color = texture2D(s_palette, vec2(" + id + "index, " + paletteRow + " / 16.0));\n";
-				
-			}
-		}
-		
-		// output blending
-		
-		if(bbg.bg4.getIndex() != 0)
-		{
-			// both layers are active; perform an alpha blend with BG4 at 50% opacity
-			fragmentShader += 
-				"bg4_color.a *= 0.5;\n" +
-				"gl_FragColor.rgb = bg4_color.rgb * bg4_color.a + bg3_color.rgb * (1.0 - bg4_color.a);\n" +
-				"gl_FragColor.a = 1.0;\n";
+			fragmentShader = readTextFile(R.raw.distortion_frag);
 		}
 		else
 		{
-			fragmentShader +=
-				"gl_FragColor.rgb = bg3_color.rgb;\n" +
-				"gl_FragColor.a = 1.0;\n";
-		}
-	
-		// ...aaand the final curly brace:
+			// TODO: build this shader with a StringBuilder instead
 		
-		fragmentShader += "}\n";
+			fragmentShader += fragmentHeader;
+			
+			fragmentShader +=
+				"void main()\n" +
+				"{\n" +
+					"float y = v_texCoord.y * resolution.y;\n";
+			
+			// iterate over both layers and construct the smallest shader possible
+			
+			for(int i = 0; i < 2; i++)
+			{
+				Layer layer = i == 0 ? bbg.bg3 : bbg.bg4;
+				
+				// we always want the bottom layer, but skip the top layer if it's null
+				if(layer == bbg.bg3 || layer == bbg.bg4 && layer.getIndex() != 0)
+				{
+					String id = bgPrefix[i];
+					fragmentShader += "vec2 " + id + "offset = vec2(0.0);\n";
+					
+					// distortion
+					
+					if(layer.distortion.getType() != 0)
+					{
+						fragmentShader += "float " + id + "distortion_offset = (" + id + "dist[AMPL] * sin(" + id + "dist[FREQ] * y + " + id + "dist[SPEED]));\n";
+						
+						switch(layer.distortion.getType())
+						{
+							default:
+								break;
+								
+							case 1:
+								fragmentShader += id + "offset.x = " + id + "distortion_offset;\n";
+								break;
+								
+							case 2:
+								fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n";
+								break;
+								
+							case 3:
+								fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
+								break;
+								
+							case 4:
+								fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+													id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
+								break;
+						}
+					}
+					
+					// vertical compression
+					
+					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
+					{
+						fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n";
+					}
+					
+					// layer scrolling
+					
+					if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
+						layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
+					{
+						fragmentShader += id + "offset += bg3_scroll;\n";
+					}
+					
+					// divide offset down to correct range
+					
+					fragmentShader += id + "offset /= resolution;\n";
+					
+					// get palette index
+					
+					fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r * 256.0;\n";
+					
+					// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
+					
+					fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
+					
+					// add palette cycling code if required
+					
+					switch(layer.getPaletteCycleType())
+					{
+						default:
+							// no palette cycling
+							break;
+							
+						case 1:
+							// rotate palette subrange left
+							fragmentShader +=
+								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+								"{\n" +
+								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+								"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
+								"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+								"    }\n" +
+								"}\n";
+							break;
+						
+						case 2:
+							// rotate two palette subranges left
+							fragmentShader +=
+								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+								"{\n" +
+								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+								"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
+								"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+								"    }\n" +
+								"}\n" +
+								"else if(" + id + "index >= " + id + "palette[BEGIN2] - 0.5 && " + id + "index <= " + id + "palette[END2] + 0.5)\n" +
+								"{\n" +
+								"    float range = " + id + "palette[END2] - " + id + "palette[BEGIN2];\n" +
+								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+								"    if(" + id + "index < " + id + "palette[BEGIN2]) {\n" +
+								"        " + id + "index = " + id + "palette[END2] + 1.0 - abs(" + id + "palette[BEGIN2] - " + id + "index);\n" +
+								"    }\n" +
+								"}\n";
+							break;
+						
+						case 3:
+							// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
+							fragmentShader +=
+								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+								"{\n" +
+								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+								"    " + id + "index = " + id + "index + " + id + "rotation - " + id + "palette[BEGIN1];\n" +
+								"    range = floor(range + 0.5);\n" +
+								"    " + id + "index = floor(" + id + "index + 0.5);\n" +
+								"    if(" + id + "index > range * 2.0 + 1.0) {\n" +
+								"        " + id + "index = " + id + "palette[BEGIN1] + (" + id + "index - ((range * 2.0) + 2.0));\n" +
+								"    }\n" +
+								"    else if(" + id + "index > range) {\n" +
+								"        " + id + "index = " + id + "palette[END1] - (" + id + "index - (range + 1.0));\n" +
+								"    }\n" +
+								"    else {\n" +
+								"        " + id + "index += " + id + "palette[BEGIN1];\n" +
+								"    }\n" +
+								"}\n";
+							break;
+					}
+					
+					// divide color index down into texture lookup range
+					
+					fragmentShader += id + "index /= 16.0;\n";
+					
+					// actual palette color lookup
+					
+					float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
+					fragmentShader += "vec4 " + id + "color = texture2D(s_palette, vec2(" + id + "index, " + paletteRow + " / 16.0));\n";
+					
+				}
+			}
+			
+			// output blending
+			
+			if(bbg.bg4.getIndex() != 0)
+			{
+				// both layers are active; perform an alpha blend with BG4 at 50% opacity
+				fragmentShader += 
+					"bg4_color.a *= 0.5;\n" +
+					"gl_FragColor.rgb = bg4_color.rgb * bg4_color.a + bg3_color.rgb * (1.0 - bg4_color.a);\n" +
+					"gl_FragColor.a = 1.0;\n";
+			}
+			else
+			{
+				fragmentShader +=
+					"gl_FragColor.rgb = bg3_color.rgb;\n" +
+					"gl_FragColor.a = 1.0;\n";
+			}
+		
+			// ...aaand the final curly brace:
+			
+			fragmentShader += "}\n";
+		}
 		
 		//Log.d("shader", vertexShader);
 		//Log.d("shader", fragmentShader);
@@ -329,6 +347,33 @@ public class ShaderFactory
 			Log.e(TAG, op + ": glError " + error);
 			throw new RuntimeException(op + ": glError " + error);
 		}
+	}
+	
+	private String readTextFile(final int resourceId)
+	{
+		/* method lifted from learnopengles.com */
+		final InputStream inputStream = context.getResources().openRawResource(resourceId);
+		final InputStreamReader inputStreamReader = new InputStreamReader(inputStream);
+		final BufferedReader bufferedReader = new BufferedReader(inputStreamReader);
+ 
+		String nextLine;
+		final StringBuilder body = new StringBuilder();
+		 
+		try
+		{
+			while ((nextLine = bufferedReader.readLine()) != null)
+			{
+				body.append(nextLine);
+				body.append('\n');
+			}
+		}
+		catch (IOException e)
+		{
+			e.printStackTrace();
+			return null;
+		}
+		
+		return body.toString();
 	}
 	
 }
