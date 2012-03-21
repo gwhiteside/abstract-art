@@ -4,7 +4,11 @@
 
     <PreferenceCategory android:title="@string/settings_rendering">
     
-        
+    <net.georgewhiteside.android.abstractart.FrameratePreference
+        android:defaultValue="@integer/framerate_default"
+        android:key="frameratePref"
+        android:title="@string/framerate_title" 
+        android:summary="@string/framerate_summary" />    
             
     </PreferenceCategory>	
 

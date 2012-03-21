@@ -5,8 +5,10 @@ import org.jf.GLWallpaper.GLWallpaperService;
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.GestureDetector;
 import android.view.SurfaceHolder;
@@ -19,11 +21,22 @@ import android.view.View.OnTouchListener;
 public class Wallpaper extends GLWallpaperService 
 {
 	public static final String SHARED_PREFS_NAME = "AbstractArtSettings";
+	SharedPreferences preferences;// = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 	/*private GestureDetector gestureDetector;*/
 	
 	public Wallpaper()
 	{
 		super();
+	}
+	
+	@Override
+	public void onCreate()
+	{
+		super.onCreate();
+		
+		//PreferenceManager.setDefaultValues(this, R.xml.settings, false);
+		//PreferenceManager.setDefaultValues(this, SHARED_PREFS_NAME, Context.MODE_PRIVATE, R.xml.settings, false);
+		preferences = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 	}
 	
 	@Override
@@ -43,7 +56,7 @@ public class Wallpaper extends GLWallpaperService
 		AbstractArtEngine(GLWallpaperService glws)
 		{
 			super();
-			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
+			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws, preferences);
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);

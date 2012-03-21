@@ -13,6 +13,7 @@ import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -29,6 +30,8 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 {
 	private static final String TAG = "Renderer";
 	private Context context;
+	
+	private SharedPreferences preferences;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
 	
@@ -80,6 +83,11 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	ByteBuffer mTextureA, mTextureB;
 	ByteBuffer mPalette;
 	
+	
+	
+	long startTime, endTime;
+	long frameTime;
+	
 	public void setRandomBackground()
 	{
 		Random rand = new Random();
@@ -87,24 +95,41 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		loadBattleBackground(number);
 	}
 	
-	public Renderer(Context context)
+	public Renderer(Context context, SharedPreferences preferences)
 	{
 		this.context = context;
+		this.preferences = preferences;
 		bbg = new BattleBackground(context.getResources().openRawResource(R.raw.bgbank));
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
+		
+		startTime = endTime = 0;
+		//frameTime = 1000 / preferences.getInt("frameratePref", 33);
 	}
 	
 	public void onDrawFrame(GL10 unused)
 	{
+		endTime = System.currentTimeMillis();
+		long delta = endTime - startTime;
+		if(delta < frameTime)
+		{
+			try {
+				Thread.sleep(frameTime - delta);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		startTime = System.currentTimeMillis();
+		
+		mFPSCounter.logStartFrame();
+		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		mRenderWidth = mSurfaceWidth;
 		mRenderHeight = mSurfaceHeight;
-		
-		//mFPSCounter.logStartFrame();
 		
 		if(mHighRes)
 		{
@@ -115,9 +140,9 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 			renderToTexture();
 		}
 			
-		//mFPSCounter.logEndFrame();
-		
 		bbg.doTick();
+		
+		mFPSCounter.logEndFrame();
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -242,6 +267,8 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		// old stuff
 		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
+		
+		frameTime = 1000 / preferences.getInt("frameratePref", 33);
 	}
 	
 	private void updateShaderVariables()

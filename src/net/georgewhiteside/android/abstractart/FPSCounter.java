@@ -5,29 +5,37 @@ import android.os.SystemClock;
 
 public class FPSCounter {
 	private long startTime = 0;
+	private long startFrame = 0;
 	private long endTime = 0;
 	private int frames = 0;
-	private long avgTime = 0;
+	private long avgFrameTime = 0;
 	private int interval = 2000; // output update interval in milliseconds
 	
-	public void logStartFrame() {
-		startTime = SystemClock.uptimeMillis();
+	public void logStartFrame()
+	{
+		if(startTime == 0)
+		{
+			startTime = SystemClock.uptimeMillis();
+		}
+		
+		startFrame = SystemClock.uptimeMillis();
 	}
 	
-	public void logEndFrame() {
+	public void logEndFrame()
+	{
 		endTime = SystemClock.uptimeMillis();
+		
+		avgFrameTime += (endTime - startFrame);
 		frames++;
 		
-		avgTime += endTime - startTime;
-		
-		if(avgTime >= interval)
+		if(endTime - startTime >= interval)
 		{
-			float average = avgTime / (float)frames;
-			float fps = 1000 / average;
-			Log.d("RenderTime", "Avg time to render frame: " + average);
-			Log.d("FPSCounter", "fps: " + fps);
-			avgTime = 0;
+			Log.d("FPS", "FPS: " + (float)frames / (endTime - startTime) * 1000);
+			Log.d("RenderTime", "Time to render frame: " + ((float)avgFrameTime / frames) + "ms");
+			avgFrameTime = 0;
+			startTime = 0;
 			frames = 0;
 		}
 	}
+
 }
