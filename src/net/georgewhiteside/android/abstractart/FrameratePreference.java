@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 public class FrameratePreference extends DialogPreference implements OnSeekBarChangeListener
 {
-	private int mMinimum = 10;
+	private int mMinimum = 5;
 	private int mMaximum = 60;
 	private int mStep = 5;
 	

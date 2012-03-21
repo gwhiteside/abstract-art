@@ -6,4 +6,6 @@
     <string name="settings_rendering">Rendering</string>
     <string name="framerate_title">Framerate</string>
     <string name="framerate_summary">%s frames per second</string>
+    <string name="native_resolution_title">Use native resolution (experimental)</string>
+    <string name="native_resolution_summary">Requires significantly more GPU horsepower</string>   
 </resources>

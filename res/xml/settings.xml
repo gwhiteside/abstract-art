@@ -4,11 +4,17 @@
 
     <PreferenceCategory android:title="@string/settings_rendering">
     
-    <net.georgewhiteside.android.abstractart.FrameratePreference
-        android:defaultValue="@integer/framerate_default"
-        android:key="frameratePref"
-        android:title="@string/framerate_title" 
-        android:summary="@string/framerate_summary" />    
+	    <net.georgewhiteside.android.abstractart.FrameratePreference
+	        android:defaultValue="@integer/framerate_default"
+	        android:key="intFramerate"
+	        android:title="@string/framerate_title" 
+	        android:summary="@string/framerate_summary" />
+	    
+	    <CheckBoxPreference
+	        android:defaultValue="false"
+	        android:key="boolNativeResolution"
+	        android:title="@string/native_resolution_title"
+	        android:summary="@string/native_resolution_summary" />
             
     </PreferenceCategory>	
 

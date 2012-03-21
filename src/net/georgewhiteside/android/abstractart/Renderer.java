@@ -106,7 +106,7 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 		
 		startTime = endTime = 0;
-		//frameTime = 1000 / preferences.getInt("frameratePref", 33);
+		//frameTime = 1000 / preferences.getInt("intFramerate", 33);
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -187,7 +187,7 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		textureVertexBuffer.put(textureMap);
 		textureVertexBuffer.position(0);
 		
-		if(mHighRes == false)
+		//if(mHighRes == false)
 		{
 			float textureMapUpsideDown[] =
 			{
@@ -268,7 +268,10 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
 		
-		frameTime = 1000 / preferences.getInt("frameratePref", 33);
+		// handle the rendering knobs
+		
+		frameTime = 1000 / preferences.getInt("intFramerate", 33);
+		mHighRes = preferences.getBoolean("boolNativeResolution", false);
 	}
 	
 	private void updateShaderVariables()

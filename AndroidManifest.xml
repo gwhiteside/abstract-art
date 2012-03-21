@@ -21,7 +21,7 @@
         <activity
             android:label="@string/wallpaper_settings"
             android:name=".Settings"
-            android:exported="true">
+            android:exported="true" >
         </activity>
         
     </application>

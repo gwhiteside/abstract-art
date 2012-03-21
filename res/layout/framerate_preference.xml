@@ -22,7 +22,7 @@
                 android:gravity="center_vertical"
                 android:layout_width="wrap_content"
                 android:layout_height="fill_parent"
-                android:text="10"
+                android:text="5"
                 android:textAppearance="?android:attr/textAppearanceSmall"
                 android:paddingLeft="20dp"
                 android:paddingRight="5dp" />
