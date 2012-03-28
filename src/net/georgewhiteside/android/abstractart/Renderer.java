@@ -88,10 +88,11 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	long startTime, endTime;
 	long frameTime;
 	
+	Random rand = new Random();
+	
 	public void setRandomBackground()
 	{
-		Random rand = new Random();
-		int number = rand.nextInt(bbg.getNumberOfBackgrounds());
+		int number = rand.nextInt(bbg.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
 	
