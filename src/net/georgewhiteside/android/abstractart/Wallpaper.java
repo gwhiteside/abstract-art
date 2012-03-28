@@ -21,6 +21,8 @@ import android.view.View.OnTouchListener;
 public class Wallpaper extends GLWallpaperService 
 {
 	public static final String SHARED_PREFS_NAME = "AbstractArtSettings";
+	public static AbstractArtEngine engine;
+	
 	SharedPreferences preferences;// = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 	/*private GestureDetector gestureDetector;*/
 	
@@ -42,13 +44,13 @@ public class Wallpaper extends GLWallpaperService
 	@Override
 	public Engine onCreateEngine()
 	{
-		AbstractArtEngine engine = new AbstractArtEngine(this);
+		engine = new AbstractArtEngine(this);
 		return engine;
 	}
 	
-	class AbstractArtEngine extends GLEngine
+	public class AbstractArtEngine extends GLEngine
 	{
-		private net.georgewhiteside.android.abstractart.Renderer renderer;
+		public net.georgewhiteside.android.abstractart.Renderer renderer;
 		
 		private long lastTap = 0; 
         private static final long TAP_THRESHOLD = 500;
@@ -56,7 +58,7 @@ public class Wallpaper extends GLWallpaperService
 		AbstractArtEngine(GLWallpaperService glws)
 		{
 			super();
-			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws, preferences);
+			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);

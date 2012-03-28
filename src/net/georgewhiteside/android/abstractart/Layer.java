@@ -1,6 +1,10 @@
 package net.georgewhiteside.android.abstractart;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
@@ -8,6 +12,8 @@ import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.util.Log;
 
@@ -15,11 +21,20 @@ import android.util.Log;
 
 // layers with second palette cycle: 60 61 (probably others, haven't checked them all)
 
+/*
+ * Note to self: don't pull the image-related stuff from Layer out into its own class without thinking it through very
+ * carefully... the images themselves rely on data that belongs to Layer. Most notably, the bit depth information which
+ * is necessary to even *decompress* an image (not just display it properly), is part of the Layer data.
+ */
+
 public class Layer
 {
 	private final String TAG = "Layer";
 	private ByteBuffer romData;
 	private static final int OFFSET = 0xA0200;
+	
+	private Context context;
+	private SharedPreferences preferences;
 	
 	//private static final int ATTRIBUTES = 0xADEA1 - OFFSET;
 	
@@ -72,8 +87,12 @@ public class Layer
 	public Distortion distortion;
 	public Translation translation;
 	
-	public Layer(ByteBuffer data)
+	private File cacheImage = null;
+	
+	public Layer(ByteBuffer data, Context context)
 	{
+		this.context = context;
+		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 		image = new byte[256 * 256 * 1];
 		palette = new byte[16 * 1 * 4];
 		romData = data;
@@ -160,13 +179,10 @@ public class Layer
 	 * <li><code>0x02</code> - double rotate right</li>
 	 * <li><code>0x03</code> - triangle rotation</ul>
 	 * 
-	 * <p>There is very likely a difference between values <code>0x01</code> and <code>0x02</code>, but I haven't investigated it yet.</p>
-	 * 
 	 * @return the type of palette cycling animation for this layer
 	 */
 	public int getPaletteCycleType()
 	{
-		// seem to have: none, rotate right?, rotate right?, and triangle
 		return bgData.get(3);
 	}
 	
@@ -175,7 +191,7 @@ public class Layer
 		return paletteRotation;
 	}
 	
-	public void load(int index)
+	public void loadLayer(int index)
 	{
 		if( index < 0 || index > 326 ) {
 			return;
@@ -188,18 +204,7 @@ public class Layer
 		romData.position(0xADEA1 - OFFSET + index * 17);
 		bgData = romData.slice();
 		
-		Log.d(TAG, String.format("layer %d bytes 3-8: %02X %02X %02X %02X %02X %02X", index, bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
-		
-		for (int i = 0; i < 4; i++) {
-			// bytes 9 - 12 are scrolling background effect indices in the 0xAF458 table; 10 bytes (5 shorts) each
-			//romData.position(0xAF458 - OFFSET + bgData.get(9 + i) * 10);
-			//scrollingData[i] = romData.asShortBuffer().slice();
-			
-			// bytes 13 - 16 are distortion type indices in the 0xAF908 table; 17 bytes each
-			//romData.position(0xAF908 - OFFSET + bgData.get(13 + i) * 17);
-			//distortionData[i] = romData.slice();
-		}
-		
+		Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		//Log.d(TAG, String.format("index: %d indices: %d %d %d %d", index, bgData.get(13), bgData.get(14), bgData.get(15), bgData.get(16)));
 		
 		romData.position(0xAF458 - OFFSET);
@@ -218,17 +223,7 @@ public class Layer
 		
 		//Log.d(TAG, String.format("bbg: %d: image %d: %02X %02X %02X %02X", index, getImageIndex(), distortionData[0].get(2), distortionData[1].get(2), distortionData[2].get(2), distortionData[3].get(2)));
 		
-		// load graphic tile data
 		
-		romData.position(0xAD9A1 - OFFSET + getImageIndex() * 4);
-		int pTileData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		tileDataLength = ROMUtil.decompress(pTileData, tileData, TILE_MAX, romData);
-		
-		// load tile arrangement data
-		
-		romData.position(0xADB3D - OFFSET + getImageIndex() * 4);
-		int pArrangeData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		arrangeDataLength = ROMUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 		
 		// load color palette
 		
@@ -259,15 +254,9 @@ public class Layer
 			}
 		}
 		
-		BuildTiles();
+		loadSubPalette(0);
 		
-		try {
-			drawImage();
-		} catch(Exception e) {
-			//Log.e(TAG, String.format("bbg: %d: image: %d palette: %d subpalette: %d", index, getImageIndex(), getPaletteIndex(), _subpal));
-			Log.e(TAG, e.getMessage());
-			
-		}
+		loadImage(getImageIndex());
 		
 		loadedIndex = index;
 		paletteRotation = 0;
@@ -276,10 +265,104 @@ public class Layer
 		romData.rewind();
 	}
 	
-	private void drawImage()
+	private void loadImage(int index)
+	{
+		boolean useImageCache = preferences.getBoolean("useImageCache", true);
+		boolean isImageCached = false;
+		File cacheDir = context.getCacheDir();
+		
+		if(useImageCache) {
+			if(cacheDir == null) {
+				Log.e(TAG, "There was a problem reading the cache directory; skipping");
+				useImageCache = false;
+				isImageCached = false;
+			} else {
+				String cacheFileName = String.format("image%03d", index);
+				cacheImage = new File(cacheDir, cacheFileName);
+				
+				if(cacheImage.exists()) {
+					isImageCached = true;
+				} else {
+					isImageCached = false;
+				}
+			}
+		}
+		
+		if(useImageCache && isImageCached)
+		{
+			Log.i(TAG, String.format("Reading previously cached image from %s", cacheImage.getPath()));
+			
+			// read cached image
+			try {
+				FileInputStream fis = new FileInputStream(cacheImage);
+				int len = 256 * 256;
+		        int bytesRead = 0;
+		        while(bytesRead < len) {
+		        	bytesRead += fis.read(image, bytesRead, len);
+		        }
+		        fis.close();
+			} catch (FileNotFoundException e) {
+				Log.e(TAG, String.format("There was a problem reading the cache file %s", cacheImage.getPath()));
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		else
+		{
+			Log.i(TAG, "Building image from compressed data");
+			
+			// decompress tiles, decompress tile arrangements, and assemble the former according to the latter
+			// the 65,536-byte result is assigned to the byte[] image member of this instance
+			
+			prepareImageData(index);
+			buildTiles();
+			buildImage();
+			
+			if(useImageCache && !isImageCached)
+			{
+				Log.i(TAG, String.format("Caching image to %s", cacheImage.getPath()));
+				
+				// write image to cache
+				
+				try {
+					FileOutputStream fos = new FileOutputStream(cacheImage);
+					// TODO: ensure complete image is written out; check bytes written as with reading
+					fos.write(image);
+					fos.close();
+				} catch (FileNotFoundException e) {
+					e.printStackTrace();
+				} catch (IOException e) {
+					e.printStackTrace();
+				}
+				
+			}
+		}
+	}
+	
+	private void prepareImageData(int index)
+	{
+		// load tile graphics
+		
+		romData.position(0xAD9A1 - OFFSET + index * 4);
+		int pTileData = ROMUtil.toHex(romData.getInt()) - OFFSET;
+		tileDataLength = ROMUtil.decompress(pTileData, tileData, TILE_MAX, romData);
+		
+		// load tile arrangement data
+		
+		romData.position(0xADB3D - OFFSET + index * 4);
+		int pArrangeData = ROMUtil.toHex(romData.getInt()) - OFFSET;
+		arrangeDataLength = ROMUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
+	}
+	
+	public boolean checkIfCached(int imageNumber)
+	{
+		return false;
+	}
+	
+	private void buildImage()
 	{
 		int b1, b2;
-		int block, tile, subpal;
+		int block, tile, subpal = 0;
 		int n;
 		boolean vflip, hflip;
 		
@@ -335,10 +418,12 @@ public class Layer
 				}
 			}
 		}
-		
-		// put together the palette image too
-		
-		subpal = 0; // just a temp thing
+		//loadSubPalette(subpal);
+	}
+	
+	private void loadSubPalette(int sub)
+	{
+		int subpal = 0; // just a temp thing
 		for(int i = 0; i < (1 << getBPP()); i++)
 		{
 			palette[i * 4 + 0] = paletteData[subpal][i][0];
@@ -349,7 +434,7 @@ public class Layer
 		palette[3] = (byte)0x00; // opacity 0 for color 0
 	}
 	
-	protected void BuildTiles()
+	protected void buildTiles()
 	{
 		int n = tileDataLength / (8 * getBPP());
 
@@ -381,7 +466,7 @@ public class Layer
 	{
 		if(loadedIndex == -1)
 		{
-			load(0);
+			loadLayer(0);
 		}
 		return image;
 	}
@@ -395,7 +480,7 @@ public class Layer
 	{
 		if(loadedIndex == -1)
 		{
-			load(0);
+			loadLayer(0);
 		}
 		return palette;
 	}

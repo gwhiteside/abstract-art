@@ -70,7 +70,7 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	private int[] mFramebuffer = new int[1];
 	private int[] mRenderTexture = new int[1];
 	
-	private Boolean mHighRes = false;
+	
 	private Boolean mFilterOutput = false;
 	
 	private BattleBackground bbg;
@@ -79,16 +79,35 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	
 	private FloatBuffer textureVertexBufferUpsideDown;
 	
-	int[] mTextureId = new int[3];
-	ByteBuffer mTextureA, mTextureB;
-	ByteBuffer mPalette;
+	private int[] mTextureId = new int[3];
+	private ByteBuffer mTextureA, mTextureB;
+	private ByteBuffer mPalette;
 	
 	
 	
-	long startTime, endTime;
-	long frameTime;
+	private long startTime, endTime;
 	
 	Random rand = new Random();
+	
+	private boolean mHighRes = false;
+	private long frameTime = 60;
+	
+	public int getCacheableImagesTotal()
+	{
+		int images = 103; // TODO: don't hardcode this
+		
+		return images;
+	}
+	
+	public int getBackgroundsTotal()
+	{
+		return bbg.getNumberOfBackgrounds();
+	}
+	
+	public void cacheImage(int index)
+	{
+		bbg.setIndex(index);
+	}
 	
 	public void setRandomBackground()
 	{
@@ -96,11 +115,11 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		loadBattleBackground(number);
 	}
 	
-	public Renderer(Context context, SharedPreferences preferences)
+	public Renderer(Context context)
 	{
 		this.context = context;
-		this.preferences = preferences;
-		bbg = new BattleBackground(context.getResources().openRawResource(R.raw.bgbank));
+		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+		bbg = new BattleBackground(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -271,7 +290,7 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / preferences.getInt("intFramerate", 33);
+		frameTime = 1000 / preferences.getInt("intFramerate", 33); // 60 is actually returned as the default from the XML
 		mHighRes = preferences.getBoolean("boolNativeResolution", false);
 	}
 	

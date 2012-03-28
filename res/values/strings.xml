@@ -4,8 +4,16 @@
     <string name="app_description">100s of psychedelic animated backgrounds based on the classic SNES game Earthbound.</string>
     <string name="wallpaper_settings">Abstract Art Settings</string>
     <string name="settings_rendering">Rendering</string>
-    <string name="framerate_title">Framerate</string>
-    <string name="framerate_summary">%s frames per second</string>
-    <string name="native_resolution_title">Use native resolution (experimental)</string>
-    <string name="native_resolution_summary">Requires significantly more GPU horsepower</string>   
+    <string name="settings_cache">Cache</string>
+    <string name="frame_rate_title">Frame rate</string>
+    <string name="frame_rate_summary">%s frames per second</string>
+    <string name="native_resolution_title">Device-native resolution</string>
+    <string name="native_resolution_summary">Experimental; requires more GPU power (not recommended)</string>
+    <string name="cache_images_title">Use image cache</string>
+    <string name="cache_images_summary">Fast &amp; efficient; requires ~5MB</string>
+    <string name="processing">Processing&#8230;</string>
+    <string name="processed_all_backgrounds">Processed all backgrounds.</string>
+    <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
+    <string name="precalculate_cache_title">Precalculate cache</string>
+    <string name="precalculate_cache_summary">Precalculate the entire cache now</string>
 </resources>

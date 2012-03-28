@@ -4,18 +4,39 @@
 
     <PreferenceCategory android:title="@string/settings_rendering">
     
-	    <net.georgewhiteside.android.abstractart.FrameratePreference
+	    <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
 	        android:defaultValue="@integer/framerate_default"
 	        android:key="intFramerate"
-	        android:title="@string/framerate_title" 
-	        android:summary="@string/framerate_summary" />
+	        android:title="@string/frame_rate_title" 
+	        android:summary="@string/frame_rate_summary" />
 	    
 	    <CheckBoxPreference
 	        android:defaultValue="false"
 	        android:key="boolNativeResolution"
 	        android:title="@string/native_resolution_title"
 	        android:summary="@string/native_resolution_summary" />
-            
-    </PreferenceCategory>	
+
+    </PreferenceCategory>
+    
+    <PreferenceCategory android:title="@string/settings_cache">
+        
+        <CheckBoxPreference
+	        android:defaultValue="true"
+	        android:key="useImageCache"
+	        android:title="@string/cache_images_title"
+	        android:summary="@string/cache_images_summary" />
+        
+        <net.georgewhiteside.android.abstractart.settings.CreateImageCachePreference
+            android:dependency="useImageCache"
+            android:title="@string/precalculate_cache_title"
+            android:summary="@string/precalculate_cache_summary" />
+        
+        <!--EditTextPreference
+            android:defaultValue="some text"
+            android:key="textTest2"
+            android:title="Clear"
+            android:summary="Delete all cached images" /-->
+        
+    </PreferenceCategory>
 
 </PreferenceScreen>

@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 /*
@@ -62,6 +64,7 @@ public class BattleBackground
 {
 	private static final String TAG = "BattleBackground";
 	private static final int OFFSET = 0xA0200;
+	SharedPreferences preferences;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -71,21 +74,20 @@ public class BattleBackground
 
 	public Layer bg3;
 	public Layer bg4;
- 	
+	
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
 	 */
-	public BattleBackground(InputStream input)
+	public BattleBackground(Context context)
 	{
+		InputStream input = context.getResources().openRawResource(R.raw.bgbank);
+		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+		
 		loadData(input);
 		processLayerTable();
-		//LayerAssociationTable = new ArrayList<short[]>();
-		
-		//romData.position(0xBDA9A - OFFSET);
-		//layerAssociationTable = romData.slice();
 
-		bg3 = new Layer(romData);
-		bg4 = new Layer(romData);
+		bg3 = new Layer(romData, context);
+		bg4 = new Layer(romData, context);
 		
 		currentIndex = -1;
 	}
@@ -186,16 +188,9 @@ public class BattleBackground
 		if(currentIndex != index)
 		{
 			Log.d(TAG, "background group index: " + index);
+			
 			int layerA = layerTable[index][0];
 			int layerB = layerTable[index][1];
-			
-			if(layerB == 0)
-			{
-				// the blend function for the two layers in the fragment shader is layerA * 0.5 + layerB * 0.5
-				// so if layerB == 0, 0 being the blank/black layer, single-layer backgrounds are too dark.
-				// TODO just don't compute or blend the second layer altogether if it's 0; this is just a quick hack to test the blending
-				//layerB = layerA;
-			}
 			
 			setLayers(layerA, layerB);
 			currentIndex = index;
@@ -204,7 +199,14 @@ public class BattleBackground
 	
 	public void setLayers(int A, int B)
 	{
-		bg3.load(A);
-		bg4.load(B);
+		bg3.loadLayer(A);
+		bg4.loadLayer(B);
+	}
+	
+	public int getCacheableImagesTotal()
+	{
+		int images = 103; // TODO: don't hardcode this
+		
+		return images;
 	}
 }
