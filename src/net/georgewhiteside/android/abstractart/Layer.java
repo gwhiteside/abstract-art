@@ -87,8 +87,6 @@ public class Layer
 	public Distortion distortion;
 	public Translation translation;
 	
-	private File cacheImage = null;
-	
 	public Layer(ByteBuffer data, Context context)
 	{
 		this.context = context;
@@ -265,47 +263,19 @@ public class Layer
 		romData.rewind();
 	}
 	
+	
+	
 	private void loadImage(int index)
 	{
 		boolean useImageCache = preferences.getBoolean("useImageCache", true);
-		boolean isImageCached = false;
-		File cacheDir = context.getCacheDir();
+		String cacheFileName = String.format("%03d", index);
+		File cacheDir = new File(context.getCacheDir(), "layers");
+		File cacheFile = new File(cacheDir, cacheFileName);
 		
-		if(useImageCache) {
-			if(cacheDir == null) {
-				Log.e(TAG, "There was a problem reading the cache directory; skipping");
-				useImageCache = false;
-				isImageCached = false;
-			} else {
-				String cacheFileName = String.format("image%03d", index);
-				cacheImage = new File(cacheDir, cacheFileName);
-				
-				if(cacheImage.exists()) {
-					isImageCached = true;
-				} else {
-					isImageCached = false;
-				}
-			}
-		}
-		
-		if(useImageCache && isImageCached)
+		if(useImageCache && cacheFile.exists())
 		{
-			Log.i(TAG, String.format("Reading previously cached image from %s", cacheImage.getPath()));
-			
-			// read cached image
-			try {
-				FileInputStream fis = new FileInputStream(cacheImage);
-				int len = 256 * 256;
-		        int bytesRead = 0;
-		        while(bytesRead < len) {
-		        	bytesRead += fis.read(image, bytesRead, len);
-		        }
-		        fis.close();
-			} catch (FileNotFoundException e) {
-				Log.e(TAG, String.format("There was a problem reading the cache file %s", cacheImage.getPath()));
-			} catch (IOException e) {
-				e.printStackTrace();
-			}
+			Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
+			Cache.read(cacheFile, image, 256 * 256);
 		}
 		else
 		{
@@ -318,23 +288,10 @@ public class Layer
 			buildTiles();
 			buildImage();
 			
-			if(useImageCache && !isImageCached)
+			if(useImageCache && !cacheFile.exists())
 			{
-				Log.i(TAG, String.format("Caching image to %s", cacheImage.getPath()));
-				
-				// write image to cache
-				
-				try {
-					FileOutputStream fos = new FileOutputStream(cacheImage);
-					// TODO: ensure complete image is written out; check bytes written as with reading
-					fos.write(image);
-					fos.close();
-				} catch (FileNotFoundException e) {
-					e.printStackTrace();
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-				
+				Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
+				Cache.write(cacheFile, image);
 			}
 		}
 	}

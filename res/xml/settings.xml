@@ -1,6 +1,21 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
                   android:title="@string/wallpaper_settings"
                   android:key="wallpaper_settings">
+                  
+    <PreferenceScreen
+        android:key="background_selector"
+        android:title="View backgrounds"
+        android:summary="A little viewer for all the backgrounds">
+        
+        <!--Preference
+        android:title="PreferenceActivity"
+        android:summary="the PreferenceActivity" /-->
+        
+        <net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference
+            android:key="bgselect"
+            android:title="test" />
+        
+    </PreferenceScreen>
 
     <PreferenceCategory android:title="@string/settings_rendering">
     
