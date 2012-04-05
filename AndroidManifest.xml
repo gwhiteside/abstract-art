@@ -20,9 +20,13 @@
         
         <activity
             android:label="@string/wallpaper_settings"
-            android:name=".Settings"
-            android:exported="true" >
-        </activity>
+            android:name="net.georgewhiteside.android.abstractart.Settings"
+            android:exported="true" />
+        
+        <activity
+            android:label="@string/settings.background_chooser"
+            android:name="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference"
+            android:exported="false" />
         
     </application>
 

@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -14,6 +15,7 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
@@ -26,7 +28,7 @@ import org.jf.GLWallpaper.GLWallpaperService;
 // "The PowerVR 530/535 is very slow. Andreno 200 and PowerVR 530/535 are first GPU generation
 // (OpenGL ES 2.x) for hdpi resolution. You can't redraw a full screen at 60FPS with a simple texture."
 
-public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Renderer
+public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Renderer
 {
 	private static final String TAG = "Renderer";
 	private Context context;
@@ -92,6 +94,8 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 	private boolean mHighRes = false;
 	private long frameTime = 60;
 	
+	private boolean mirrorVertical = false;
+	
 	public int getCacheableImagesTotal()
 	{
 		int images = 103; // TODO: don't hardcode this
@@ -127,6 +131,12 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		
 		startTime = endTime = 0;
 		//frameTime = 1000 / preferences.getInt("intFramerate", 33);
+	}
+	
+	public Renderer(Context context, boolean mirrorVertical)
+	{
+		this(context);
+		this.mirrorVertical = mirrorVertical;
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -192,6 +202,14 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 				 0.0f,	 0.0f,
 				 1.0f,	 0.0f 
 		};
+		
+		float textureMapUpsideDown[] =
+		{
+				0.0f,	 0.0f,
+				 1.0f,	 0.0f,
+				 0.0f,	 1.0f,
+				 1.0f,	 1.0f 
+		};
 
 		quadVertexBuffer = ByteBuffer
 				.allocateDirect(quadVertices.length * 4) // float is 4 bytes
@@ -209,14 +227,6 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		
 		//if(mHighRes == false)
 		{
-			float textureMapUpsideDown[] =
-			{
-					0.0f,	 0.0f,
-					 1.0f,	 0.0f,
-					 0.0f,	 1.0f,
-					 1.0f,	 1.0f 
-			};
-			
 			textureVertexBufferUpsideDown = ByteBuffer
 					.allocateDirect(textureMapUpsideDown.length * 4) // float is 4 bytes
 					.order(ByteOrder.nativeOrder())
@@ -239,7 +249,7 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		GLES20.glTexImage2D( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null );//GLES20.GL_UNSIGNED_SHORT_5_6_5, null ); //GLES20.GL_UNSIGNED_BYTE, null );
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
-		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
+		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
@@ -287,6 +297,12 @@ public class Renderer implements GLWallpaperService.Renderer //GLSurfaceView.Ren
 		// old stuff
 		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
+		
+		// used when rendering to the GLOffscreenSurface to mirror screenshots about the horizontal axis
+		
+		if(mirrorVertical) {
+			Matrix.scaleM(mProjMatrix, 0, 1, -1, 1);
+		}
 		
 		// handle the rendering knobs
 		

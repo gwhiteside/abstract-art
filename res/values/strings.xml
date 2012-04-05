@@ -3,6 +3,7 @@
     <string name="app_name">Abstract Art</string>
     <string name="app_description">100s of psychedelic animated backgrounds based on the classic SNES game Earthbound.</string>
     <string name="wallpaper_settings">Abstract Art Settings</string>
+    <string name="settings.background_chooser">Background Chooser</string>
     <string name="settings_rendering">Rendering</string>
     <string name="settings_cache">Cache</string>
     <string name="frame_rate_title">Frame rate</string>

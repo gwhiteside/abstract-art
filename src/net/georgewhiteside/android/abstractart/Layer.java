@@ -195,15 +195,14 @@ public class Layer
 			return;
 		}
 
-		Log.d(TAG, "layer index: " + index);
+		//Log.d(TAG, "layer index: " + index);
 
 		// load background attribute data
 		
 		romData.position(0xADEA1 - OFFSET + index * 17);
 		bgData = romData.slice();
 		
-		Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
-		//Log.d(TAG, String.format("index: %d indices: %d %d %d %d", index, bgData.get(13), bgData.get(14), bgData.get(15), bgData.get(16)));
+		//Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		
 		romData.position(0xAF458 - OFFSET);
 		bgData.position(9);
@@ -268,18 +267,18 @@ public class Layer
 	private void loadImage(int index)
 	{
 		boolean useImageCache = preferences.getBoolean("useImageCache", true);
-		String cacheFileName = String.format("%03d", index);
+		String cacheFileName = String.valueOf(index); //String.format("%03d", index);
 		File cacheDir = new File(context.getCacheDir(), "layers");
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
 		if(useImageCache && cacheFile.exists())
 		{
-			Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
+			//Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
 			Cache.read(cacheFile, image, 256 * 256);
 		}
 		else
 		{
-			Log.i(TAG, "Building image from compressed data");
+			//Log.i(TAG, "Building image from compressed data");
 			
 			// decompress tiles, decompress tile arrangements, and assemble the former according to the latter
 			// the 65,536-byte result is assigned to the byte[] image member of this instance
@@ -290,7 +289,7 @@ public class Layer
 			
 			if(useImageCache && !cacheFile.exists())
 			{
-				Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
+				//Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
 				Cache.write(cacheFile, image);
 			}
 		}

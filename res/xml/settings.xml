@@ -7,16 +7,13 @@
         android:title="View backgrounds"
         android:summary="A little viewer for all the backgrounds">
         
-        <!--Preference
-        android:title="PreferenceActivity"
-        android:summary="the PreferenceActivity" /-->
-        
-        <net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference
-            android:key="bgselect"
-            android:title="test" />
+        <intent 
+		    android:action="android.intent.action.VIEW"
+		    android:targetPackage="net.georgewhiteside.android.abstractart"
+		    android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference" />
         
     </PreferenceScreen>
-
+	
     <PreferenceCategory android:title="@string/settings_rendering">
     
 	    <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
