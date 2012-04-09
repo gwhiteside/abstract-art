@@ -14,7 +14,7 @@
         
     </PreferenceScreen>
     
-    <!--PreferenceCategory android:title="@string/settings.behavior_title">
+    <PreferenceCategory android:title="@string/settings.behavior_title">
         
         <ListPreference
             android:defaultValue="next"
@@ -24,7 +24,7 @@
             android:title="@string/double_tap_behavior_title"
             android:summary="@string/double_tap_behavior_summary" />
         
-    </PreferenceCategory-->
+    </PreferenceCategory>
 	
     <PreferenceCategory android:title="@string/settings.rendering_title">
     

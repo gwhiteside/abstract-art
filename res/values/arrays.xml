@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="double_tap_behavior_entries">        
+        <item>Do nothing</item>
+        <item>Load next background</item>
+        <item>Open background chooser</item>
+        <item>Open settings</item>
+    </string-array>
+    <string-array name="double_tap_behavior_values">        
+        <item>nothing</item>
+        <item>next</item>
+        <item>chooser</item>
+        <item>settings</item>
+    </string-array>
+</resources>

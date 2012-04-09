@@ -1,16 +1,25 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.net.URISyntaxException;
+
 import org.jf.GLWallpaper.GLWallpaperService;
 //import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
 import android.app.WallpaperManager;
+import android.content.ComponentName;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.SurfaceHolder;
 
 public class Wallpaper extends GLWallpaperService 
 {
 	public static AbstractArtEngine engine;
+	private SharedPreferences sharedPreferences;
 	
 	public Wallpaper()
 	{
@@ -21,6 +30,7 @@ public class Wallpaper extends GLWallpaperService
 	public void onCreate()
 	{
 		super.onCreate();
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 	}
 	
 	@Override
@@ -80,13 +90,29 @@ public class Wallpaper extends GLWallpaperService
 	            	long thisTap = System.currentTimeMillis();
 	            	if(thisTap - lastTap < TAP_THRESHOLD)
 	            	{
-	            		queueEvent( new Runnable()
-	            		{
-	            			public void run()
-	            			{
-	            				renderer.setRandomBackground();
-	            			}
-	            		});
+	            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", "next");
+	            		
+	            		Log.i("aadebug", behavior);
+	            		
+	            		if(behavior.equals("nothing")) {
+	            			// do nothing
+	            		} else if(behavior.equals("next")) { // load next background
+	            			queueEvent( new Runnable() {
+		            			public void run() {
+		            				renderer.setRandomBackground();
+		            			}
+		            		});
+	            		} else if(behavior.equals("chooser")) {
+	            			Intent myIntent = new Intent();
+	            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference"));
+	            			startActivity(myIntent);
+	            		} else if(behavior.equals("settings")) {
+	            			Intent myIntent = new Intent();
+	            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+	            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.Settings"));
+	            			startActivity(myIntent);
+	            		}
 	            		
 	            		lastTap = 0;
 	            	}
