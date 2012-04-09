@@ -1,22 +1,14 @@
 package net.georgewhiteside.android.abstractart;
 
 import org.jf.GLWallpaper.GLWallpaperService;
+//import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
-import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
-import android.util.Log;
-import android.view.GestureDetector;
 import android.view.SurfaceHolder;
-import android.view.GestureDetector.OnGestureListener;
-import android.view.MotionEvent;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.view.View.OnTouchListener;
 
 public class Wallpaper extends GLWallpaperService 
 {

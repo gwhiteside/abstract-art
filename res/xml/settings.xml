@@ -13,8 +13,20 @@
 		    android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference" />
         
     </PreferenceScreen>
+    
+    <!--PreferenceCategory android:title="@string/settings.behavior_title">
+        
+        <ListPreference
+            android:defaultValue="next"
+            android:entries="@array/double_tap_behavior_entries"
+            android:entryValues="@array/double_tap_behavior_values"
+            android:key="stringDoubleTapBehavior"
+            android:title="@string/double_tap_behavior_title"
+            android:summary="@string/double_tap_behavior_summary" />
+        
+    </PreferenceCategory-->
 	
-    <PreferenceCategory android:title="@string/settings_rendering">
+    <PreferenceCategory android:title="@string/settings.rendering_title">
     
 	    <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
 	        android:defaultValue="@integer/framerate_default"
@@ -30,7 +42,7 @@
 
     </PreferenceCategory>
     
-    <PreferenceCategory android:title="@string/settings_cache">
+    <PreferenceCategory android:title="@string/settings.cache_title">
         
         <CheckBoxPreference
 	        android:defaultValue="true"

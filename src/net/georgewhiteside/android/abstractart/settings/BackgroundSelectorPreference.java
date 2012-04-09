@@ -1,17 +1,17 @@
 package net.georgewhiteside.android.abstractart.settings;
 
+import com.android.debug.hv.ViewServer;
+
 import net.georgewhiteside.android.abstractart.R;
+import net.georgewhiteside.android.abstractart.Renderer;
 import android.app.Activity;
-import android.content.Context;
+import android.opengl.GLSurfaceView;
 import android.os.Bundle;
-import android.preference.Preference;
-import android.preference.PreferenceActivity;
-import android.util.AttributeSet;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.GridView;
-import android.widget.LinearLayout;
 import android.widget.Toast;
 
 /* TODO: when loading and saving thumbnails, the application version should ideally be checked because a thumbnail's
@@ -20,7 +20,8 @@ import android.widget.Toast;
 
 public class BackgroundSelectorPreference extends Activity
 {
-	private LinearLayout linearLayout;
+	private GLSurfaceView glSurfaceView;
+	private Renderer renderer;
 	private GridView gridView;
 	
 	@Override
@@ -28,19 +29,44 @@ public class BackgroundSelectorPreference extends Activity
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.background_selector_preference);
 		
+		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
+		renderer = new Renderer(this); // TODO: recycle one renderer
+		glSurfaceView.setEGLContextClientVersion(2);
+		glSurfaceView.setRenderer(renderer);
+		glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		
 		gridView = (GridView)findViewById(R.id.bgThumbGridView);
 		
 		gridView.setColumnWidth(128);
-		gridView.setAdapter(new BackgroundThumbnailAdapter(this));
+		gridView.setAdapter(new ThumbnailAdapter(this));
 		
-		gridView.setOnItemClickListener(new OnItemClickListener() {
-	        public void onItemClick(AdapterView<?> parent, View v, int position, long id) {
-	            Toast.makeText(getApplicationContext(), "" + position, Toast.LENGTH_SHORT).show();
+		gridView.setOnItemClickListener(new OnItemClickListener() { 
+	        public void onItemClick(AdapterView<?> parent, View v, final int position, long id) {
+	        	glSurfaceView.queueEvent(new Runnable(){
+	                public void run() {
+	                	renderer.loadBattleBackground(position);
+	                }
+	            }); // (yuck)
+	        	Toast toast = Toast.makeText(glSurfaceView.getContext(), "" + position, Toast.LENGTH_SHORT);
+	        	toast.setGravity(Gravity.CENTER, 0, 0);
+	        	toast.show();
 	        }
 	    });
 		
+		ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
+		
 		// TODO: adapt to orientation changes
 	}
+	
+	public void onDestroy() {  
+        super.onDestroy();  
+        ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
+    }  
+   
+    public void onResume() {  
+        super.onResume();  
+        ViewServer.get(this).setFocusedWindow(this); // TODO REMOVE THIS
+    }  
 
 	
 }

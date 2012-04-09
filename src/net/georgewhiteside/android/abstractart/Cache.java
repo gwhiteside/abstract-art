@@ -13,8 +13,39 @@ public final class Cache
 	public static final String TAG = "Cache";
 	
 	/**
-	 * Reads a cached file of known size directly into a preallocated byte array. No
-	 * buffering is done.
+	 * Reads a cached file of arbitrary size into a new buffer. Not 100% foolproof; there's
+	 * a remote possibility of mobile platform unexpectedness, but then that's always the
+	 * case isn't it? :)
+	 * 
+	 * @param cacheFile {@code File} object representing the cached data on the file system
+	 * @return a byte array containing the cached file
+	 */
+	public static byte[] read(File cacheFile)
+	{
+		byte[] output = null;
+		try {
+			FileInputStream fileInputStream = new FileInputStream(cacheFile);
+	        int bytesRead = 0;
+	        int count = (int)cacheFile.length(); // assuming no jokers try to read a 2GB cache file...
+	        output = new byte[count];
+	        while(bytesRead < count) {
+	        	bytesRead += fileInputStream.read(output, bytesRead, count);
+	        }
+	        fileInputStream.close();
+		} catch (FileNotFoundException e) {
+			Log.e(TAG, String.format("Cache file %s could not be found", cacheFile.getPath()));
+			e.printStackTrace();
+		} catch (IOException e) {
+			Log.e(TAG, String.format("There was a problem reading cache file %s", cacheFile.getPath()));
+			e.printStackTrace();
+		}
+		
+		return output;
+	}
+	
+	/**
+	 * Reads a cached file of known size directly into a preallocated byte array. Not 100%
+	 * foolproof, etc.
 	 * 
 	 * @param cacheFile {@code File} object representing the cached data on the file system
 	 * @param output a preallocated byte array of {@code count} bytes

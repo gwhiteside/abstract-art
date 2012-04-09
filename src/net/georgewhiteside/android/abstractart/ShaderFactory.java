@@ -73,6 +73,38 @@ public class ShaderFactory
 	public ShaderFactory(Context context)
 	{
 		this.context = context;
+		Log.i(TAG, "shaderfactory instantiated");
+	}
+	
+	/**
+	 * WARNING: THIS IS MOSTLY HERE AS A REMINDER.
+	 * 
+	 * <p>Inconsistencies between mobile chipsets make this difficult-to-impossible
+	 * to realize, depending on how exactly you try to do it. Saving the compiled
+	 * shader binaries isn't universally supported, so that's out. Simply caching the
+	 * program reference handles *might* work, but I don't know enough about how long
+	 * programs are kept in RAM, or how many are, or if more than one is kept, and knowing
+	 * exactly when a program IS cleared (from basic testing on my phone it seems to be
+	 * when the GL context is destroyed, but that's only a tiny piece of the larger
+	 * puzzle), and whether these behaviors vary across chipsets, and so on. Way too
+	 * many unknowns here.
+	 * 
+	 * <p>Returns a value guaranteed to uniquely identify the shader's functions. This
+	 * should be used to cache linked shader program IDs, preventing unnecessary
+	 * compiling and linking on every background change for a given GL instance.
+	 * 
+	 * @return a collision-free hash value identifying the shader functions
+	 */
+	public int getShaderSignature(BattleBackground bbg)
+	{
+		/*
+		 * The value is determined by checking which effects are used and setting
+		 * corresponding bit fields or subfields in an integer. The exact method doesn't
+		 * matter, so long as every possible combination of shader settings generates
+		 * a unique value. It doesn't even need to generate the same value for a given
+		 * configuration between application updates.
+		 */
+		return 0;
 	}
 	
 	public int getShader(BattleBackground bbg)
@@ -300,6 +332,7 @@ public class ShaderFactory
 				program = 0;
 			}
 		}
+		Log.i(TAG, "shader program handle: " + program);
 		return program;
 	}
 	
