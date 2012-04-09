@@ -19,6 +19,7 @@ import android.graphics.Bitmap;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 import org.jf.GLWallpaper.GLWallpaperService;
@@ -33,7 +34,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private static final String TAG = "Renderer";
 	private Context context;
 	
-	private SharedPreferences preferences;
+	private SharedPreferences sharedPreferences;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
 	
@@ -122,7 +123,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	public Renderer(Context context)
 	{
 		this.context = context;
-		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		bbg = new BattleBackground(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -306,8 +307,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / preferences.getInt("intFramerate", 33); // 60 is actually returned as the default from the XML
-		mHighRes = preferences.getBoolean("boolNativeResolution", false);
+		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 33); // 60 is actually returned as the default from the XML
+		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false);
 	}
 	
 	private void updateShaderVariables()

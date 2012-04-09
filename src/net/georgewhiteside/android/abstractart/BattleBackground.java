@@ -11,6 +11,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 /*
@@ -64,7 +65,7 @@ public class BattleBackground
 {
 	private static final String TAG = "BattleBackground";
 	private static final int OFFSET = 0xA0200;
-	SharedPreferences preferences;
+	SharedPreferences sharedPreferences;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -81,7 +82,7 @@ public class BattleBackground
 	public BattleBackground(Context context)
 	{
 		InputStream input = context.getResources().openRawResource(R.raw.bgbank);
-		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
 		loadData(input);
 		processLayerTable();

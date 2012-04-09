@@ -7,6 +7,7 @@ import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
 
 // TODO: scrolling bug on background 227?
 
@@ -25,7 +26,7 @@ public class Layer
 	private static final int OFFSET = 0xA0200;
 	
 	private Context context;
-	private SharedPreferences preferences;
+	private SharedPreferences sharedPreferences;
 	
 	//private static final int ATTRIBUTES = 0xADEA1 - OFFSET;
 	
@@ -81,7 +82,7 @@ public class Layer
 	public Layer(ByteBuffer data, Context context)
 	{
 		this.context = context;
-		this.preferences = context.getSharedPreferences(Wallpaper.SHARED_PREFS_NAME, Context.MODE_PRIVATE);
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		image = new byte[256 * 256 * 1];
 		palette = new byte[16 * 1 * 4];
 		romData = data;
@@ -257,7 +258,7 @@ public class Layer
 	
 	private void loadImage(int index)
 	{
-		boolean useImageCache = preferences.getBoolean("useImageCache", true);
+		boolean useImageCache = sharedPreferences.getBoolean("useImageCache", true);
 		String cacheFileName = String.valueOf(index); //String.format("%03d", index);
 		File cacheDir = new File(context.getCacheDir(), "layers");
 		File cacheFile = new File(cacheDir, cacheFileName);

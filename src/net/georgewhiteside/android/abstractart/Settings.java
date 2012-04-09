@@ -6,31 +6,34 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
 {
+	SharedPreferences sharedPreferences;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
 	{
 	    super.onCreate(savedInstanceState);
-	    getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-	    getPreferenceManager().setSharedPreferencesName(Wallpaper.SHARED_PREFS_NAME);
+	    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+	    sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 	    addPreferencesFromResource(R.xml.settings);
 	}
 	
 	@Override
 	protected void onPause()
 	{
+		super.onPause();
 		getPreferenceManager().getSharedPreferences().unregisterOnSharedPreferenceChangeListener(this);
-	    super.onPause();
 	}
 
 	@Override
 	protected void onResume()
 	{
+		super.onResume();
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
-	    super.onResume();
 	}
 	
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {

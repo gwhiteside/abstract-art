@@ -4,19 +4,13 @@ import org.jf.GLWallpaper.GLWallpaperService;
 //import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
 import android.app.WallpaperManager;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.view.SurfaceHolder;
 
 public class Wallpaper extends GLWallpaperService 
 {
-	public static final String SHARED_PREFS_NAME = "AbstractArtSettings";
 	public static AbstractArtEngine engine;
-	
-	SharedPreferences preferences;// = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
-	/*private GestureDetector gestureDetector;*/
 	
 	public Wallpaper()
 	{
@@ -27,10 +21,6 @@ public class Wallpaper extends GLWallpaperService
 	public void onCreate()
 	{
 		super.onCreate();
-		
-		//PreferenceManager.setDefaultValues(this, R.xml.settings, false);
-		//PreferenceManager.setDefaultValues(this, SHARED_PREFS_NAME, Context.MODE_PRIVATE, R.xml.settings, false);
-		preferences = getSharedPreferences(SHARED_PREFS_NAME, Context.MODE_PRIVATE);
 	}
 	
 	@Override
