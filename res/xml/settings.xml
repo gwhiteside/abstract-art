@@ -14,6 +14,14 @@
         
     </PreferenceScreen>
     
+    <PreferenceCategory android:title="@string/settings.effect_settings_title">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enablePaletteEffects"
+            android:title="@string/enable_palette_effects_title"
+            android:summary="@string/enable_palette_effects_summary" />
+    </PreferenceCategory>
+    
     <PreferenceCategory android:title="@string/settings.behavior_title">
         
         <ListPreference

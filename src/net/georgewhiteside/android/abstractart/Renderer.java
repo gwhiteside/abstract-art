@@ -131,7 +131,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 		
 		startTime = endTime = 0;
-		//frameTime = 1000 / preferences.getInt("intFramerate", 33);
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -239,6 +238,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
+		queryGl(unused);
+		
 		setupQuad();
 		
 		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
@@ -307,8 +308,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 33); // 60 is actually returned as the default from the XML
-		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false);
+		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 60); // SharedPreference
+		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false); // SharedPreference
 	}
 	
 	private void updateShaderVariables()
@@ -361,6 +362,23 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		//bbg.layerA.distortion.dump(0);
 		//bbg.layerA.translation.dump(0);
 		
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+		
+		int bufferSize;
+		int format;
+		if(enablePaletteEffects == true) {
+			bufferSize = 256 * 256 * 1;
+			format = GLES20.GL_LUMINANCE;
+		} else {
+			bufferSize = 256 * 256 * 4;
+			format = GLES20.GL_RGBA;
+		}
+		
+		if(mTextureA.capacity() != bufferSize) {
+			mTextureA = ByteBuffer.allocateDirect(bufferSize);
+			mTextureB = ByteBuffer.allocateDirect(bufferSize);
+		}
+		
         mTextureA.put(dataA).position(0);
         mTextureB.put(dataB).position(0);
         
@@ -376,7 +394,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
         
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
 
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, 256, 256, 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, mTextureA);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureA);
         
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
@@ -387,7 +405,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 
         GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
 
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_LUMINANCE, 256, 256, 0, GLES20.GL_LUMINANCE, GLES20.GL_UNSIGNED_BYTE, mTextureB);
+        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureB);
 
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
         GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
@@ -618,5 +636,22 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		}
  
 		return body.toString();
+	}
+	
+	private void queryGl(GL10 gl10)
+	{
+		//String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);
+		//Log.i("GLInfo", extensions);
+		int[] params = new int[64];
+		
+		GLES20.glGetIntegerv(GLES20.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
+		Log.i("GLInfo", String.format("GLES20.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
+		
+		//GLES20.glGetIntegerv(GL10.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
+		//Log.i("GLInfo", String.format("GL10.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
+		
+		//GLES20.glGetIntegerv(GL10.GL_SMOOTH_LINE_WIDTH_RANGE, params, 0);
+		//Log.i("GLInfo", String.format("GL10.GL_SMOOTH_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
+		
 	}
 }

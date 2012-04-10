@@ -1,24 +1,33 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="null_string"></string>
+    
     <string name="app_name">Abstract Art</string>
     <string name="app_description">100s of psychedelic animated backgrounds based on the classic SNES game Earthbound.</string>
+    
     <string name="wallpaper_settings">Abstract Art Settings</string>
+    
     <string name="settings.background_chooser">Background viewer</string>
+    <string name="settings.effect_settings_title">Effect settings</string>
     <string name="settings.rendering_title">Rendering</string>
     <string name="settings.cache_title">Cache</string>
     <string name="settings.behavior_title">Behavior</string>
+    
+    <string name="enable_palette_effects_title">Enable palette effects</string>
+    <string name="enable_palette_effects_summary">Color cycling effects require extra processing</string>
     <string name="frame_rate_title">Frame rate</string>
     <string name="frame_rate_summary">%s frames per second</string>
     <string name="native_resolution_title">Device-native resolution</string>
     <string name="native_resolution_summary">Experimental; requires more GPU power (not recommended)</string>
     <string name="cache_images_title">Use image cache</string>
     <string name="cache_images_summary">Fast &amp; efficient; requires ~5MB</string>
-    <string name="processing">Processing&#8230;</string>
-    <string name="processed_all_backgrounds">Processed all backgrounds.</string>
-    <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
     <string name="precalculate_cache_title">Precalculate cache</string>
     <string name="precalculate_cache_summary">Precalculate the entire cache now</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>
     <string name="double_tap_behavior_summary">Change current background</string>
+    
+    <string name="processing">Processing&#8230;</string>
+    <string name="processed_all_backgrounds">Processed all backgrounds.</string>
+    <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
+    
 </resources>

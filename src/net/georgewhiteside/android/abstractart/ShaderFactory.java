@@ -6,7 +6,9 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.opengl.GLES20;
+import android.preference.PreferenceManager;
 import android.util.Log;
 
 //import com.badlogic.gdx.backends.android.AndroidGL20;
@@ -24,6 +26,8 @@ public class ShaderFactory
 {
 	private Context context;
 	private static final String TAG = "shader";
+	
+	private SharedPreferences sharedPreferences;
 	
 	private boolean knobMonolithic = false;	// this option is kept for development reasons
 	
@@ -73,7 +77,7 @@ public class ShaderFactory
 	public ShaderFactory(Context context)
 	{
 		this.context = context;
-		Log.i(TAG, "shaderfactory instantiated");
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 	
 	/**
@@ -110,6 +114,7 @@ public class ShaderFactory
 	public int getShader(BattleBackground bbg)
 	{
 		String fragmentShader = "";
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
 		
 		if(knobMonolithic)
 		{
@@ -187,86 +192,91 @@ public class ShaderFactory
 					
 					fragmentShader += id + "offset /= resolution;\n";
 					
-					// get palette index
+					if(enablePaletteEffects == true) {
+						
+						// get palette index
+						
+						fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r * 256.0;\n";
+						
+						// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
+						
+						fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
+						
+						// add palette cycling code if required
 					
-					fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r * 256.0;\n";
-					
-					// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
-					
-					fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
-					
-					// add palette cycling code if required
-					
-					switch(layer.getPaletteCycleType())
-					{
-						default:
-							// no palette cycling
-							break;
+						switch(layer.getPaletteCycleType())
+						{
+							default:
+								// no palette cycling
+								break;
+								
+							case 1:
+								// rotate palette subrange left
+								fragmentShader +=
+									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"{\n" +
+									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+									"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
+									"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+									"    }\n" +
+									"}\n";
+								break;
 							
-						case 1:
-							// rotate palette subrange left
-							fragmentShader +=
-								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-								"{\n" +
-								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-								"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-								"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
-								"    }\n" +
-								"}\n";
-							break;
+							case 2:
+								// rotate two palette subranges left
+								fragmentShader +=
+									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"{\n" +
+									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+									"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
+									"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+									"    }\n" +
+									"}\n" +
+									"else if(" + id + "index >= " + id + "palette[BEGIN2] - 0.5 && " + id + "index <= " + id + "palette[END2] + 0.5)\n" +
+									"{\n" +
+									"    float range = " + id + "palette[END2] - " + id + "palette[BEGIN2];\n" +
+									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
+									"    if(" + id + "index < " + id + "palette[BEGIN2]) {\n" +
+									"        " + id + "index = " + id + "palette[END2] + 1.0 - abs(" + id + "palette[BEGIN2] - " + id + "index);\n" +
+									"    }\n" +
+									"}\n";
+								break;
+							
+							case 3:
+								// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
+								fragmentShader +=
+									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"{\n" +
+									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
+									"    " + id + "index = " + id + "index + " + id + "rotation - " + id + "palette[BEGIN1];\n" +
+									"    range = floor(range + 0.5);\n" +
+									"    " + id + "index = floor(" + id + "index + 0.5);\n" +
+									"    if(" + id + "index > range * 2.0 + 1.0) {\n" +
+									"        " + id + "index = " + id + "palette[BEGIN1] + (" + id + "index - ((range * 2.0) + 2.0));\n" +
+									"    }\n" +
+									"    else if(" + id + "index > range) {\n" +
+									"        " + id + "index = " + id + "palette[END1] - (" + id + "index - (range + 1.0));\n" +
+									"    }\n" +
+									"    else {\n" +
+									"        " + id + "index += " + id + "palette[BEGIN1];\n" +
+									"    }\n" +
+									"}\n";
+								break;
+						}
+					
+						// divide color index down into texture lookup range
 						
-						case 2:
-							// rotate two palette subranges left
-							fragmentShader +=
-								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-								"{\n" +
-								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-								"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-								"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
-								"    }\n" +
-								"}\n" +
-								"else if(" + id + "index >= " + id + "palette[BEGIN2] - 0.5 && " + id + "index <= " + id + "palette[END2] + 0.5)\n" +
-								"{\n" +
-								"    float range = " + id + "palette[END2] - " + id + "palette[BEGIN2];\n" +
-								"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-								"    if(" + id + "index < " + id + "palette[BEGIN2]) {\n" +
-								"        " + id + "index = " + id + "palette[END2] + 1.0 - abs(" + id + "palette[BEGIN2] - " + id + "index);\n" +
-								"    }\n" +
-								"}\n";
-							break;
+						fragmentShader += id + "index /= 16.0;\n";
 						
-						case 3:
-							// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
-							fragmentShader +=
-								"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
-								"{\n" +
-								"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-								"    " + id + "index = " + id + "index + " + id + "rotation - " + id + "palette[BEGIN1];\n" +
-								"    range = floor(range + 0.5);\n" +
-								"    " + id + "index = floor(" + id + "index + 0.5);\n" +
-								"    if(" + id + "index > range * 2.0 + 1.0) {\n" +
-								"        " + id + "index = " + id + "palette[BEGIN1] + (" + id + "index - ((range * 2.0) + 2.0));\n" +
-								"    }\n" +
-								"    else if(" + id + "index > range) {\n" +
-								"        " + id + "index = " + id + "palette[END1] - (" + id + "index - (range + 1.0));\n" +
-								"    }\n" +
-								"    else {\n" +
-								"        " + id + "index += " + id + "palette[BEGIN1];\n" +
-								"    }\n" +
-								"}\n";
-							break;
+						// actual palette color lookup
+						
+						float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
+						fragmentShader += "vec4 " + id + "color = texture2D(s_palette, vec2(" + id + "index, " + paletteRow + " / 16.0));\n";
+					} else {
+						fragmentShader += "vec4 " + id + "color = texture2D(" + id + "texture, " + id + "offset + v_texCoord);\n";
 					}
-					
-					// divide color index down into texture lookup range
-					
-					fragmentShader += id + "index /= 16.0;\n";
-					
-					// actual palette color lookup
-					
-					float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
-					fragmentShader += "vec4 " + id + "color = texture2D(s_palette, vec2(" + id + "index, " + paletteRow + " / 16.0));\n";
 					
 				}
 			}

@@ -1,13 +1,20 @@
 package net.georgewhiteside.android.abstractart;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
+import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Bitmap.CompressFormat;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 // TODO: scrolling bug on background 227?
 
@@ -258,15 +265,41 @@ public class Layer
 	
 	private void loadImage(int index)
 	{
-		boolean useImageCache = sharedPreferences.getBoolean("useImageCache", true);
+		// TODO: the image data ultimately needs to be a Buffer; change the byte[] image to a ByteBuffer
+		
+		boolean useImageCache = sharedPreferences.getBoolean("useImageCache", true); // SharedPreference
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
 		String cacheFileName = String.valueOf(index); //String.format("%03d", index);
-		File cacheDir = new File(context.getCacheDir(), "layers");
+		File cacheDir;
+		int bufferSize;
+		
+		if(enablePaletteEffects == true) {
+			cacheDir = new File(context.getCacheDir(), "layers-indexed");
+			bufferSize = 256 * 256 * 1;
+			
+		} else {
+			cacheDir = new File(context.getCacheDir(), "layers-rgba");
+			bufferSize = 256 * 256 * 4;
+		}
+		
+		if(image.length != bufferSize) {
+			image = new byte[bufferSize];
+		}
+		
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
 		if(useImageCache && cacheFile.exists())
 		{
 			//Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
-			Cache.read(cacheFile, image, 256 * 256);
+			
+			if(enablePaletteEffects) {
+				Cache.read(cacheFile, image, 256 * 256);
+			} else {
+				// TODO: integrate the nitty-gritty into the Cache class
+				ByteBuffer buffer = ByteBuffer.allocate(256 * 256 * 4);
+				BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(buffer);
+				image = buffer.array();
+			}
 		}
 		else
 		{
@@ -277,12 +310,26 @@ public class Layer
 			
 			prepareImageData(index);
 			buildTiles();
-			buildImage();
+			buildImage(enablePaletteEffects);
 			
 			if(useImageCache && !cacheFile.exists())
 			{
 				//Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
-				Cache.write(cacheFile, image);
+				
+				if(enablePaletteEffects) {
+					Cache.write(cacheFile, image);
+				} else {
+					cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
+		 			
+		 			try {
+		 				Bitmap img = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888); //Bitmap.createBitmap(buffer.asIntBuffer().array(), 256, 256, Bitmap.Config.ARGB_8888); // createBitmap(int[] colors, int width, int height, Bitmap.Config config)
+		 				img.copyPixelsFromBuffer(ByteBuffer.wrap(image));
+		 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+		 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+		 			} catch (FileNotFoundException e) {
+		 				e.printStackTrace();
+		 			}
+				}
 			}
 		}
 	}
@@ -307,7 +354,7 @@ public class Layer
 		return false;
 	}
 	
-	private void buildImage()
+	private void buildImage(boolean indexedColor)
 	{
 		int b1, b2;
 		int block, tile, subpal = 0;
@@ -359,9 +406,22 @@ public class Layer
 						else
 							py = (y * 8) + j;
 
-						int pos = px + (py * 256);
+						int stride = 256;
+						byte color = tiles.get(tile)[i][j];
 						
-						image[pos] = tiles.get(tile)[i][j];
+						if(indexedColor) {
+							int pos = px + py * stride;
+							image[pos] = color;
+						} else {
+							int pos = px * 4 + py * 4 * stride;
+							
+							image[pos + 0] = paletteData[subpal][color][0];
+							image[pos + 1] = paletteData[subpal][color][1];
+							image[pos + 2] = paletteData[subpal][color][2];
+							image[pos + 3] = color == 0 ? (byte)0x00 : (byte)0xFF;
+							
+						}
+						
 					}
 				}
 			}
@@ -371,7 +431,7 @@ public class Layer
 	
 	private void loadSubPalette(int sub)
 	{
-		int subpal = 0; // just a temp thing
+		int subpal = sub; // just a temp thing
 		for(int i = 0; i < (1 << getBPP()); i++)
 		{
 			palette[i * 4 + 0] = paletteData[subpal][i][0];

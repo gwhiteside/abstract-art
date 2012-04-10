@@ -111,7 +111,6 @@ public class ThumbnailAdapter extends BaseAdapter {
  			renderer.loadBattleBackground(position);
  			thumbnail = glOffscreenSurface.getBitmap();
  			
- 			// TODO save thumbnail
  			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
  			
  			try {
