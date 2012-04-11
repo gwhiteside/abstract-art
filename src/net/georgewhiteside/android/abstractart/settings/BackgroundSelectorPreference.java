@@ -47,25 +47,22 @@ public class BackgroundSelectorPreference extends Activity
 	                	renderer.loadBattleBackground(position);
 	                }
 	            }); // (yuck)
-	        	Toast toast = Toast.makeText(glSurfaceView.getContext(), "" + position, Toast.LENGTH_SHORT);
-	        	toast.setGravity(Gravity.CENTER, 0, 0);
-	        	toast.show();
 	        }
 	    });
 		
-		ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
+		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 		
 		// TODO: adapt to orientation changes
 	}
 	
 	public void onDestroy() {  
         super.onDestroy();  
-        ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
+        //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
     }  
    
     public void onResume() {  
         super.onResume();  
-        ViewServer.get(this).setFocusedWindow(this); // TODO REMOVE THIS
+        //ViewServer.get(this).setFocusedWindow(this); // TODO REMOVE THIS
     }  
 
 	
