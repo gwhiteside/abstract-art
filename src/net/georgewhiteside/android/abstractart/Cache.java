@@ -5,8 +5,11 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.zip.Deflater;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
+import java.util.zip.InflaterInputStream;
 
 import android.util.Log;
 
@@ -96,17 +99,17 @@ public final class Cache
 	
 	
 	
-	public static void readGzip(File cacheFile, byte[] output, int count)
+	public static void readCompressed(File cacheFile, byte[] output, int count)
 	{
 		
 		try {
 			FileInputStream fileInputStream = new FileInputStream(cacheFile);
-			GZIPInputStream gzipInputStream = new GZIPInputStream(fileInputStream);
+			InflaterInputStream inflaterInputStream = new InflaterInputStream(fileInputStream);
 	        int bytesRead = 0;
 	        while(bytesRead < count) {
-	        	bytesRead += gzipInputStream.read(output, bytesRead, count - bytesRead);
+	        	bytesRead += inflaterInputStream.read(output, bytesRead, count - bytesRead);
 	        }
-	        gzipInputStream.close();
+	        inflaterInputStream.close();
 		} catch (FileNotFoundException e) {
 			Log.e(TAG, String.format("Cache file %s could not be found", cacheFile.getPath()));
 			e.printStackTrace();
@@ -116,16 +119,15 @@ public final class Cache
 		}
 	}
 	
-	public static void writeGzip(File cacheFile, byte[] input)
+	public static void writeCompressed(File cacheFile, byte[] input)
 	{
 		cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
 		
 		try {
 			FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
-			GZIPOutputStream gzipOutputStream = new GZIPOutputStream(fileOutputStream);
-			gzipOutputStream.write(input, 0, input.length);
-			gzipOutputStream.finish();
-			fileOutputStream.close();
+			DeflaterOutputStream deflaterOutputStream = new DeflaterOutputStream(fileOutputStream);
+			deflaterOutputStream.write(input, 0, input.length);
+			deflaterOutputStream.close();
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 		} catch (IOException e) {
