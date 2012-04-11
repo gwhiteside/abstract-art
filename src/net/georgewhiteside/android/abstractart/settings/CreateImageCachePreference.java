@@ -8,6 +8,7 @@ import android.content.DialogInterface;
 import android.content.DialogInterface.OnCancelListener;
 import android.content.res.Resources;
 import android.os.AsyncTask;
+import android.os.SystemClock;
 import android.preference.Preference;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -31,36 +32,6 @@ public class CreateImageCachePreference extends Preference
 		this(context, null, android.R.attr.dialogPreferenceStyle);
 	}
 	
-	 /*@Override
-	 protected void onBindView(View view) {
-		 super.onBindView(view);
-	 }*/
-	
-	/*public DialogPreference(Context context, AttributeSet attrs, int defStyle) {
-        super(context, attrs, defStyle);
-        
-        TypedArray a = context.obtainStyledAttributes(attrs,
-                com.android.internal.R.styleable.DialogPreference, defStyle, 0);
-        mDialogTitle = a.getString(com.android.internal.R.styleable.DialogPreference_dialogTitle);
-        if (mDialogTitle == null) {
-            // Fallback on the regular title of the preference
-            // (the one that is seen in the list)
-            mDialogTitle = getTitle();
-        }
-        mDialogMessage = a.getString(com.android.internal.R.styleable.DialogPreference_dialogMessage);
-        mDialogIcon = a.getDrawable(com.android.internal.R.styleable.DialogPreference_dialogIcon);
-        mPositiveButtonText = a.getString(com.android.internal.R.styleable.DialogPreference_positiveButtonText);
-        mNegativeButtonText = a.getString(com.android.internal.R.styleable.DialogPreference_negativeButtonText);
-        mDialogLayoutResId = a.getResourceId(com.android.internal.R.styleable.DialogPreference_dialogLayout,
-                mDialogLayoutResId);
-        a.recycle();
-        
-    }
-
-    public DialogPreference(Context context, AttributeSet attrs) {
-        this(context, attrs, com.android.internal.R.attr.dialogPreferenceStyle);
-    }*/
-	
 	@Override
     protected void onClick() {
         //super.onClick();
@@ -79,6 +50,9 @@ public class CreateImageCachePreference extends Preference
 		@Override
 		protected Void doInBackground(Integer... params) {
 			loaded = 0;
+			
+			long startTime = SystemClock.uptimeMillis();
+			
 			for(int i = 0; i < numberOfBackgrounds; i++)
 			{
 				Wallpaper.engine.renderer.cacheImage(i);
@@ -89,6 +63,10 @@ public class CreateImageCachePreference extends Preference
 					break;
 				}
 			}
+			
+			long endTime = SystemClock.uptimeMillis();
+			
+			Log.i("cacheTime", "total cache time: " + ((float)endTime - startTime) / 1000 + "s");
 
 			return null;
 		}
@@ -146,6 +124,5 @@ public class CreateImageCachePreference extends Preference
 
 			Toast.makeText(context, message, Toast.LENGTH_SHORT).show();
 		}
-		
 	}
 }
