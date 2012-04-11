@@ -293,7 +293,8 @@ public class Layer
 			//Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
 			
 			if(enablePaletteEffects) {
-				Cache.read(cacheFile, image, 256 * 256);
+				Cache.readGzip(cacheFile, image, 256 * 256);
+				//Cache.read(cacheFile, image, 256 * 256);
 			} else {
 				// TODO: integrate the nitty-gritty into the Cache class
 				ByteBuffer buffer = ByteBuffer.allocate(256 * 256 * 4);
@@ -317,7 +318,8 @@ public class Layer
 				//Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
 				
 				if(enablePaletteEffects) {
-					Cache.write(cacheFile, image);
+					Cache.writeGzip(cacheFile, image);
+					//Cache.write(cacheFile, image);
 				} else {
 					cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
 		 			
