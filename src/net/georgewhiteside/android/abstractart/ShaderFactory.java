@@ -377,6 +377,8 @@ public class ShaderFactory
 				GLES20.glDeleteShader(shader);
 				shader = 0;
 			}
+		} else {
+			Log.e(TAG, "glCreateShader() failed; no opengl context");
 		}
 		return shader;
 	}

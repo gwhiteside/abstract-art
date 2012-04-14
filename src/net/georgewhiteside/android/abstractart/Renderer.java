@@ -97,6 +97,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private boolean mirrorVertical = false;
 	
+	private Object lock = new Object();
+	
 	public int getCacheableImagesTotal()
 	{
 		int images = 103; // TODO: don't hardcode this
@@ -350,111 +352,113 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public void loadBattleBackground(int index)
 	{	
-		//bbg.setLayers(174, 173);
-		bbg.setIndex(index);
-		
-		byte[] dataA = bbg.getBg3().getImage();
-		byte[] dataB = bbg.getBg4().getImage();
-		byte[] paletteBg3 = bbg.getBg3().getPalette();
-		byte[] paletteBg4 = bbg.getBg4().getPalette();
-		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
-		
-		//bbg.layerA.distortion.dump(0);
-		//bbg.layerA.translation.dump(0);
-		
-		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
-		
-		int bufferSize;
-		int format;
-		if(enablePaletteEffects == true) {
-			bufferSize = 256 * 256 * 1;
-			format = GLES20.GL_LUMINANCE;
-		} else {
-			bufferSize = 256 * 256 * 4;
-			format = GLES20.GL_RGBA;
+		synchronized(lock) {
+			//bbg.setLayers(174, 173);
+			bbg.setIndex(index);
+			
+			byte[] dataA = bbg.getBg3().getImage();
+			byte[] dataB = bbg.getBg4().getImage();
+			byte[] paletteBg3 = bbg.getBg3().getPalette();
+			byte[] paletteBg4 = bbg.getBg4().getPalette();
+			int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
+			
+			//bbg.layerA.distortion.dump(0);
+			//bbg.layerA.translation.dump(0);
+			
+			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+			
+			int bufferSize;
+			int format;
+			if(enablePaletteEffects == true) {
+				bufferSize = 256 * 256 * 1;
+				format = GLES20.GL_LUMINANCE;
+			} else {
+				bufferSize = 256 * 256 * 4;
+				format = GLES20.GL_RGBA;
+			}
+			
+			if(mTextureA.capacity() != bufferSize) {
+				mTextureA = ByteBuffer.allocateDirect(bufferSize);
+				mTextureB = ByteBuffer.allocateDirect(bufferSize);
+			}
+			
+	        mTextureA.put(dataA).position(0);
+	        mTextureB.put(dataB).position(0);
+	        
+	        mPalette.position(0);
+	        mPalette.put(paletteBg3).position(0);
+	        
+	        mPalette.position(16 * 1 * 4);
+	        mPalette.put(paletteBg4).position(0);
+	        
+	        GLES20.glGenTextures(3, mTextureId, 0);
+	        
+	        // BG3 background layer
+	        
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
+	
+	        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureA);
+	        
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
+	        
+	        // BG4 background layer
+	
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
+	
+	        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureB);
+	
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
+	        
+	        // palettes
+	        
+	        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[2]);
+	
+	        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 16, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
+	
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+	        
+	        
+	        
+	        
+	        
+	        /* shader for effects, update program uniforms */
+			
+			mProgram = shader.getShader(bbg);
+			
+			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
+			if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+			
+			mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
+			mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
+			mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
+			mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
+			mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
+			
+			mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
+			mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
+			mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
+			mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
+			mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
+			mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
+			mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
+			mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
+			mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
+			mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
+			mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
+			
+			// old stuff
+			mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
+			mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
 		}
-		
-		if(mTextureA.capacity() != bufferSize) {
-			mTextureA = ByteBuffer.allocateDirect(bufferSize);
-			mTextureB = ByteBuffer.allocateDirect(bufferSize);
-		}
-		
-        mTextureA.put(dataA).position(0);
-        mTextureB.put(dataB).position(0);
-        
-        mPalette.position(0);
-        mPalette.put(paletteBg3).position(0);
-        
-        mPalette.position(16 * 1 * 4);
-        mPalette.put(paletteBg4).position(0);
-        
-        GLES20.glGenTextures(3, mTextureId, 0);
-        
-        // BG3 background layer
-        
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[0]);
-
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureA);
-        
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
-        
-        // BG4 background layer
-
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[1]);
-
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureB);
-
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
-        
-        // palettes
-        
-        GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mTextureId[2]);
-
-        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 16, 16, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, mPalette);
-
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
-        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
-        
-        
-        
-        
-        
-        /* shader for effects, update program uniforms */
-		
-		mProgram = shader.getShader(bbg);
-		
-		//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-		if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
-		
-		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
-		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
-		mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
-		mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
-		mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
-		
-		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
-		mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
-		mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
-		mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
-		mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
-		mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
-		mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
-		mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
-		mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
-		mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
-		mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
-		
-		// old stuff
-		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
-		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
 	}
 	
 	private void renderToTexture() // "low res" render

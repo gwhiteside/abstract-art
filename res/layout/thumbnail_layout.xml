@@ -1,31 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/thumbnail_layout"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-    <ImageView
-        android:id="@+id/thumbnail_image"
-        android:contentDescription="@string/null_string"
+<ViewSwitcher xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/thumbnail_view_switcher"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="fitCenter" />
+        android:layout_height="match_parent" >
+        
+    <!-- LOADING_VIEW -->
+    
+    <FrameLayout 
+	    android:id="@+id/loading_layout"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent">
+	    
+	    <ProgressBar
+	        android:id="@+id/thumbnail_progress_bar"
+	        android:layout_gravity="center"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content" />
+	
+	</FrameLayout>
+	
+    <!-- THUMBNAIL_VIEW -->
 
-    <TextView
-        android:id="@+id/thumbnail_text"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|bottom"
-        android:layout_margin="0dp"
-        android:minWidth="20dp"
-        android:gravity="center"
-        android:paddingLeft="4dp"
-        android:paddingRight="4dp"
-        android:paddingTop="2dp"
-        android:paddingBottom="2dp"
-        android:background="#60000000"
-        android:text=""
-        android:textColor="#ffffffff" />
+	<FrameLayout 
+	    android:id="@+id/thumbnail_layout"
+	    android:layout_width="match_parent"
+	    android:layout_height="match_parent">
+	
+	    <ImageView
+	        android:id="@+id/thumbnail_image"
+	        android:contentDescription="@string/null_string"
+	        android:layout_width="match_parent"
+	        android:layout_height="match_parent"
+	        android:scaleType="fitCenter" />
+	
+	    <TextView
+	        android:id="@+id/thumbnail_text"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_gravity="right|bottom"
+	        android:layout_margin="0dp"
+	        android:minWidth="20dp"
+	        android:gravity="center"
+	        android:paddingLeft="4dp"
+	        android:paddingRight="4dp"
+	        android:paddingTop="2dp"
+	        android:paddingBottom="2dp"
+	        android:background="#60000000"
+	        android:text=""
+	        android:textColor="#ffffffff" />
+	    
+	</FrameLayout>
+	
+</ViewSwitcher>
 
-</FrameLayout>

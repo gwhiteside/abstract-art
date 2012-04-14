@@ -37,6 +37,15 @@ public class GLOffscreenSurface {
         mHeight = height;
     }
     
+    public boolean checkCurrentThread()
+    {
+    	if (!Thread.currentThread().getName().equals(mThreadOwner)) {
+            return false;
+        } else {
+        	return true;
+        }
+    }
+    
     public void setRenderer(GLSurfaceView.Renderer renderer) {
     	// add the ConfigChoosers and whatnot later? I'll probably never use it
     	if (mEGLConfigChooser == null) {
