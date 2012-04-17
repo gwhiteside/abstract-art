@@ -28,6 +28,7 @@ import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
@@ -103,6 +104,9 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
             holder.viewSwitcher = (ViewSwitcher) convertView.findViewById(R.id.thumbnail_view_switcher);
             holder.text = (TextView) convertView.findViewById(R.id.thumbnail_text);
             holder.thumbnail = (ImageView) convertView.findViewById(R.id.thumbnail_image);
+            
+            FrameLayout frameLayout = (FrameLayout) convertView.findViewById(R.id.loading_layout);
+            frameLayout.setLayoutParams(new ViewSwitcher.LayoutParams(thumbnailWidth, thumbnailHeight));
             
             convertView.setTag(holder);
         } else {
