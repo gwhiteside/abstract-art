@@ -2,6 +2,8 @@
 <resources>
     <string name="null_string"></string>
     
+    <string name="message_palette_bug">It looks like palette cycling effects don\'t work on your particular phone (yet), so I\'ve disabled them by default in the settings.</string>
+    
     <string name="app_name">Abstract Art</string>
     <string name="app_description">100s of psychedelic animated backgrounds based on the classic SNES game Earthbound.</string>
     
@@ -18,9 +20,7 @@
     <string name="frame_rate_title">Frame rate</string>
     <string name="frame_rate_summary">%s frames per second</string>
     <string name="native_resolution_title">Device-native resolution</string>
-    <string name="native_resolution_summary">Experimental; requires more GPU power (not recommended)</string>
-    <string name="cache_images_title">Use image cache</string>
-    <string name="cache_images_summary">Fast &amp; efficient; requires ~5MB</string>
+    <string name="native_resolution_summary">Experimental; don't use this</string>
     <string name="precalculate_cache_title">Precalculate cache</string>
     <string name="precalculate_cache_summary">Precalculate the entire cache now</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>

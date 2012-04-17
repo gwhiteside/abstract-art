@@ -29,6 +29,12 @@
             android:name="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference"
             android:exported="false" />
         
+        <activity
+            android:label="title"
+            android:name="net.georgewhiteside.android.abstractart.ServiceDialog"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar" 
+            android:exported="false" />
+        
     </application>
 
 </manifest>

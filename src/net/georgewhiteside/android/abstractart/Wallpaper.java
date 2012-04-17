@@ -1,14 +1,24 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.File;
 import java.net.URISyntaxException;
 
 import org.jf.GLWallpaper.GLWallpaperService;
 //import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
+import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.AlertDialog.Builder;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
@@ -52,9 +62,72 @@ public class Wallpaper extends GLWallpaperService
 			super();
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
 			
+			try
+			{
+				// check to see if this is the first time running a new version, and take
+				// any appropriate actions here
+				
+				PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
+				int lastVersionCode = sharedPreferences.getInt("lastVersionCode", 0);
+				if(lastVersionCode < packageInfo.versionCode)
+				{
+					// we only want to do this once per new version
+					Editor editor = sharedPreferences.edit();
+		            editor.putInt("lastVersionCode", packageInfo.versionCode);
+		            editor.commit();
+		            
+		            if(detectPaletteBug())
+					{
+		            	clearCache();
+		            	
+		            	editor.putBoolean("enablePaletteEffects", false);
+		            	editor.commit();
+		            	
+		            	// hack to display a dialog from my wallpaper service... I know dialogs aren't meant to be run from services,
+		            	// but I promise this is actually helpful and desirable in this case.
+		            	Intent myIntent = new Intent();
+		        		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+		        		myIntent.putExtra("message", getResources().getText(R.string.message_palette_bug));
+		        		myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.ServiceDialog"));
+		        		startActivity(myIntent);
+					}
+				}
+			}
+			catch (NameNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+			
+			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+		}
+		
+		private boolean detectPaletteBug()
+		{
+			int width = 256, height = 256;
+			GLOffscreenSurface glOffscreenSurface = new GLOffscreenSurface(width, height);
+			glOffscreenSurface.setEGLContextClientVersion(2);
+			glOffscreenSurface.setRenderer(renderer);
+			
+			renderer.loadBattleBackground(1);
+ 			
+ 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
+ 			int firstPixel = thumbnail.getPixel(0, 0);
+ 			
+ 			for(int y = 0; y < height; y++)
+ 			{
+ 				for(int x = 0; x < width; x++)
+ 				{
+ 					if(thumbnail.getPixel(x, y) != firstPixel)
+ 					{
+ 						return false;
+ 					}
+ 				}
+ 			}
+			
+			return true;
 		}
 		
 		@Override
@@ -125,4 +198,32 @@ public class Wallpaper extends GLWallpaperService
 	            return super.onCommand(action, x, y, z, extras, resultRequested);
         }
 	}
+	
+	public void clearCache() {
+        File cache = getCacheDir();
+        File appDir = new File(cache.getParent());
+        if (appDir.exists()) {
+            String[] children = appDir.list();
+            for (String s : children) {
+                if (!s.equals("lib")) {
+                    deleteDir(new File(appDir, s));
+                    Log.i("TAG", "**************** File /data/data/APP_PACKAGE/" + s + " DELETED *******************");
+                }
+            }
+        }
+    }
+	
+	public static boolean deleteDir(File dir) {
+        if (dir != null && dir.isDirectory()) {
+            String[] children = dir.list();
+            for (int i = 0; i < children.length; i++) {
+                boolean success = deleteDir(new File(dir, children[i]));
+                if (!success) {
+                    return false;
+                }
+            }
+        }
+
+        return dir.delete();
+    }
 }
