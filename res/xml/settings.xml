@@ -52,14 +52,7 @@
     
     <PreferenceCategory android:title="@string/settings.cache_title">
         
-        <CheckBoxPreference
-	        android:defaultValue="true"
-	        android:key="useImageCache"
-	        android:title="@string/cache_images_title"
-	        android:summary="@string/cache_images_summary" />
-        
         <net.georgewhiteside.android.abstractart.settings.CreateImageCachePreference
-            android:dependency="useImageCache"
             android:title="@string/precalculate_cache_title"
             android:summary="@string/precalculate_cache_summary" />
         

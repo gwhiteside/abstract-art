@@ -267,7 +267,6 @@ public class Layer
 	{
 		// TODO: the image data ultimately needs to be a Buffer; change the byte[] image to a ByteBuffer
 		
-		boolean useImageCache = sharedPreferences.getBoolean("useImageCache", true); // SharedPreference
 		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
 		String cacheFileName = String.valueOf(index); //String.format("%03d", index);
 		File cacheDir;
@@ -288,7 +287,7 @@ public class Layer
 		
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
-		if(useImageCache && cacheFile.exists())
+		if(cacheFile.exists())
 		{
 			//Log.i(TAG, String.format("Reading previously cached image from %s", cacheFile.getPath()));
 			
@@ -313,25 +312,22 @@ public class Layer
 			buildTiles();
 			buildImage(enablePaletteEffects);
 			
-			if(useImageCache && !cacheFile.exists())
-			{
-				//Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
-				
-				if(enablePaletteEffects) {
-					Cache.writeCompressed(cacheFile, image);
-					//Cache.write(cacheFile, image);
-				} else {
-					cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
-		 			
-		 			try {
-		 				Bitmap img = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888); //Bitmap.createBitmap(buffer.asIntBuffer().array(), 256, 256, Bitmap.Config.ARGB_8888); // createBitmap(int[] colors, int width, int height, Bitmap.Config config)
-		 				img.copyPixelsFromBuffer(ByteBuffer.wrap(image));
-		 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
-		 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
-		 			} catch (FileNotFoundException e) {
-		 				e.printStackTrace();
-		 			}
-				}
+			//Log.i(TAG, String.format("Caching image to %s", cacheFile.getPath()));
+			
+			if(enablePaletteEffects) {
+				Cache.writeCompressed(cacheFile, image);
+				//Cache.write(cacheFile, image);
+			} else {
+				cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
+	 			
+	 			try {
+	 				Bitmap img = Bitmap.createBitmap(256, 256, Bitmap.Config.ARGB_8888); //Bitmap.createBitmap(buffer.asIntBuffer().array(), 256, 256, Bitmap.Config.ARGB_8888); // createBitmap(int[] colors, int width, int height, Bitmap.Config config)
+	 				img.copyPixelsFromBuffer(ByteBuffer.wrap(image));
+	 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+	 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+	 			} catch (FileNotFoundException e) {
+	 				e.printStackTrace();
+	 			}
 			}
 		}
 	}
