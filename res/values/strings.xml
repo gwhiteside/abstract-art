@@ -20,7 +20,7 @@
     <string name="frame_rate_title">Frame rate</string>
     <string name="frame_rate_summary">%s frames per second</string>
     <string name="native_resolution_title">Device-native resolution</string>
-    <string name="native_resolution_summary">Experimental; don't use this</string>
+    <string name="native_resolution_summary">Experimental; don\'t use this</string>
     <string name="precalculate_cache_title">Precalculate cache</string>
     <string name="precalculate_cache_summary">Precalculate the entire cache now</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>
