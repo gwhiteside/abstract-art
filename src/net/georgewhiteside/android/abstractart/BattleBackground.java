@@ -69,6 +69,7 @@ public class BattleBackground
 	
 	private ByteBuffer romData;
 	private int currentIndex;
+	private int currentRomBackgroundIndex;
 
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
@@ -91,6 +92,7 @@ public class BattleBackground
 		bg4 = new Layer(romData, context);
 		
 		currentIndex = -1;
+		currentRomBackgroundIndex = -1;
 	}
 	
 	public void doTick()
@@ -155,7 +157,7 @@ public class BattleBackground
 		final int MAX_ENTRIES = 484;
 		int uniqueCount = 0;
 		
-		short[][] buffer = new short[MAX_ENTRIES][2];
+		short[][] buffer = new short[MAX_ENTRIES][3];
 		
 		for(int i = 0; i < MAX_ENTRIES; i++)
 		{
@@ -176,11 +178,12 @@ public class BattleBackground
 			{
 				buffer[uniqueCount][0] = value0;
 				buffer[uniqueCount][1] = value1;
+				buffer[uniqueCount][2] = (short) i; // track natural Earthbound ROM index
 				uniqueCount++;
 			}
 		}
 		
-		layerTable = new short[uniqueCount][2];
+		layerTable = new short[uniqueCount][3];
 		System.arraycopy(buffer, 0, layerTable, 0, uniqueCount);
 	}
 	
@@ -195,6 +198,7 @@ public class BattleBackground
 			
 			setLayers(layerA, layerB);
 			currentIndex = index;
+			currentRomBackgroundIndex = layerTable[index][2];
 		}
 	}
 	
@@ -209,5 +213,11 @@ public class BattleBackground
 		int images = 103; // TODO: don't hardcode this
 		
 		return images;
+	}
+	
+	protected int getRomBackgroundIndex(int address)
+	{
+		//return currentRomBackgroundIndex;
+		return layerTable[address][2];
 	}
 }

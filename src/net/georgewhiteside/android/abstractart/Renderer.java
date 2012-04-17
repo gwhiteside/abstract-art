@@ -100,6 +100,11 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private Object lock = new Object();
 	
+	public int getRomBackgroundIndex(int address)
+	{
+		return bbg.getRomBackgroundIndex(address);
+	}
+	
 	public int getCacheableImagesTotal()
 	{
 		int images = 103; // TODO: don't hardcode this

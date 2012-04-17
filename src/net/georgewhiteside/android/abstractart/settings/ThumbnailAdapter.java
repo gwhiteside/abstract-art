@@ -138,7 +138,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
  			// set the bitmap in the ImageView
 			holder.thumbnail.setImageBitmap(thumbnail);
 			
-			holder.text.setText(String.valueOf(position));
+			//holder.text.setText(String.valueOf(position));
+			holder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
  			
  			// look into BitmapFactory.inPurgeable, probably not relevant once I cache the PNGs myself
  		}

@@ -11,10 +11,7 @@
         android:layout_gravity="center"
         android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-	    android:layout_marginLeft="8dp"
-	    android:layout_marginRight="8dp"
-	    android:padding="8dp">
+        android:layout_margin="8dp">
 	    
 	    <android.opengl.GLSurfaceView
 	        android:layout_gravity="center"
