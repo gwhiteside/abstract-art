@@ -1,6 +1,6 @@
 package net.georgewhiteside.android.abstractart.settings;
 
-import com.android.debug.hv.ViewServer;
+//import com.android.debug.hv.ViewServer;
 
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.Renderer;
