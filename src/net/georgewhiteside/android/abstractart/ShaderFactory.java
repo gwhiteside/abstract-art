@@ -53,12 +53,14 @@ public class ShaderFactory
 	
 		"uniform vec2 resolution;\n" +
 	
+		"uniform int bg3_dist_type;\n" +
 		"uniform vec3 bg3_dist;\n" +
 		"uniform vec4 bg3_palette;\n" +
 		"uniform vec2 bg3_scroll;\n" +
 		"uniform float bg3_compression;\n" +
 		"uniform float bg3_rotation;\n" +
 	
+		"uniform int bg4_dist_type;\n" +
 		"uniform vec3 bg4_dist;\n" +
 		"uniform vec4 bg4_palette;\n" +
 		"uniform vec2 bg4_scroll;\n" +
@@ -145,33 +147,87 @@ public class ShaderFactory
 					
 					// distortion
 					
-					if(layer.distortion.getType() != 0)
+					// TODO: probe battle background layer to determine if multiple distortions are used, and which ones; if more than one, support them
+					
+					int numberOfEffects = layer.distortion.getNumberOfEffects();
+					
+					if(numberOfEffects != 0)
 					{
 						fragmentShader += "float " + id + "distortion_offset = (" + id + "dist[AMPL] * sin(" + id + "dist[FREQ] * y + " + id + "dist[SPEED]));\n";
 						
-						switch(layer.distortion.getType())
+						if(numberOfEffects == 1)
 						{
-							default:
-								break;
-								
-							case 1:
-								fragmentShader += id + "offset.x = " + id + "distortion_offset;\n";
-								break;
-								
-							case 2:
-								fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n";
-								break;
-								
-							case 3:
-								fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
-								break;
-								
-							case 4:
-								fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
-													id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
-								break;
+							switch(layer.distortion.getType())
+							{
+								default:
+									break;
+									
+								case 1:
+									fragmentShader += id + "offset.x = " + id + "distortion_offset;\n";
+									break;
+									
+								case 2:
+									fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n";
+									break;
+									
+								case 3:
+									fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
+									break;
+									
+								case 4:
+									fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+														id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
+									break;
+							}
+						}
+						else // 2 or more effects are used
+						{
+							fragmentShader +=	"if(" + id + "dist_type == 1) {\n" +
+													id + "offset.x = " + id + "distortion_offset;\n" +
+									
+												"} else if(" + id + "dist_type == 2) {\n" +
+													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+												
+												"} else if(" + id + "dist_type == 3) {\n" +
+													id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n" +
+												"}\n" +
+												
+												"if(" + id + "dist_type == 4) {\n" +
+													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+													id + "offset.x += (y * (" + id + "compression / resolution.y));\n" +
+												"}\n";
+													
+							/*
+							if(u_dist_type[0] == 0)		// none
+							{
+								bg3_offset.x = 0.0;
+							}
+							else if(u_dist_type[0] == 1)	// horizontal effect
+							{
+								bg3_offset.x = bg3_distortion;
+							}
+							else if(u_dist_type[0] == 2)	// horizontal interlaced effect
+							{
+								bg3_offset.x = floor(mod(y, 2.0)) == 0.0 ? bg3_distortion : -bg3_distortion;
+							}
+							else if(u_dist_type[0] == 3)	// vertical effect
+							{
+								bg3_offset.y = mod(bg3_distortion, resolution.y);
+							}
+							
+							if(u_dist_type[0] == 4)	// horizontal interlaced + shear
+							{
+								bg3_offset.x = floor(mod(y, 2.0)) == 0.0 ? bg3_distortion : -bg3_distortion;
+								bg3_offset.x += (y * (bg3_compression / resolution.y));
+							}
+							else
+							{
+								bg3_offset.y += (y * (bg3_compression / resolution.y));	// compression effect
+							}
+							*/
 						}
 					}
+
 					
 					// vertical compression
 					
@@ -304,7 +360,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		//Log.d("shader", fragmentShader);
+		Log.d("shader", fragmentShader);
 		
 		return createProgram(vertexShader, fragmentShader);
 	}

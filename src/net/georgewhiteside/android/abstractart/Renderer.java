@@ -54,6 +54,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private int mResolutionLoc;
 	private int mCompressionLoc;
+	private int mBg3DistTypeLoc, mBg4DistTypeLoc;
 	private int mBg3DistLoc, mBg4DistLoc;
 	private int mDistTypeLoc;
 	private int mBg3Scroll, mBg4Scroll;
@@ -328,6 +329,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// update distortion effect variables for the shader program
 		
+		GLES20.glUniform1i(mBg3DistTypeLoc, bg3.distortion.getType());
+		GLES20.glUniform1i(mBg4DistTypeLoc, bg4.distortion.getType());
 		GLES20.glUniform3f(mBg3DistLoc, bg3.distortion.computeShaderAmplitude(), bg3.distortion.computeShaderFrequency(), bg3.distortion.computeShaderSpeed());
 		GLES20.glUniform3f(mBg4DistLoc, bg4.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderFrequency(), bg4.distortion.computeShaderSpeed());
 		GLES20.glUniform1f(mBg3CompressionLoc, bg3.distortion.computeShaderCompression());
@@ -444,6 +447,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
 			
 			mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
+			mBg3DistTypeLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist_type");
+			mBg4DistTypeLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist_type");
 			mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
 			mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
 			mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
