@@ -64,6 +64,8 @@ public class Layer
 	private byte[] image;
 	private byte[] palette;
 	
+	private int paletteId; // hack for disabled color effects
+	
 	private int paletteRotation, triangle;
 	private int mTick;
  	
@@ -225,6 +227,8 @@ public class Layer
 		
 		romData.position(0xADCD9 - OFFSET + getPaletteIndex() * 4);
 		int pPaletteData = ROMUtil.toHex(romData.getInt()) - OFFSET;
+		paletteId = pPaletteData;  // hack for disabled color effects
+		
 		
 		// TODO: read palettes correctly?
 				
@@ -268,15 +272,17 @@ public class Layer
 		// TODO: the image data ultimately needs to be a Buffer; change the byte[] image to a ByteBuffer
 		
 		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
-		String cacheFileName = String.valueOf(index); //String.format("%03d", index);
+		String cacheFileName;
 		File cacheDir;
 		int bufferSize;
 		
 		if(enablePaletteEffects == true) {
+			cacheFileName = String.valueOf(index);
 			cacheDir = new File(context.getCacheDir(), "layers-indexed");
 			bufferSize = 256 * 256 * 1;
 			
 		} else {
+			cacheFileName = String.format("%03d-%d", index, paletteId); // hack for disabled color effects
 			cacheDir = new File(context.getCacheDir(), "layers-rgba");
 			bufferSize = 256 * 256 * 4;
 		}
