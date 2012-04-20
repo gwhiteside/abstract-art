@@ -87,7 +87,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
 	
-	
+	private boolean completelyRandomMode;
+	private int currentBackground;
 	
 	private long startTime, endTime;
 	
@@ -99,6 +100,16 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private boolean mirrorVertical = false;
 	
 	private Object lock = new Object();
+	
+	public void setCompletelyRandomMode(boolean setting)
+	{
+		completelyRandomMode = setting;
+	}
+	
+	public void setInitialBackground(int index)
+	{
+		currentBackground = index;
+	}
 	
 	public int getRomBackgroundIndex(int address)
 	{
@@ -139,6 +150,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 		
 		startTime = endTime = 0;
+		
+		currentBackground = -1;
+		setCompletelyRandomMode(true);
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -265,10 +279,14 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
-		Random rand = new Random();
-		temp = rand.nextInt(bbg.getNumberOfBackgrounds());
-		loadBattleBackground(temp);
-		
+		if(currentBackground >= 0 && currentBackground < getBackgroundsTotal() && !completelyRandomMode)
+		{
+			loadBattleBackground(currentBackground);
+		}
+		else
+		{
+			setRandomBackground();
+		}
 		
 		/* shader for final output texture (the "low res") output */
 		
@@ -361,7 +379,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	public void loadBattleBackground(int index)
 	{	
 		synchronized(lock) {
-			//bbg.setLayers(174, 173);
+			currentBackground = index;
+			
 			bbg.setIndex(index);
 			
 			byte[] dataA = bbg.getBg3().getImage();

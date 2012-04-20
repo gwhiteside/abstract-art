@@ -82,6 +82,11 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 		return position;
 	}
 	
+	public void toggleItem(int position)
+	{
+		
+	}
+	
 	/**
      * Make a view to hold each row.
      *

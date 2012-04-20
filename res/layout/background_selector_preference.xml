@@ -11,17 +11,25 @@
         android:layout_gravity="center"
         android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-	    android:layout_margin="8dp">
+	    android:layout_margin="2dp">
 	    
 	    <android.opengl.GLSurfaceView
 	        android:layout_gravity="center"
 	        android:id="@+id/thumbnailGLSurfaceView"
 	        android:layout_width="256px"
-	        android:layout_height="256px"
-	        />
+	        android:layout_height="256px" />
 	    
 	</FrameLayout>
-	
+
+    <Spinner
+        android:id="@+id/selection_mode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginLeft="8dp"
+        android:layout_marginRight="8dp"
+        android:prompt="@string/selection_mode_title"
+        android:entries="@array/selection_mode_entries" />
+
     <GridView
         android:id="@+id/bgThumbGridView"
         android:layout_width="match_parent"

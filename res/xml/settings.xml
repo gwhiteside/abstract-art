@@ -2,17 +2,21 @@
                   android:title="@string/wallpaper_settings"
                   android:key="wallpaper_settings">
                   
-    <PreferenceScreen
+    <PreferenceCategory android:title="@string/settings_background_selection_title">
+        
+        <PreferenceScreen
         android:key="background_selector"
-        android:title="View backgrounds"
-        android:summary="A little viewer for all the backgrounds">
+        android:title="Background selector"
+        android:summary="View 'em all, and pick your favorite(s)!">
         
-        <intent 
-		    android:action="android.intent.action.VIEW"
-		    android:targetPackage="net.georgewhiteside.android.abstractart"
-		    android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference" />
+            <intent 
+		        android:action="android.intent.action.VIEW"
+		        android:targetPackage="net.georgewhiteside.android.abstractart"
+		        android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference" />
         
-    </PreferenceScreen>
+        </PreferenceScreen>
+        
+    </PreferenceCategory>
     
     <PreferenceCategory android:title="@string/settings.effect_settings_title">
         <CheckBoxPreference
@@ -25,12 +29,12 @@
     <PreferenceCategory android:title="@string/settings.behavior_title">
         
         <ListPreference
-            android:defaultValue="next"
-            android:entries="@array/double_tap_behavior_entries"
-            android:entryValues="@array/double_tap_behavior_values"
             android:key="stringDoubleTapBehavior"
             android:title="@string/double_tap_behavior_title"
-            android:summary="@string/double_tap_behavior_summary" />
+            android:summary="@string/double_tap_behavior_summary"
+            android:entries="@array/double_tap_behavior_entries"
+            android:entryValues="@array/double_tap_behavior_values"
+            android:defaultValue="next" />
         
     </PreferenceCategory>
 	

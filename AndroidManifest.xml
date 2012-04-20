@@ -27,6 +27,7 @@
         <activity
             android:label="@string/settings.background_chooser"
             android:name="net.georgewhiteside.android.abstractart.settings.BackgroundSelectorPreference"
+            android:theme="@android:style/Theme.NoTitleBar"
             android:exported="false" />
         
         <activity

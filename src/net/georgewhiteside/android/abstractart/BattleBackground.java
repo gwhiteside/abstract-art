@@ -1,13 +1,24 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -66,10 +77,13 @@ public class BattleBackground
 	private static final String TAG = "BattleBackground";
 	private static final int OFFSET = 0xA0200;
 	SharedPreferences sharedPreferences;
+	Context context;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
 	private int currentRomBackgroundIndex;
+	
+	private HashSet<Integer> backgroundSet;
 
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
@@ -82,6 +96,7 @@ public class BattleBackground
 	 */
 	public BattleBackground(Context context)
 	{
+		this.context = context;
 		InputStream input = context.getResources().openRawResource(R.raw.bgbank);
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
@@ -93,6 +108,8 @@ public class BattleBackground
 		
 		currentIndex = -1;
 		currentRomBackgroundIndex = -1;
+		
+		loadBackgroundSet();
 	}
 	
 	public void doTick()
@@ -219,5 +236,88 @@ public class BattleBackground
 	{
 		//return currentRomBackgroundIndex;
 		return layerTable[address][2];
+	}
+	
+	private void loadBackgroundSet()
+	{
+		//String backgrounds = sharedPreferences.getString("backgroundSet", "");
+		
+		String backgroundSetFileName = "background-set.txt";
+ 		File backgroundSetFile = new File(context.getFilesDir(), backgroundSetFileName);
+ 		
+ 		Log.i("aa-debug", backgroundSetFile.getPath());
+		
+		if(backgroundSetFile.exists())
+ 		{
+ 			// load it up
+			try
+			{
+				byte[] data = null;
+				FileInputStream fileInputStream = new FileInputStream(backgroundSetFile);
+				int bytesRead = 0;
+		        int count = (int)backgroundSetFile.length();
+		        data = new byte[count];
+		        while(bytesRead < count) {
+		        	bytesRead += fileInputStream.read(data, bytesRead, count - bytesRead);
+		        }
+		        fileInputStream.close();
+		        
+		        String jsonString = new String(data);
+		        JSONArray jsonArray = new JSONArray(jsonString);
+		        
+		        Log.i("aa-debug", String.format("values: %d %d %d",jsonArray.getInt(0), jsonArray.getInt(1), jsonArray.getInt(2)));
+		        
+			}
+			catch (FileNotFoundException e)
+			{
+				e.printStackTrace();
+			}
+			catch (IOException e)
+			{
+				e.printStackTrace();
+			}
+			catch (JSONException e)
+			{
+				e.printStackTrace();
+			}
+			
+			
+ 		}
+		else
+		{
+			// generate default backgroundSet
+			if(backgroundSet == null)
+			{
+				backgroundSet = new HashSet<Integer>();
+			}
+			
+			for(int i = 0; i < getNumberOfBackgrounds(); i++)
+			{
+				backgroundSet.add(new Integer(getRomBackgroundIndex(i)));
+			}
+			
+		    // write it out to a file
+		    try
+		    {
+		    	JSONArray jsonArray = new JSONArray(backgroundSet);
+				FileOutputStream fos = new FileOutputStream(backgroundSetFile);
+				String jsonString = jsonArray.toString();
+				fos.write(jsonString.getBytes());
+				fos.close();
+			}
+		    catch (FileNotFoundException e)
+		    {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		    catch (IOException e)
+		    {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		    
+		    
+		    
+		}
 	}
 }
