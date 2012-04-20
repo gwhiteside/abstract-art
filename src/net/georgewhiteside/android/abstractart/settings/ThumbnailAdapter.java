@@ -134,12 +134,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
  			
  			Log.i(TAG, "reading thumbnail from disk cache");
  			thumbnail = BitmapFactory.decodeFile(cacheFile.getPath());
- 			
- 			// set the bitmap in the ImageView
-			holder.thumbnail.setImageBitmap(thumbnail);
 			
-			//holder.text.setText(String.valueOf(position));
-			holder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
+			setThumbnail(holder, thumbnail, position);
  			
  			// look into BitmapFactory.inPurgeable, probably not relevant once I cache the PNGs myself
  		}
@@ -164,6 +160,12 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         TextView text;
         ImageView thumbnail;
     }
+    
+    public void setThumbnail(ViewHolder holder, Bitmap bitmap, int position)
+    {
+    	holder.thumbnail.setImageBitmap(bitmap);
+    	holder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
+    }
 
 	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position) {
 		handler.post(new Runnable() {
@@ -174,10 +176,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 				// catches up
 				if(viewHolder.index == position)
 				{
-					// set the bitmap in the ImageView
-					viewHolder.thumbnail.setImageBitmap(bitmap);
-					
-					viewHolder.text.setText(String.valueOf(position));
+					setThumbnail(viewHolder, bitmap, position);
 					
 					// explicitly tell the view switcher to show the second view
 					viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
