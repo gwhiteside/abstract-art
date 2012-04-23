@@ -83,8 +83,6 @@ public class BattleBackground
 	private int currentIndex;
 	private int currentRomBackgroundIndex;
 	
-	private HashSet<Integer> backgroundSet;
-
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
 
@@ -109,7 +107,7 @@ public class BattleBackground
 		currentIndex = -1;
 		currentRomBackgroundIndex = -1;
 		
-		loadBackgroundSet();
+		//loadBackgroundSet();
 	}
 	
 	public void doTick()
@@ -238,86 +236,5 @@ public class BattleBackground
 		return layerTable[address][2];
 	}
 	
-	private void loadBackgroundSet()
-	{
-		//String backgrounds = sharedPreferences.getString("backgroundSet", "");
-		
-		String backgroundSetFileName = "background-set.txt";
- 		File backgroundSetFile = new File(context.getFilesDir(), backgroundSetFileName);
- 		
- 		Log.i("aa-debug", backgroundSetFile.getPath());
-		
-		if(backgroundSetFile.exists())
- 		{
- 			// load it up
-			try
-			{
-				byte[] data = null;
-				FileInputStream fileInputStream = new FileInputStream(backgroundSetFile);
-				int bytesRead = 0;
-		        int count = (int)backgroundSetFile.length();
-		        data = new byte[count];
-		        while(bytesRead < count) {
-		        	bytesRead += fileInputStream.read(data, bytesRead, count - bytesRead);
-		        }
-		        fileInputStream.close();
-		        
-		        String jsonString = new String(data);
-		        JSONArray jsonArray = new JSONArray(jsonString);
-		        
-		        Log.i("aa-debug", String.format("values: %d %d %d",jsonArray.getInt(0), jsonArray.getInt(1), jsonArray.getInt(2)));
-		        
-			}
-			catch (FileNotFoundException e)
-			{
-				e.printStackTrace();
-			}
-			catch (IOException e)
-			{
-				e.printStackTrace();
-			}
-			catch (JSONException e)
-			{
-				e.printStackTrace();
-			}
-			
-			
- 		}
-		else
-		{
-			// generate default backgroundSet
-			if(backgroundSet == null)
-			{
-				backgroundSet = new HashSet<Integer>();
-			}
-			
-			for(int i = 0; i < getNumberOfBackgrounds(); i++)
-			{
-				backgroundSet.add(new Integer(getRomBackgroundIndex(i)));
-			}
-			
-		    // write it out to a file
-		    try
-		    {
-		    	JSONArray jsonArray = new JSONArray(backgroundSet);
-				FileOutputStream fos = new FileOutputStream(backgroundSetFile);
-				String jsonString = jsonArray.toString();
-				fos.write(jsonString.getBytes());
-				fos.close();
-			}
-		    catch (FileNotFoundException e)
-		    {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		    catch (IOException e)
-		    {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		    
-		    
-		    
-		}
-	}
+	
 }

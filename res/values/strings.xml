@@ -32,7 +32,5 @@
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
     <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
-
-
     
 </resources>

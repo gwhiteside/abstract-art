@@ -1,7 +1,7 @@
 package net.georgewhiteside.android.abstractart.settings;
 
 import net.georgewhiteside.android.abstractart.R;
-import net.georgewhiteside.android.abstractart.Wallpaper;
+import net.georgewhiteside.android.abstractart.Renderer;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,16 +12,17 @@ import android.os.SystemClock;
 import android.preference.Preference;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.View;
 import android.widget.Toast;
 
 public class CreateImageCachePreference extends Preference
 {
 	Context context;
+	Renderer renderer;
 	
 	public CreateImageCachePreference(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 		this.context = context;
+		renderer = new Renderer(context);
 	}
 	
 	public CreateImageCachePreference(Context context, AttributeSet attrs) {
@@ -44,7 +45,7 @@ public class CreateImageCachePreference extends Preference
 	class GenerateImageCacheTask extends AsyncTask<Integer, Integer, Void> {
 		
 		private ProgressDialog dialog;
-		private int numberOfBackgrounds = Wallpaper.engine.renderer.getBackgroundsTotal();
+		private int numberOfBackgrounds = renderer.getBackgroundsTotal();
 		private int loaded = 0;
 
 		@Override
@@ -55,7 +56,7 @@ public class CreateImageCachePreference extends Preference
 			
 			for(int i = 0; i < numberOfBackgrounds; i++)
 			{
-				Wallpaper.engine.renderer.cacheImage(i);
+				renderer.cacheImage(i);
 				publishProgress( i );
 				loaded++;
 				

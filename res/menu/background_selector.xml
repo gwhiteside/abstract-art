@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android" >
+    <item android:id="@+id/select_all" android:title="Select all" android:icon="@drawable/pencil_statue"></item>
+    <item android:id="@+id/clear_all" android:title="Clear all" android:icon="@drawable/eraser_statue"></item>
+    <item android:id="@+id/help" android:title="Help" android:icon="@drawable/hint_man"></item>
+</menu>

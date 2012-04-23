@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
+import java.util.List;
 
 import net.georgewhiteside.android.abstractart.ImageLoader;
 import net.georgewhiteside.android.abstractart.ImageLoader.ImageLoadListener;
@@ -12,6 +13,7 @@ import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.Cache;
 import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
+import net.georgewhiteside.android.abstractart.Wallpaper;
 import android.content.Context;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -46,12 +48,15 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 	private GLOffscreenSurface glOffscreenSurface;
 	private Renderer renderer;
 	
+	private List<Integer> backgroundList;
+	
 	private static final int LOADING_VIEW = 0;
 	private static final int THUMBNAIL_VIEW = 1;
 	
-	public ThumbnailAdapter(Context context) {
+	public ThumbnailAdapter(Context context, List<Integer> backgroundList) {
 		this.context = context;
 		
+		this.backgroundList = backgroundList;
 		thumbnailWidth = 128; thumbnailHeight = 128;
 		
 		renderer = new Renderer(context);
@@ -67,7 +72,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this);
         imageLoader.start();
         
-		
+        
 	}
 	
 	public int getCount() {
@@ -82,10 +87,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 		return position;
 	}
 	
-	public void toggleItem(int position)
-	{
-		
-	}
+	
 	
 	/**
      * Make a view to hold each row.
@@ -109,6 +111,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
             holder.viewSwitcher = (ViewSwitcher) convertView.findViewById(R.id.thumbnail_view_switcher);
             holder.text = (TextView) convertView.findViewById(R.id.thumbnail_text);
             holder.thumbnail = (ImageView) convertView.findViewById(R.id.thumbnail_image);
+            holder.thumbnailCheckmark = (ImageView) convertView.findViewById(R.id.thumbnail_checkmark);
             
             FrameLayout frameLayout = (FrameLayout) convertView.findViewById(R.id.loading_layout);
             frameLayout.setLayoutParams(new ViewSwitcher.LayoutParams(thumbnailWidth, thumbnailHeight));
@@ -137,7 +140,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
  		{
  			holder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
  			
- 			Log.i(TAG, "reading thumbnail from disk cache");
+ 			//Log.i(TAG, "reading thumbnail from disk cache");
  			thumbnail = BitmapFactory.decodeFile(cacheFile.getPath());
 			
 			setThumbnail(holder, thumbnail, position);
@@ -158,18 +161,38 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 
         return convertView;
     }
+    
+    public void setBackgroundList(List<Integer> backgroundList)
+    {
+    	this.backgroundList = backgroundList;
+    }
 
     public static class ViewHolder {
     	int index;
     	ViewSwitcher viewSwitcher;
         TextView text;
         ImageView thumbnail;
+        ImageView thumbnailCheckmark;
     }
     
     public void setThumbnail(ViewHolder holder, Bitmap bitmap, int position)
     {
     	holder.thumbnail.setImageBitmap(bitmap);
     	holder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
+    	
+    	setCheckmark(holder, position);
+    }
+    
+    public void setCheckmark(ViewHolder holder, int position)
+    {
+    	if(backgroundList.contains(new Integer(position)))
+    	{
+    		holder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
+    	}
+    	else
+    	{
+    		holder.thumbnailCheckmark.setVisibility(ImageView.INVISIBLE);
+    	}
     }
 
 	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position) {

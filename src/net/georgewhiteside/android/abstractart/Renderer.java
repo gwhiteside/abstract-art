@@ -22,6 +22,9 @@ import android.opengl.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import net.georgewhiteside.android.abstractart.Wallpaper;
+import net.georgewhiteside.android.abstractart.Wallpaper.AbstractArtEngine;
+
 import org.jf.GLWallpaper.GLWallpaperService;
 
 // float refreshrate = getWindowManager().getDefaultDisplay().getRefreshRate();
@@ -79,7 +82,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private BattleBackground bbg;
 	private ShaderFactory shader;
-	private int temp;
 	
 	private FloatBuffer textureVertexBufferUpsideDown;
 	
@@ -87,8 +89,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
 	
-	private boolean completelyRandomMode;
 	private int currentBackground;
+	private boolean persistBackgroundSelection;
+	
+	public boolean isPreview;
 	
 	private long startTime, endTime;
 	
@@ -100,16 +104,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private boolean mirrorVertical = false;
 	
 	private Object lock = new Object();
-	
-	public void setCompletelyRandomMode(boolean setting)
-	{
-		completelyRandomMode = setting;
-	}
-	
-	public void setInitialBackground(int index)
-	{
-		currentBackground = index;
-	}
 	
 	public int getRomBackgroundIndex(int address)
 	{
@@ -135,8 +129,18 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public void setRandomBackground()
 	{
-		int number = rand.nextInt(bbg.getNumberOfBackgrounds() - 1) + 1;
+		int number = Wallpaper.random.nextInt(bbg.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
+	}
+	
+	public void setPersistBackgroundSelection(boolean value)
+	{
+		persistBackgroundSelection = value;
+	}
+	
+	public void setIsPreview(boolean value)
+	{
+		isPreview = value;
 	}
 	
 	public Renderer(Context context)
@@ -151,14 +155,22 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		startTime = endTime = 0;
 		
+		isPreview = false;
+		
 		currentBackground = -1;
-		setCompletelyRandomMode(true);
+		persistBackgroundSelection = false;
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
 	{
 		this(context);
 		this.mirrorVertical = mirrorVertical;
+	}
+	
+	public Renderer(Context context, int initialBackground)
+	{
+		this(context);
+		this.currentBackground = initialBackground;
 	}
 	
 	public void onDrawFrame(GL10 unused)
@@ -279,13 +291,18 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
-		if(currentBackground >= 0 && currentBackground < getBackgroundsTotal() && !completelyRandomMode)
+		if(isPreview)
+		{
+			setRandomBackground();
+		}
+		else if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
 		{
 			loadBattleBackground(currentBackground);
 		}
 		else
 		{
-			setRandomBackground();
+			//setRandomBackground();
+			Wallpaper.setNewBackground(this);
 		}
 		
 		/* shader for final output texture (the "low res") output */
