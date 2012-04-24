@@ -11,20 +11,24 @@ import net.georgewhiteside.android.abstractart.settings.ThumbnailAdapter.ViewHol
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.AlertDialog.Builder;
+import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup.LayoutParams;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
+import android.widget.Button;
 import android.widget.GridView;
 import android.widget.Toast;
 
@@ -148,12 +152,17 @@ public class BackgroundSelector extends Activity
     	webView.setBackgroundColor(0);
     	webView.loadUrl("file:///android_asset/background_selector/index.html");
     	
-    	Builder dialog = new AlertDialog.Builder(this);
+    	/*AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.Theme_EarthboundDialog));
     	
-    	dialog.setPositiveButton("OK!", null);
-    	dialog.setView(webView);
+    	//Builder builder = new AlertDialog.Builder(this);
     	
-    	dialog.create().show();
+    	builder.setPositiveButton("OK!", null);
+    	builder.setView(webView);
+    	builder.create().show();*/
+    	
+    	Dialog dialog = new Dialog(context, R.style.Theme_EarthboundDialog);
+    	dialog.setContentView(webView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    	dialog.show();
 	}
 	
 	public void savePreferences()

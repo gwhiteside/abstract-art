@@ -7,7 +7,7 @@
     android:orientation="horizontal">
     
     <FrameLayout
-        android:background="@drawable/preview_frame"
+        android:background="@drawable/earthbound_menu"
         android:layout_gravity="center"
         android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
@@ -17,8 +17,7 @@
 	        android:layout_gravity="center"
 	        android:id="@+id/thumbnailGLSurfaceView"
 	        android:layout_width="256px"
-	        android:layout_height="256px"
-	        />
+	        android:layout_height="256px" />
 	    
 	</FrameLayout>
 
