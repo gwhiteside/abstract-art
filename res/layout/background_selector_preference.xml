@@ -8,7 +8,7 @@
     android:orientation="vertical">
     
 	<FrameLayout
-		android:background="@drawable/earthbound_menu"
+		android:background="@drawable/earthbound_frame_plain"
 		android:layout_gravity="center"
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
@@ -27,7 +27,7 @@
 	</FrameLayout>
 	
 	<FrameLayout
-	    android:background="@drawable/earthbound_menu"
+	    android:background="@drawable/earthbound_frame_plain"
 	    android:layout_gravity="center"
 	    android:layout_width="wrap_content"
 		android:layout_height="wrap_content"

@@ -2,7 +2,7 @@
 <resources>
     <style name="Theme.EarthboundDialog" parent="android:style/Theme.Dialog">
         <item name="android:colorBackground">#00ff00</item>
-		<item name="android:windowBackground">@drawable/earthbound_menu</item>
+		<item name="android:windowBackground">@drawable/earthbound_frame_plain</item>
 		<item name="android:windowNoTitle">true</item>
 	</style>
 	

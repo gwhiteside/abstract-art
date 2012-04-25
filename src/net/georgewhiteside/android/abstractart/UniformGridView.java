@@ -48,16 +48,17 @@ public class UniformGridView extends GridView
             
             if(columns > 1)
             {
-	            int extraViewSpace = width % mColumnWidth - getVerticalScrollbarWidth();
-	            int extraColumnSpace = extraViewSpace / columns;
-	            
-	            int testWidth = columns * mColumnWidth + extraColumnSpace * (columns - 0) + getVerticalScrollbarWidth();
-	            int paddingTop = ((View)this.getParent()).getPaddingTop();
+            	int paddingTop = ((View)this.getParent()).getPaddingTop();
 	            int paddingLeft = ((View)this.getParent()).getPaddingLeft();
 	            int paddingRight = ((View)this.getParent()).getPaddingRight();
 	            
-	            Log.i("aa-debug", String.format("columns: %d extraViewSpace: %d extraColumnSpace: %d width: %d testWidth: %d", columns, extraViewSpace, extraColumnSpace, width, testWidth));
-	            Log.i("aa-debug", "padding top: " + paddingTop + " padding left: " + paddingLeft + " padding right: " + paddingRight);
+	            // can't seem to figure out how to calculate the extra view space... width % mColumnWidth
+	            // was what I figured, and when the number of columns is as expected it *looks* perfect,
+	            // but it causes the grid to drop a column way too soon when you start shrinking the spacing...
+	            // subtracting the verticalscrollbarwidth lets me get much tighter, within a couple pixels of spacing,
+	            // but it's still not quite right.
+	            int extraViewSpace = width % mColumnWidth - getVerticalScrollbarWidth();
+	            int extraColumnSpace = extraViewSpace / columns;
 	            
 	            setHorizontalSpacing(extraColumnSpace);
 	            setVerticalSpacing(extraColumnSpace);
