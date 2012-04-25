@@ -6,6 +6,7 @@ import java.util.List;
 
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.Renderer;
+import net.georgewhiteside.android.abstractart.UniformGridView;
 import net.georgewhiteside.android.abstractart.Wallpaper;
 import net.georgewhiteside.android.abstractart.settings.ThumbnailAdapter.ViewHolder;
 import android.app.Activity;
@@ -18,18 +19,22 @@ import android.content.SharedPreferences.Editor;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup.LayoutParams;
+import android.view.ViewTreeObserver;
 import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.LinearLayout;
 import android.widget.Toast;
 
 /* TODO: when loading and saving thumbnails, the application version should ideally be checked because a thumbnail's
@@ -43,7 +48,7 @@ public class BackgroundSelector extends Activity
 	private Renderer renderer;
 	private SharedPreferences sharedPreferences;
 	private ThumbnailAdapter thumbnailAdapter;
-	private GridView gridView;
+	private UniformGridView uniformGridView;
 	private int selectedPosition = 1;
 	
 	private List<Integer> backgroundList;
@@ -99,11 +104,11 @@ public class BackgroundSelector extends Activity
 		
 		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList);
 		
-		gridView = (GridView)findViewById(R.id.bgThumbGridView);
-		gridView.setColumnWidth(128);
-		gridView.setAdapter(thumbnailAdapter);
-		gridView.setOnItemClickListener(new GridViewOnItemClickListener());
-		gridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
+		uniformGridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
+		uniformGridView.setColumnWidth(128);
+		uniformGridView.setAdapter(thumbnailAdapter);
+		uniformGridView.setOnItemClickListener(new GridViewOnItemClickListener());
+		uniformGridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
 		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 	}

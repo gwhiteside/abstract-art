@@ -104,7 +104,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         // by ListView is null.
         if (convertView == null) {
             convertView = mInflater.inflate(R.layout.thumbnail_layout, null);
-
+            
             // Creates a ViewHolder and store references to the two children views
             // we want to bind data to.
             holder = new ViewHolder();

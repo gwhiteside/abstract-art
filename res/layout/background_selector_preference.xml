@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/linearlayouttest"
+    android:id="@+id/backgroundSelector"
     android:background="@drawable/earthbound_tile_repeat"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -13,10 +13,10 @@
 		android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
 		
-		android:layout_marginTop="4dp"
-	    android:layout_marginLeft="4dp"
-	    android:layout_marginRight="4dp"
-	    android:layout_marginBottom="2dp">
+		android:layout_marginTop="8px"
+	    android:layout_marginLeft="8px"
+	    android:layout_marginRight="8px"
+	    android:layout_marginBottom="8px">
 	    
 	    <android.opengl.GLSurfaceView
 	        android:layout_gravity="center"
@@ -31,20 +31,21 @@
 	    android:layout_gravity="center"
 	    android:layout_width="wrap_content"
 		android:layout_height="wrap_content"
-		android:layout_marginTop="2dp"
-        android:layout_marginLeft="4dp"
-        android:layout_marginRight="4dp"
-        android:layout_marginBottom="4dp">
+		android:layout_marginTop="0px"
+        android:layout_marginLeft="8px"
+        android:layout_marginRight="8px"
+        android:layout_marginBottom="8px">
 
-	    <GridView
-	        android:id="@+id/bgThumbGridView"
+	    <net.georgewhiteside.android.abstractart.UniformGridView
+	        android:id="@+id/bgThumbUniformGridView"
 	        android:layout_width="match_parent"
 	        android:layout_height="match_parent"
-	        android:horizontalSpacing="4dp"
-	        android:verticalSpacing="4dp"
+	        android:horizontalSpacing="0dp"
+	        android:verticalSpacing="0dp"
+	        android:layout_margin="0dp"
+	        android:padding="0dp"
 	        android:numColumns="auto_fit"
-	        android:stretchMode="columnWidth"><!-- spacingWidth, columnWidth, spacingWidthUniform -->"
-	    </GridView>
+	        android:stretchMode="spacingWidth" />
 	    
 	</FrameLayout>
 
