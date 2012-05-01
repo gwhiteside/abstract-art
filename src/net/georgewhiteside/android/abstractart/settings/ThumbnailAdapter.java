@@ -57,7 +57,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 		this.context = context;
 		
 		this.backgroundList = backgroundList;
-		thumbnailWidth = 128; thumbnailHeight = 128;
+		thumbnailWidth = 128; thumbnailHeight = 112;
 		
 		renderer = new Renderer(context);
 		

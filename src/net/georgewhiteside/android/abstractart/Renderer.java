@@ -43,6 +43,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private FloatBuffer quadVertexBuffer;
 	private FloatBuffer textureVertexBuffer;
+	private FloatBuffer textureOutputBuffer;
 	
 	private int mProgram, hFXProgram;
 	private int mPositionHandle, hPosition;
@@ -82,8 +83,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private BattleBackground bbg;
 	private ShaderFactory shader;
-	
-	private FloatBuffer textureVertexBufferUpsideDown;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
@@ -215,8 +214,15 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mSurfaceHeight = height;
 		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
-		float ratio = (float) mSurfaceWidth / mSurfaceHeight;	
-		Matrix.orthoM(mProjMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
+		
+		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+		float textureRatio = 256.0f / 224.0f;
+		
+		Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
+		
+		//Matrix.scaleM(mProjMatrix, 0, 1, 224.0f / 256.0f, 1); // scale it vertically to match the 256x224 texture
+		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
+		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
 	}
 	
 	private void setupQuad()
@@ -231,18 +237,18 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		float textureMap[] =
 		{
-				0.0f,	 1.0f,
-				 1.0f,	 1.0f,
+				0.0f,	 0.875f,
+				 1.0f,	 0.875f,
 				 0.0f,	 0.0f,
 				 1.0f,	 0.0f 
 		};
 		
-		float textureMapUpsideDown[] =
+		float textureMapFlip[] =
 		{
 				0.0f,	 0.0f,
 				 1.0f,	 0.0f,
-				 0.0f,	 1.0f,
-				 1.0f,	 1.0f 
+				 0.0f,	 0.875f,
+				 1.0f,	 0.875f 
 		};
 
 		quadVertexBuffer = ByteBuffer
@@ -259,15 +265,13 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		textureVertexBuffer.put(textureMap);
 		textureVertexBuffer.position(0);
 		
-		//if(mHighRes == false)
-		{
-			textureVertexBufferUpsideDown = ByteBuffer
-					.allocateDirect(textureMapUpsideDown.length * 4) // float is 4 bytes
-					.order(ByteOrder.nativeOrder())
-					.asFloatBuffer(); 
-			textureVertexBufferUpsideDown.put(textureMapUpsideDown);
-			textureVertexBufferUpsideDown.position(0);
-		}
+		textureOutputBuffer = ByteBuffer
+				.allocateDirect(textureMap.length * 4) // float is 4 bytes
+				.order(ByteOrder.nativeOrder())
+				.asFloatBuffer(); 
+		textureOutputBuffer.put(textureMapFlip);
+		textureOutputBuffer.position(0);
+		
 	}
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
@@ -509,9 +513,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private void renderToTexture() // "low res" render
 	{
-		GLES20.glViewport(0, 0, 256, 256);	// render to native texture size, scale up later
 		mRenderWidth = 256.0f;
-		mRenderHeight = 256.0f;
+		mRenderHeight = 224.0f;
+		
+		GLES20.glViewport(0, 0, 256, 224);	// render to native texture size, scale up later
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
@@ -536,7 +541,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		/* load texture mapping */
 
-		GLES20.glVertexAttribPointer(hTexture, 2, GLES20.GL_FLOAT, false, 8, textureVertexBufferUpsideDown);
+		GLES20.glVertexAttribPointer(hTexture, 2, GLES20.GL_FLOAT, false, 8, textureOutputBuffer);
 		GLES20.glEnableVertexAttribArray(hTexture);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);

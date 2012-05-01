@@ -44,7 +44,7 @@ public class ShaderFactory
 		"}\n";
 	
 	private String fragmentHeader =
-		"precision mediump float;\n" +
+		"precision highp float;\n" +
 
 		"varying vec2 v_texCoord;\n" +
 		"uniform sampler2D bg3_texture;\n" +
@@ -131,7 +131,7 @@ public class ShaderFactory
 			fragmentShader +=
 				"void main()\n" +
 				"{\n" +
-					"float y = v_texCoord.y * resolution.y;\n";
+					"float y = v_texCoord.y * 256.0;\n";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -150,6 +150,7 @@ public class ShaderFactory
 					// TODO: probe battle background layer to determine if multiple distortions are used, and which ones; if more than one, support them
 					
 					int numberOfEffects = layer.distortion.getNumberOfEffects();
+					//numberOfEffects = 0;
 					
 					if(numberOfEffects != 0)
 					{
@@ -398,6 +399,7 @@ public class ShaderFactory
 				program = 0;
 			}
 		}
+		Log.i(TAG, "Program link status: " + GLES20.glGetProgramInfoLog(program));
 		Log.i(TAG, "shader program handle: " + program);
 		return program;
 	}
@@ -436,6 +438,18 @@ public class ShaderFactory
 		} else {
 			Log.e(TAG, "glCreateShader() failed; no opengl context");
 		}
+		
+		String type = "";
+		switch(shaderType)
+		{
+		case GLES20.GL_FRAGMENT_SHADER:
+			type = "Fragment";
+			break;
+		case GLES20.GL_VERTEX_SHADER:
+			type = "Vertex";
+			break;
+		}
+		Log.i(TAG, type + " shader compile status: " + GLES20.glGetShaderInfoLog(shader));
 		return shader;
 	}
 	
