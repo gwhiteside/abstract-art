@@ -60,11 +60,9 @@
             android:title="@string/precalculate_cache_title"
             android:summary="@string/precalculate_cache_summary" />
         
-        <!--EditTextPreference
-            android:defaultValue="some text"
-            android:key="textTest2"
-            android:title="Clear"
-            android:summary="Delete all cached images" /-->
+        <net.georgewhiteside.android.abstractart.settings.ClearCachePreference
+            android:title="Clear cache"
+            android:summary="Try this if something seems broken" />
         
     </PreferenceCategory>
 
