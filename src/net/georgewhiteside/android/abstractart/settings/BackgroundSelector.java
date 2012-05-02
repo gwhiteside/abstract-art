@@ -40,7 +40,6 @@ import android.widget.Toast;
 
 public class BackgroundSelector extends Activity
 {
-	private int newInfoVersion = 6;
 	private Context context;
 	private GLSurfaceView glSurfaceView;
 	private Renderer renderer;
@@ -120,15 +119,15 @@ public class BackgroundSelector extends Activity
 		
 		// see if we should display help screen automatically
 		
-		checkHelpPopup(6);
+		checkHelpPopup(7);
 		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 	}
 	
 	/**
-	 * 
+	 * TODO: abstract this for general usage, e.g. pass a key and version/whatever
 	 */
-	public void checkHelpPopup(int targetVersion)
+	public void checkHelpPopup(int introducedVersion)
 	{
 		PackageManager manager = this.getPackageManager();
 		PackageInfo info;
@@ -138,10 +137,9 @@ public class BackgroundSelector extends Activity
 			String backgroundSelectorCheckedVersion = "backgroundSelectorCheckedVersion";
 			info = manager.getPackageInfo(this.getPackageName(), 0);
 			int versionCode = info.versionCode;
-			int newInfoVersion = sharedPreferences.getInt(backgroundSelectorCheckedVersion, targetVersion);
-			int value = Math.max(targetVersion, newInfoVersion);
+			int checkedVersion = sharedPreferences.getInt(backgroundSelectorCheckedVersion, 0);
 			
-			if(value < versionCode)
+			if(checkedVersion < introducedVersion)
 			{
 				showHelpDialog();
 				
