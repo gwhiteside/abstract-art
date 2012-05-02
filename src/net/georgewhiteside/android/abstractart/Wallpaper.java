@@ -247,30 +247,33 @@ public class Wallpaper extends GLWallpaperService
 
 	}
 	
-	public static void clearCache() {
-        File cache = context.getCacheDir();
-        File appDir = new File(cache.getParent());
-        if (appDir.exists()) {
-            String[] children = appDir.list();
-            for (String s : children) {
-                if (!s.equals("lib")) {
-                    deleteDir(new File(appDir, s));
-                }
+	public static void clearCache()
+	{
+        File cacheDir = context.getCacheDir();
+        if (cacheDir.exists())
+        {
+            String[] children = cacheDir.list();
+            for (String s : children)
+            {
+                deleteDir(new File(cacheDir, s));
             }
         }
     }
 	
-	public static boolean deleteDir(File dir) {
-        if (dir != null && dir.isDirectory()) {
+	public static boolean deleteDir(File dir)
+	{
+        if (dir != null && dir.isDirectory())
+        {
             String[] children = dir.list();
-            for (int i = 0; i < children.length; i++) {
+            for (int i = 0; i < children.length; i++)
+            {
                 boolean success = deleteDir(new File(dir, children[i]));
-                if (!success) {
-                    return false;
+                if (!success)
+                {
+                	return false;
                 }
             }
         }
-
         return dir.delete();
     }
 	
