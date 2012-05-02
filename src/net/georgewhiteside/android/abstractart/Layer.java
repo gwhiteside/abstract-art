@@ -303,7 +303,16 @@ public class Layer
 			} else {
 				// TODO: integrate the nitty-gritty into the Cache class
 				ByteBuffer buffer = ByteBuffer.allocate(256 * 256 * 4);
-				BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(buffer);
+				
+				// can cause a crash on rare occasions ... mainly when adding new features ;)
+				// SO, just trapping any potential problems here so I don't get slowed down
+				try {
+					BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(buffer);
+				}
+				catch(Exception e) {
+					Log.e("AbstractArt", "Couldn't open " + cacheFile.getPath() + " ... resuming with blank texture");
+				}
+				
 				image = buffer.array();
 			}
 		}

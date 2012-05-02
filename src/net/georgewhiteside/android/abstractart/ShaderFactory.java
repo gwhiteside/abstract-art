@@ -361,7 +361,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		Log.d("shader", fragmentShader);
+		//Log.d("shader", fragmentShader);
 		
 		return createProgram(vertexShader, fragmentShader);
 	}
@@ -399,8 +399,8 @@ public class ShaderFactory
 				program = 0;
 			}
 		}
-		Log.i(TAG, "Program link status: " + GLES20.glGetProgramInfoLog(program));
-		Log.i(TAG, "shader program handle: " + program);
+		//Log.i(TAG, "Program link status: " + GLES20.glGetProgramInfoLog(program));
+		//Log.i(TAG, "shader program handle: " + program);
 		return program;
 	}
 	
@@ -439,7 +439,7 @@ public class ShaderFactory
 			Log.e(TAG, "glCreateShader() failed; no opengl context");
 		}
 		
-		String type = "";
+		/*String type = "";
 		switch(shaderType)
 		{
 		case GLES20.GL_FRAGMENT_SHADER:
@@ -449,7 +449,7 @@ public class ShaderFactory
 			type = "Vertex";
 			break;
 		}
-		Log.i(TAG, type + " shader compile status: " + GLES20.glGetShaderInfoLog(shader));
+		Log.i(TAG, type + " shader compile status: " + GLES20.glGetShaderInfoLog(shader));*/
 		return shader;
 	}
 	

@@ -30,17 +30,22 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Display;
 import android.view.SurfaceHolder;
+import android.view.WindowManager;
 
 public class Wallpaper extends GLWallpaperService 
 {
 	public static final int SINGLE_BACKGROUND = 0;
 	public static final int MULTIPLE_BACKGROUNDS = 1;
+	
+	public static final String TAG = "AbstractArt";
 	
 	private static Context context;
 	
@@ -87,6 +92,25 @@ public class Wallpaper extends GLWallpaperService
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
 	        
+	        // snag some display information
+	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+	        int displayPixelFormat = display.getPixelFormat();
+	        int displayWidth = display.getWidth(); 
+	        int displayHeight = display.getHeight();
+	        float displayRefreshRate = display.getRefreshRate();
+	        
+	        /*
+	         * http://developer.android.com/reference/android/graphics/PixelFormat.html
+	         * 5 is for BGRA_8888
+	         * 1 = RGBA_8888
+	         */
+	        
+	        PixelFormat pixelFormat = new PixelFormat();
+	        PixelFormat.getPixelFormatInfo(displayPixelFormat, pixelFormat);
+	        
+	        Log.i(TAG, String.format("PixelFormat: %d Screen: %dx%d RefreshRate: %f", displayPixelFormat, displayWidth, displayHeight, displayRefreshRate));
+	        Log.i(TAG, String.format("PixelFormat.bitsPerPixel: %d PixelFormat.bytesPerPixel %d", pixelFormat.bitsPerPixel, pixelFormat.bytesPerPixel));
+	        
 	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 			
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
@@ -127,6 +151,8 @@ public class Wallpaper extends GLWallpaperService
 			{
 				e.printStackTrace();
 			}
+			
+			
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);

@@ -16,11 +16,14 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import net.georgewhiteside.android.abstractart.Wallpaper;
 import net.georgewhiteside.android.abstractart.Wallpaper.AbstractArtEngine;
@@ -208,12 +211,16 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 
+	private int mSurfaceVerticalOffset = 0;
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
+		
+		
+		
+		/*
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-		
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
 		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
 		float textureRatio = 256.0f / 224.0f;
@@ -223,6 +230,106 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		//Matrix.scaleM(mProjMatrix, 0, 1, 224.0f / 256.0f, 1); // scale it vertically to match the 256x224 texture
 		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
 		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+		*/
+		
+		
+		
+		
+		
+		
+		
+		mSurfaceWidth = width;
+		mSurfaceHeight = height;
+		
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight); // does nothing; gets set later
+		
+		// TODO: this was done all sloppy; the output looks acceptable (it's only marginally off), but it's liable
+		// to break down the road on different screens... this needs to be corrected at some point
+		
+		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+		float textureRatio = 256.0f / 224.0f;
+		
+		if(surfaceRatio == textureRatio) // thumbnail
+		{
+			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		}
+		else if(surfaceRatio < textureRatio)
+		{
+			// currently, letter box output (scale height to nearest multiple of 224 < screen height)
+			
+			if(height >= 224 )
+			{
+				int multiples = mSurfaceHeight / 224;
+				
+				int bestFit = multiples * 224;
+				
+				float ratio = (float)mSurfaceHeight;
+				
+				mSurfaceWidth = (int)(width);
+				mSurfaceHeight = bestFit;
+				mSurfaceVerticalOffset = (height - bestFit) / 2;
+			}
+			
+			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+			
+			//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
+		}
+		else
+		{
+			int multiples = mSurfaceHeight / 224;
+			
+			int bestFit = multiples * 224;
+			
+			float ratio = (float)mSurfaceHeight;
+			
+			mSurfaceWidth = (int)(width);
+			mSurfaceHeight = bestFit;
+			mSurfaceVerticalOffset = (height - bestFit) / 2;
+			
+			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);
+			Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+		}
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/*
+		if(mSurfaceHeight >= mSurfaceWidth)
+		{
+			// layout is square or portrait
+			// alternatively, this code can display a whole 256x224 background, column boxed, when
+			// applied as-is to a landscape layout
+			
+			float wallpaperAspectRatio = (float)mSurfaceWidth / mSurfaceHeight;
+			float textureAspectRatio = textureHeight / textureWidth;
+			
+			left = right = wallpaperAspectRatio * textureAspectRatio;
+			
+			top = 1.0f;
+			bottom = textureAspectRatio * 2.0f - 1.0f;
+			
+			Matrix.orthoM(mProjMatrix, 0, -left, right, -bottom, top, -1.0f, 1.0f);	// configure projection matrix
+		}
+		else
+		{
+			// layout is landscape
+		}
+		*/
+		
 	}
 	
 	private void setupQuad()
@@ -276,7 +383,26 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
-		queryGl(unused);
+		//queryGl(unused);
+		
+		 // snag some display information
+        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+        int displayPixelFormat = display.getPixelFormat();
+        int displayWidth = display.getWidth(); 
+        int displayHeight = display.getHeight();
+        float displayRefreshRate = display.getRefreshRate();
+        
+        /*
+         * http://developer.android.com/reference/android/graphics/PixelFormat.html
+         * 5 is for BGRA_8888
+         * 1 = RGBA_8888
+         */
+        
+        PixelFormat pixelFormat = new PixelFormat();
+        PixelFormat.getPixelFormatInfo(displayPixelFormat, pixelFormat);
+        
+        Log.i(TAG, String.format("PixelFormat: %d Screen: %dx%d RefreshRate: %f", displayPixelFormat, displayWidth, displayHeight, displayRefreshRate));
+        Log.i(TAG, String.format("PixelFormat.bitsPerPixel: %d PixelFormat.bytesPerPixel %d", pixelFormat.bitsPerPixel, pixelFormat.bytesPerPixel));
 		
 		setupQuad();
 		
@@ -530,7 +656,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		GLES20.glUseProgram(hFXProgram);
 		
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
+		GLES20.glViewport(0, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
 		
