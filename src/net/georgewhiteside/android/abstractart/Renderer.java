@@ -16,11 +16,14 @@ import javax.microedition.khronos.opengles.GL10;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.graphics.Bitmap;
+import android.graphics.PixelFormat;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.view.Display;
+import android.view.WindowManager;
 
 import net.georgewhiteside.android.abstractart.Wallpaper;
 import net.georgewhiteside.android.abstractart.Wallpaper.AbstractArtEngine;
@@ -43,6 +46,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private FloatBuffer quadVertexBuffer;
 	private FloatBuffer textureVertexBuffer;
+	private FloatBuffer textureOutputBuffer;
 	
 	private int mProgram, hFXProgram;
 	private int mPositionHandle, hPosition;
@@ -82,8 +86,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private BattleBackground bbg;
 	private ShaderFactory shader;
-	
-	private FloatBuffer textureVertexBufferUpsideDown;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
@@ -209,14 +211,91 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 
+	private int mSurfaceVerticalOffset = 0;
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
+		
+		/*
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
-		float ratio = (float) mSurfaceWidth / mSurfaceHeight;	
-		Matrix.orthoM(mProjMatrix, 0, -ratio, ratio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
+		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+		float textureRatio = 256.0f / 224.0f;
+		
+		Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
+		
+		//Matrix.scaleM(mProjMatrix, 0, 1, 224.0f / 256.0f, 1); // scale it vertically to match the 256x224 texture
+		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
+		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+		*/
+		
+		
+		
+		mSurfaceWidth = width;
+		mSurfaceHeight = height;
+		
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight); // does nothing; gets set later
+		
+		// TODO: this was done all sloppy; the output looks acceptable (it's only marginally off), but it's liable
+		// to break down the road on different screens... this needs to be corrected at some point
+		
+		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+		float textureRatio = 256.0f / 224.0f;
+		
+		if(surfaceRatio == textureRatio) // thumbnail
+		{
+			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		}
+		else if(surfaceRatio < textureRatio)
+		{
+			boolean letterbox = false;
+			
+			if(letterbox)
+			{
+				// letter box output (scale height to nearest multiple of 224 < screen height)
+				
+				if(height >= 224 )
+				{
+					int multiples = mSurfaceHeight / 224;
+					
+					int bestFit = multiples * 224;
+					
+					float ratio = (float)mSurfaceHeight;
+					
+					mSurfaceWidth = (int)(width);
+					mSurfaceHeight = bestFit;
+					mSurfaceVerticalOffset = (height - bestFit) / 2;
+				}
+				
+				
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+				
+				//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
+				
+			}
+			else
+			{
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+			}
+			
+			
+		}
+		else
+		{
+			int multiples = mSurfaceHeight / 224;
+			
+			int bestFit = multiples * 224;
+			
+			float ratio = (float)mSurfaceHeight;
+			
+			mSurfaceWidth = (int)(width);
+			mSurfaceHeight = bestFit;
+			mSurfaceVerticalOffset = (height - bestFit) / 2;
+			
+			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);
+			Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+		}
 	}
 	
 	private void setupQuad()
@@ -231,18 +310,18 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		float textureMap[] =
 		{
-				0.0f,	 1.0f,
-				 1.0f,	 1.0f,
+				0.0f,	 0.875f,
+				 1.0f,	 0.875f,
 				 0.0f,	 0.0f,
 				 1.0f,	 0.0f 
 		};
 		
-		float textureMapUpsideDown[] =
+		float textureMapFlip[] =
 		{
 				0.0f,	 0.0f,
 				 1.0f,	 0.0f,
-				 0.0f,	 1.0f,
-				 1.0f,	 1.0f 
+				 0.0f,	 0.875f,
+				 1.0f,	 0.875f 
 		};
 
 		quadVertexBuffer = ByteBuffer
@@ -259,20 +338,18 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		textureVertexBuffer.put(textureMap);
 		textureVertexBuffer.position(0);
 		
-		//if(mHighRes == false)
-		{
-			textureVertexBufferUpsideDown = ByteBuffer
-					.allocateDirect(textureMapUpsideDown.length * 4) // float is 4 bytes
-					.order(ByteOrder.nativeOrder())
-					.asFloatBuffer(); 
-			textureVertexBufferUpsideDown.put(textureMapUpsideDown);
-			textureVertexBufferUpsideDown.position(0);
-		}
+		textureOutputBuffer = ByteBuffer
+				.allocateDirect(textureMap.length * 4) // float is 4 bytes
+				.order(ByteOrder.nativeOrder())
+				.asFloatBuffer(); 
+		textureOutputBuffer.put(textureMapFlip);
+		textureOutputBuffer.position(0);
+		
 	}
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
-		queryGl(unused);
+		//queryGl(unused);
 		
 		setupQuad();
 		
@@ -313,35 +390,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		hPosition = GLES20.glGetAttribLocation(hFXProgram, "a_position"); // a_position
 		hTexture = GLES20.glGetAttribLocation(hFXProgram, "a_texCoord"); // a_texCoord
 		hBaseMap = GLES20.glGetUniformLocation(hFXProgram, "s_texture"); // get sampler locations
-
-		/* shader for effects 
-		
-		mProgram = shader.getShader(bbg);
-		
-		//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-		if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
-		
-		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
-		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
-		mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
-		mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
-		mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
-		
-		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
-		mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
-		mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
-		mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
-		mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
-		mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
-		mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
-		mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
-		mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
-		mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
-		mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
-		
-		// old stuff
-		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
-		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
 		
 		// used when rendering to the GLOffscreenSurface to mirror screenshots about the horizontal axis
 		
@@ -509,9 +557,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private void renderToTexture() // "low res" render
 	{
-		GLES20.glViewport(0, 0, 256, 256);	// render to native texture size, scale up later
 		mRenderWidth = 256.0f;
-		mRenderHeight = 256.0f;
+		mRenderHeight = 224.0f;
+		
+		GLES20.glViewport(0, 0, 256, 224);	// render to native texture size, scale up later
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
@@ -525,7 +574,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		GLES20.glUseProgram(hFXProgram);
 		
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
+		GLES20.glViewport(0, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
 		
@@ -536,7 +585,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		/* load texture mapping */
 
-		GLES20.glVertexAttribPointer(hTexture, 2, GLES20.GL_FLOAT, false, 8, textureVertexBufferUpsideDown);
+		GLES20.glVertexAttribPointer(hTexture, 2, GLES20.GL_FLOAT, false, 8, textureOutputBuffer);
 		GLES20.glEnableVertexAttribArray(hTexture);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE0);
@@ -696,12 +745,5 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		GLES20.glGetIntegerv(GLES20.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
 		Log.i("GLInfo", String.format("GLES20.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
-		//GLES20.glGetIntegerv(GL10.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
-		//Log.i("GLInfo", String.format("GL10.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
-		//GLES20.glGetIntegerv(GL10.GL_SMOOTH_LINE_WIDTH_RANGE, params, 0);
-		//Log.i("GLInfo", String.format("GL10.GL_SMOOTH_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
 	}
 }

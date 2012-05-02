@@ -44,7 +44,7 @@ public class ShaderFactory
 		"}\n";
 	
 	private String fragmentHeader =
-		"precision mediump float;\n" +
+		"precision highp float;\n" +
 
 		"varying vec2 v_texCoord;\n" +
 		"uniform sampler2D bg3_texture;\n" +
@@ -131,7 +131,7 @@ public class ShaderFactory
 			fragmentShader +=
 				"void main()\n" +
 				"{\n" +
-					"float y = v_texCoord.y * resolution.y;\n";
+					"float y = v_texCoord.y * 256.0;\n";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -150,6 +150,7 @@ public class ShaderFactory
 					// TODO: probe battle background layer to determine if multiple distortions are used, and which ones; if more than one, support them
 					
 					int numberOfEffects = layer.distortion.getNumberOfEffects();
+					//numberOfEffects = 0;
 					
 					if(numberOfEffects != 0)
 					{
@@ -196,35 +197,6 @@ public class ShaderFactory
 													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
 													id + "offset.x += (y * (" + id + "compression / resolution.y));\n" +
 												"}\n";
-													
-							/*
-							if(u_dist_type[0] == 0)		// none
-							{
-								bg3_offset.x = 0.0;
-							}
-							else if(u_dist_type[0] == 1)	// horizontal effect
-							{
-								bg3_offset.x = bg3_distortion;
-							}
-							else if(u_dist_type[0] == 2)	// horizontal interlaced effect
-							{
-								bg3_offset.x = floor(mod(y, 2.0)) == 0.0 ? bg3_distortion : -bg3_distortion;
-							}
-							else if(u_dist_type[0] == 3)	// vertical effect
-							{
-								bg3_offset.y = mod(bg3_distortion, resolution.y);
-							}
-							
-							if(u_dist_type[0] == 4)	// horizontal interlaced + shear
-							{
-								bg3_offset.x = floor(mod(y, 2.0)) == 0.0 ? bg3_distortion : -bg3_distortion;
-								bg3_offset.x += (y * (bg3_compression / resolution.y));
-							}
-							else
-							{
-								bg3_offset.y += (y * (bg3_compression / resolution.y));	// compression effect
-							}
-							*/
 						}
 					}
 
@@ -360,7 +332,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		Log.d("shader", fragmentShader);
+		//Log.d("shader", fragmentShader);
 		
 		return createProgram(vertexShader, fragmentShader);
 	}
@@ -398,7 +370,8 @@ public class ShaderFactory
 				program = 0;
 			}
 		}
-		Log.i(TAG, "shader program handle: " + program);
+		//Log.i(TAG, "Program link status: " + GLES20.glGetProgramInfoLog(program));
+		//Log.i(TAG, "shader program handle: " + program);
 		return program;
 	}
 	
@@ -436,6 +409,18 @@ public class ShaderFactory
 		} else {
 			Log.e(TAG, "glCreateShader() failed; no opengl context");
 		}
+		
+		/*String type = "";
+		switch(shaderType)
+		{
+		case GLES20.GL_FRAGMENT_SHADER:
+			type = "Fragment";
+			break;
+		case GLES20.GL_VERTEX_SHADER:
+			type = "Vertex";
+			break;
+		}
+		Log.i(TAG, type + " shader compile status: " + GLES20.glGetShaderInfoLog(shader));*/
 		return shader;
 	}
 	

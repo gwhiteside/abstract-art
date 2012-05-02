@@ -70,14 +70,14 @@ public class ImageLoader extends Thread
 				
 				if(cacheFile.exists())
 		 		{
-		 			Log.i(TAG, "sweet, my work is already done, now to go die real quick");
+		 			//Log.i(TAG, "sweet, my work is already done, now to go die real quick");
 		 		}
 				else
 				{
 					try
 					{
 						//Bitmap thumbnail = null;
-			 			Log.i(TAG, "generating thumbnail");
+			 			//Log.i(TAG, "generating thumbnail");
 			 			
 			 			// reacquire an EGL context for every pass in this thread
 			 			// (setRenderer might be a bit heavy for this purpose, look into doing less if possible)
@@ -90,7 +90,7 @@ public class ImageLoader extends Thread
 			 			
 			 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
 			 			
-			 			Log.i(TAG, "thumbnail generated; writing to disk cache...");
+			 			//Log.i(TAG, "thumbnail generated; writing to disk cache...");
 			 			
 			 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
 			 			
@@ -111,7 +111,7 @@ public class ImageLoader extends Thread
 			 		}
 					catch(Exception e)
 					{
-			 			Log.e(TAG, "Something exploded. I bet it was some shoddy OpenGL stuff I tried to pull. (" + e.getMessage() + ")");
+			 			Log.e(TAG, "Something exploded: \"" + e.getMessage() + "\"");
 			 			e.printStackTrace();
 					}
 		 		}

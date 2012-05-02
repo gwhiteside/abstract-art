@@ -16,6 +16,9 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
+import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
+import android.content.pm.PackageManager.NameNotFoundException;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -43,6 +46,7 @@ import android.widget.Toast;
 
 public class BackgroundSelector extends Activity
 {
+	private int newInfoVersion = 6;
 	private Context context;
 	private GLSurfaceView glSurfaceView;
 	private Renderer renderer;
@@ -110,7 +114,42 @@ public class BackgroundSelector extends Activity
 		uniformGridView.setOnItemClickListener(new GridViewOnItemClickListener());
 		uniformGridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
 		
+		checkHelpPopup(6);
+		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
+	}
+	
+	/**
+	 * 
+	 */
+	public void checkHelpPopup(int targetVersion)
+	{
+		PackageManager manager = this.getPackageManager();
+		PackageInfo info;
+		
+		try
+		{
+			String backgroundSelectorCheckedVersion = "backgroundSelectorCheckedVersion";
+			info = manager.getPackageInfo(this.getPackageName(), 0);
+			int versionCode = info.versionCode;
+			int newInfoVersion = sharedPreferences.getInt(backgroundSelectorCheckedVersion, targetVersion);
+			int value = Math.max(targetVersion, newInfoVersion);
+			
+			if(value < versionCode)
+			{
+				showHelpDialog();
+				
+				Editor editor = sharedPreferences.edit();
+		        editor.putInt(backgroundSelectorCheckedVersion, versionCode);
+		        editor.commit();
+			}
+		}
+		catch (NameNotFoundException e)
+		{
+			e.printStackTrace();
+		}
+
+		
 	}
 	
 	@Override
