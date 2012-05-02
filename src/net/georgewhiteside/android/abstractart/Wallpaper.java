@@ -92,6 +92,8 @@ public class Wallpaper extends GLWallpaperService
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
 	        
+	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+	        
 	        // snag some display information
 	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	        int displayPixelFormat = display.getPixelFormat();
@@ -111,25 +113,33 @@ public class Wallpaper extends GLWallpaperService
 	        Log.i(TAG, String.format("PixelFormat: %d Screen: %dx%d RefreshRate: %f", displayPixelFormat, displayWidth, displayHeight, displayRefreshRate));
 	        Log.i(TAG, String.format("PixelFormat.bitsPerPixel: %d PixelFormat.bytesPerPixel %d", pixelFormat.bitsPerPixel, pixelFormat.bytesPerPixel));
 	        
-	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-			
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
 			renderer.isPreview = isPreview();
 			
+			handleUpgrades(); // just as it sounds
+			
+			setEGLContextClientVersion(2);
+			setRenderer(renderer);
+			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+	    }
+		
+		/*
+		 * Expect this method to only grow messier, and messier, and messier as time goes on... ;)
+		 */
+		private void handleUpgrades()
+		{
 			try
 			{
-				// check to see if this is the first time running a new version, and take
-				// any appropriate actions here
-				
 				PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
 				int lastVersionCode = sharedPreferences.getInt("lastVersionCode", 0);
 				if(lastVersionCode < packageInfo.versionCode)
 				{
-					// we only want to do this once per new version
+					// bump the last version code in the shared preferences
 					Editor editor = sharedPreferences.edit();
 		            editor.putInt("lastVersionCode", packageInfo.versionCode);
 		            editor.commit();
 		            
+		            // detect the dreaded palette bug
 		            if(detectPaletteBug())
 					{
 		            	clearCache();
@@ -145,17 +155,20 @@ public class Wallpaper extends GLWallpaperService
 		        		myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.ServiceDialog"));
 		        		startActivity(myIntent);
 					}
+		            
+		            // versionCode 8 introduces new thumbnails, so detect and clear out any old cache
+		            if(lastVersionCode <= 7)
+		            {
+		            	Log.i(TAG, "lastVersionCode <= 7 detected; clearing obsolete thumbnail cache");
+		            	clearCache(); // ok, actually we'll clear out ALL the cache... so sue me
+		            }
 				}
 			}
 			catch (NameNotFoundException e)
 			{
 				e.printStackTrace();
 			}
-			
-			setEGLContextClientVersion(2);
-			setRenderer(renderer);
-			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
-	    }
+		}
 		
 		@Override
         public Bundle onCommand(final String action, int x, int y, int z, final Bundle extras, final boolean resultRequested)
