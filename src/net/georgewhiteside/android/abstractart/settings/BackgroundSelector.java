@@ -19,10 +19,14 @@ import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.graphics.Color;
+import android.graphics.Typeface;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.text.Html;
 import android.util.Log;
+import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -38,6 +42,7 @@ import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridView;
 import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 /* TODO: when loading and saving thumbnails, the application version should ideally be checked because a thumbnail's
@@ -192,9 +197,9 @@ public class BackgroundSelector extends Activity
 	
 	private void showHelpDialog()
 	{
-		WebView webView = new WebView(context);
+		/*WebView webView = new WebView(context);
     	webView.setBackgroundColor(0);
-    	webView.loadUrl("file:///android_asset/background_selector/index.html");
+    	webView.loadUrl("file:///android_asset/background_selector/index.html");*/
     	
     	/*AlertDialog.Builder builder = new AlertDialog.Builder(new ContextThemeWrapper(context, R.style.Theme_EarthboundDialog));
     	
@@ -203,9 +208,25 @@ public class BackgroundSelector extends Activity
     	builder.setPositiveButton("OK!", null);
     	builder.setView(webView);
     	builder.create().show();*/
+		
+		String text = 
+				"Click on a thumbnail once to preview it. Click it two or more times to check/uncheck it."+
+				"<p>Every background that you check will be included in a custom wallpaper playlist.</p>"+
+				"<p>If you only want a single background to display, clear all the checks, and recheck the one you like.</p>"+
+				"The 'Select All' and 'Clear All' methods are included in the menu for your convenience. :)";
+		
+		TextView textView = new TextView(context);
+		Typeface ebMenuFont = Typeface.createFromAsset(getAssets(), "fonts/apple_kid.ttf");
+	    textView.setTypeface(ebMenuFont);
+	    textView.setTextColor(Color.parseColor("#f0f0f0"));
+	    textView.setTextSize(24);
+	    textView.setPadding(8, 8, 8, 8);
+		
+		textView.setText(Html.fromHtml(text));
     	
     	Dialog dialog = new Dialog(context, R.style.Theme_EarthboundDialog);
-    	dialog.setContentView(webView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
+    	dialog.setContentView(textView);
+    	//dialog.setContentView(webView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     	dialog.show();
 	}
 	
