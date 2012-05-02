@@ -10,7 +10,7 @@
     <uses-feature android:name="android.software.live_wallpaper" />
     <!--uses-permission android:name="android.permission.INTERNET" /--> <!-- This is only needed when debugging with HierarchyViewer -->
 
-    <application android:icon="@drawable/icon" android:label="@string/app_name" >
+    <application android:name=".AbstractArt" android:icon="@drawable/icon" android:label="@string/app_name" >
         
         <service android:label="@string/app_name" android:name=".Wallpaper" android:permission="android.permission.BIND_WALLPAPER">
 			<intent-filter>
