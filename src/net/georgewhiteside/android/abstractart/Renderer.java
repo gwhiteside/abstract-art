@@ -519,7 +519,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 	        
 	        
-	        
+	         
 	        
 	        
 	        /* shader for effects, update program uniforms */

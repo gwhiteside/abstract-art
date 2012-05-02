@@ -26,27 +26,45 @@
 	    
 	</FrameLayout>
 	
-	<FrameLayout
-	    android:background="@drawable/earthbound_frame_plain"
-	    android:layout_gravity="center"
+	<RelativeLayout
 	    android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_marginTop="0px"
-        android:layout_marginLeft="8px"
-        android:layout_marginRight="8px"
-        android:layout_marginBottom="8px">
-
-	    <net.georgewhiteside.android.abstractart.UniformGridView
-	        android:id="@+id/bgThumbUniformGridView"
-	        android:layout_width="match_parent"
-	        android:layout_height="match_parent"
-	        android:horizontalSpacing="0dp"
-	        android:verticalSpacing="0dp"
-	        android:layout_margin="0dp"
-	        android:padding="0dp"
-	        android:numColumns="auto_fit"
-	        android:stretchMode="spacingWidth" />
-	    
-	</FrameLayout>
+		android:layout_height="wrap_content">
+	
+		<FrameLayout
+		    android:id="@+id/thumbnail_grid_view_frame"
+		    android:background="@drawable/earthbound_frame_plain"
+		    android:layout_gravity="center"
+		    android:layout_width="wrap_content"
+			android:layout_height="wrap_content"
+			android:layout_marginTop="0px"
+	        android:layout_marginLeft="8px"
+	        android:layout_marginRight="8px"
+	        android:layout_marginBottom="8px">
+	
+		    <net.georgewhiteside.android.abstractart.UniformGridView
+		        android:id="@+id/bgThumbUniformGridView"
+		        android:layout_width="match_parent"
+		        android:layout_height="match_parent"
+		        android:horizontalSpacing="0dp"
+		        android:verticalSpacing="0dp"
+		        android:layout_margin="0dp"
+		        android:padding="0dp"
+		        android:numColumns="auto_fit"
+		        android:stretchMode="spacingWidth" />
+		    
+		</FrameLayout>
+		
+		<ImageView
+	        android:id="@+id/grid_arrow_indicator"
+	        android:contentDescription="@string/null_string"
+	        android:src="@anim/eb_dialog_arrow_anim"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:layout_alignBottom="@+id/thumbnail_grid_view_frame"
+	        android:layout_alignRight="@+id/thumbnail_grid_view_frame"
+	        android:layout_marginRight="14dp"
+	        android:layout_marginBottom="4dp" />
+		
+	</RelativeLayout>
 
 </LinearLayout>

@@ -21,6 +21,7 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.graphics.drawable.AnimationDrawable;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -41,6 +42,7 @@ import android.widget.AdapterView.OnItemLongClickListener;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.GridView;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -118,6 +120,16 @@ public class BackgroundSelector extends Activity
 		uniformGridView.setAdapter(thumbnailAdapter);
 		uniformGridView.setOnItemClickListener(new GridViewOnItemClickListener());
 		uniformGridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
+		
+		// start up little corner arrow animation
+		
+		ImageView imageView=(ImageView) findViewById(R.id.grid_arrow_indicator);          
+		final AnimationDrawable animation = (AnimationDrawable) imageView.getDrawable();    
+		imageView.post(new Runnable() {    
+		    public void run() {    
+		        animation.start();        
+		    }
+		});
 		
 		checkHelpPopup(6);
 		
@@ -210,21 +222,22 @@ public class BackgroundSelector extends Activity
     	builder.create().show();*/
 		
 		String text = 
-				"Click on a thumbnail once to preview it. Click it two or more times to check/uncheck it."+
-				"<p>Every background that you check will be included in a custom wallpaper playlist.</p>"+
-				"<p>If you only want a single background to display, clear all the checks, and recheck the one you like.</p>"+
-				"The 'Select All' and 'Clear All' methods are included in the menu for your convenience. :)";
+				"&bull; Click on a thumbnail once to preview it. Click it two or more times to check/uncheck it."+
+				"<p>&bull; Every background that you check will be included in a custom wallpaper playlist.</p>"+
+				"<p>&bull; If you only want a single background to display, clear all the checks, and recheck the one you like.</p>"+
+				"&bull; The 'Select All' and 'Clear All' methods are included in the menu for your convenience. :)";
 		
 		TextView textView = new TextView(context);
-		Typeface ebMenuFont = Typeface.createFromAsset(getAssets(), "fonts/apple_kid.ttf");
-	    textView.setTypeface(ebMenuFont);
+		//Typeface ebMenuFont = Typeface.createFromAsset(getAssets(), "fonts/apple_kid.ttf");
+	    //textView.setTypeface(ebMenuFont);
 	    textView.setTextColor(Color.parseColor("#f0f0f0"));
-	    textView.setTextSize(24);
+	    //textView.setTextSize(24);
 	    textView.setPadding(8, 8, 8, 8);
 		
 		textView.setText(Html.fromHtml(text));
     	
     	Dialog dialog = new Dialog(context, R.style.Theme_EarthboundDialog);
+    	dialog.setCanceledOnTouchOutside(true);
     	dialog.setContentView(textView);
     	//dialog.setContentView(webView, new LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.WRAP_CONTENT));
     	dialog.show();
