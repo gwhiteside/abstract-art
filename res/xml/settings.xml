@@ -2,29 +2,17 @@
                   android:title="@string/wallpaper_settings"
                   android:key="wallpaper_settings">
                   
-    <PreferenceCategory android:title="@string/settings_background_selection_title">
-        
-        <PreferenceScreen
+    <PreferenceScreen
         android:key="background_selector"
         android:title="Background selector"
         android:summary="View 'em all, and pick your favorite(s)!">
-        
-            <intent 
-		        android:action="android.intent.action.VIEW"
-		        android:targetPackage="net.georgewhiteside.android.abstractart"
-		        android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelector" />
-        
-        </PreferenceScreen>
-        
-    </PreferenceCategory>
     
-    <PreferenceCategory android:title="@string/settings.effect_settings_title">
-        <CheckBoxPreference
-            android:defaultValue="true"
-            android:key="enablePaletteEffects"
-            android:title="@string/enable_palette_effects_title"
-            android:summary="@string/enable_palette_effects_summary" />
-    </PreferenceCategory>
+        <intent 
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="net.georgewhiteside.android.abstractart"
+            android:targetClass="net.georgewhiteside.android.abstractart.settings.BackgroundSelector" />
+    
+    </PreferenceScreen>
     
     <PreferenceCategory android:title="@string/settings.behavior_title">
         
@@ -37,22 +25,29 @@
             android:defaultValue="next" />
         
     </PreferenceCategory>
-	
-    <PreferenceCategory android:title="@string/settings.rendering_title">
     
-	    <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
+    <PreferenceCategory android:title="@string/settings.effect_settings_title">
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enablePaletteEffects"
+            android:title="@string/enable_palette_effects_title"
+            android:summary="@string/enable_palette_effects_summary" />
+        <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
 	        android:defaultValue="@integer/framerate_default"
 	        android:key="intFramerate"
 	        android:title="@string/frame_rate_title" 
 	        android:summary="@string/frame_rate_summary" />
-	    
+    </PreferenceCategory>
+    
+    <!--PreferenceCategory android:title="@string/settings.rendering_title">
+
 	    <CheckBoxPreference
 	        android:defaultValue="false"
 	        android:key="boolNativeResolution"
 	        android:title="@string/native_resolution_title"
 	        android:summary="@string/native_resolution_summary" />
 
-    </PreferenceCategory>
+    </PreferenceCategory-->
     
     <PreferenceCategory android:title="@string/settings.cache_title">
         
@@ -61,8 +56,8 @@
             android:summary="@string/precalculate_cache_summary" />
         
         <net.georgewhiteside.android.abstractart.settings.ClearCachePreference
-            android:title="Clear cache"
-            android:summary="Try this if something seems broken" />
+            android:title="@string/clear_cache_title"
+            android:summary="@string/clear_cache_summary" />
         
     </PreferenceCategory>
 

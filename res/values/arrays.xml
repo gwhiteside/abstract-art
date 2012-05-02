@@ -12,8 +12,8 @@
     
     <string-array name="double_tap_behavior_entries">        
         <item>Do nothing</item>
-        <item>Load next background</item>
-        <item>Open background chooser</item>
+        <item>Next background</item>
+        <item>Open chooser</item>
         <item>Open settings</item>
     </string-array>
     <string-array name="double_tap_behavior_values">        
