@@ -152,8 +152,6 @@ public class Wallpaper extends GLWallpaperService
 				e.printStackTrace();
 			}
 			
-			
-			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
@@ -423,8 +421,6 @@ public class Wallpaper extends GLWallpaperService
 		{
 			backgroundList = new ArrayList<Integer>(total);
 		}
-		
-		
 		
 		return backgroundList;
 	}

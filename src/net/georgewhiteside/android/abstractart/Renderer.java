@@ -215,8 +215,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
 		
-		
-		
 		/*
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
@@ -231,10 +229,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
 		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
 		*/
-		
-		
-		
-		
 		
 		
 		
@@ -289,47 +283,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);
 			Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
 		}
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		/*
-		if(mSurfaceHeight >= mSurfaceWidth)
-		{
-			// layout is square or portrait
-			// alternatively, this code can display a whole 256x224 background, column boxed, when
-			// applied as-is to a landscape layout
-			
-			float wallpaperAspectRatio = (float)mSurfaceWidth / mSurfaceHeight;
-			float textureAspectRatio = textureHeight / textureWidth;
-			
-			left = right = wallpaperAspectRatio * textureAspectRatio;
-			
-			top = 1.0f;
-			bottom = textureAspectRatio * 2.0f - 1.0f;
-			
-			Matrix.orthoM(mProjMatrix, 0, -left, right, -bottom, top, -1.0f, 1.0f);	// configure projection matrix
-		}
-		else
-		{
-			// layout is landscape
-		}
-		*/
-		
 	}
 	
 	private void setupQuad()
@@ -385,25 +338,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		//queryGl(unused);
 		
-		 // snag some display information
-        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
-        int displayPixelFormat = display.getPixelFormat();
-        int displayWidth = display.getWidth(); 
-        int displayHeight = display.getHeight();
-        float displayRefreshRate = display.getRefreshRate();
-        
-        /*
-         * http://developer.android.com/reference/android/graphics/PixelFormat.html
-         * 5 is for BGRA_8888
-         * 1 = RGBA_8888
-         */
-        
-        PixelFormat pixelFormat = new PixelFormat();
-        PixelFormat.getPixelFormatInfo(displayPixelFormat, pixelFormat);
-        
-        Log.i(TAG, String.format("PixelFormat: %d Screen: %dx%d RefreshRate: %f", displayPixelFormat, displayWidth, displayHeight, displayRefreshRate));
-        Log.i(TAG, String.format("PixelFormat.bitsPerPixel: %d PixelFormat.bytesPerPixel %d", pixelFormat.bitsPerPixel, pixelFormat.bytesPerPixel));
-		
 		setupQuad();
 		
 		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
@@ -443,35 +377,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		hPosition = GLES20.glGetAttribLocation(hFXProgram, "a_position"); // a_position
 		hTexture = GLES20.glGetAttribLocation(hFXProgram, "a_texCoord"); // a_texCoord
 		hBaseMap = GLES20.glGetUniformLocation(hFXProgram, "s_texture"); // get sampler locations
-
-		/* shader for effects 
-		
-		mProgram = shader.getShader(bbg);
-		
-		//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-		if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
-		
-		mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
-		mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
-		mBg3TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg3_texture"); // get sampler locations
-		mBg4TextureLoc = GLES20.glGetUniformLocation(mProgram, "bg4_texture"); // get sampler locations
-		mPaletteLoc = GLES20.glGetUniformLocation(mProgram, "s_palette");
-		
-		mResolutionLoc = GLES20.glGetUniformLocation(mProgram, "resolution");
-		mBg3DistLoc = GLES20.glGetUniformLocation(mProgram, "bg3_dist");
-		mBg4DistLoc = GLES20.glGetUniformLocation(mProgram, "bg4_dist");
-		mBg3Scroll = GLES20.glGetUniformLocation(mProgram, "bg3_scroll");
-		mBg4Scroll = GLES20.glGetUniformLocation(mProgram, "bg4_scroll");
-		mBg3PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg3_palette");
-		mBg4PaletteLoc = GLES20.glGetUniformLocation(mProgram, "bg4_palette");
-		mBg3CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg3_compression");
-		mBg3RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg3_rotation");
-		mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
-		mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
-		
-		// old stuff
-		mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
-		mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");*/
 		
 		// used when rendering to the GLOffscreenSurface to mirror screenshots about the horizontal axis
 		
@@ -827,12 +732,5 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		GLES20.glGetIntegerv(GLES20.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
 		Log.i("GLInfo", String.format("GLES20.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
-		//GLES20.glGetIntegerv(GL10.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
-		//Log.i("GLInfo", String.format("GL10.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
-		//GLES20.glGetIntegerv(GL10.GL_SMOOTH_LINE_WIDTH_RANGE, params, 0);
-		//Log.i("GLInfo", String.format("GL10.GL_SMOOTH_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
-		
 	}
 }
