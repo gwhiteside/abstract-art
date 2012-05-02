@@ -249,24 +249,37 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		}
 		else if(surfaceRatio < textureRatio)
 		{
-			// currently, letter box output (scale height to nearest multiple of 224 < screen height)
+			boolean letterbox = false;
 			
-			if(height >= 224 )
+			if(letterbox)
 			{
-				int multiples = mSurfaceHeight / 224;
+				// letter box output (scale height to nearest multiple of 224 < screen height)
 				
-				int bestFit = multiples * 224;
+				if(height >= 224 )
+				{
+					int multiples = mSurfaceHeight / 224;
+					
+					int bestFit = multiples * 224;
+					
+					float ratio = (float)mSurfaceHeight;
+					
+					mSurfaceWidth = (int)(width);
+					mSurfaceHeight = bestFit;
+					mSurfaceVerticalOffset = (height - bestFit) / 2;
+				}
 				
-				float ratio = (float)mSurfaceHeight;
 				
-				mSurfaceWidth = (int)(width);
-				mSurfaceHeight = bestFit;
-				mSurfaceVerticalOffset = (height - bestFit) / 2;
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+				
+				//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
+				
+			}
+			else
+			{
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
 			}
 			
-			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
 			
-			//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
 		}
 		else
 		{
