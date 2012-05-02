@@ -10,8 +10,6 @@ import net.georgewhiteside.android.abstractart.UniformGridView;
 import net.georgewhiteside.android.abstractart.Wallpaper;
 import net.georgewhiteside.android.abstractart.settings.ThumbnailAdapter.ViewHolder;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.Dialog;
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -20,30 +18,19 @@ import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Color;
-import android.graphics.Typeface;
 import android.graphics.drawable.AnimationDrawable;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
-import android.util.Log;
-import android.util.TypedValue;
-import android.view.ContextThemeWrapper;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup.LayoutParams;
-import android.view.ViewTreeObserver;
-import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
-import android.widget.Button;
-import android.widget.FrameLayout;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -130,6 +117,8 @@ public class BackgroundSelector extends Activity
 		        animation.start();        
 		    }
 		});
+		
+		// see if we should display help screen automatically
 		
 		checkHelpPopup(6);
 		

@@ -37,7 +37,9 @@
 	    <ImageView
 	        android:id="@+id/thumbnail_checkmark"
 	        android:contentDescription="@string/null_string"
-	        android:src="@drawable/present"
+	        android:src="@android:drawable/checkbox_on_background"
+	        android:layout_marginLeft="2dp"
+	        android:layout_marginBottom="2dp"
 	        android:layout_width="wrap_content"
 	        android:layout_height="wrap_content"
 	        android:layout_gravity="left|bottom" />
