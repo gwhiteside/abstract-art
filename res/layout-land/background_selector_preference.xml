@@ -22,7 +22,7 @@
 	        android:layout_gravity="center"
 	        android:id="@+id/thumbnailGLSurfaceView"
 	        android:layout_width="256px"
-	        android:layout_height="256px" />
+	        android:layout_height="224px" />
 	    
 	</FrameLayout>
 	
