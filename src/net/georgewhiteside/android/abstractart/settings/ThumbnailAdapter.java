@@ -42,6 +42,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 	private Context context;
 	private LayoutInflater mInflater;
 	private ImageLoader imageLoader;
+	//private ThumbnailCache thumbnailCache;
 	private Handler handler;
 	
 	private int thumbnailWidth, thumbnailHeight;
@@ -72,7 +73,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this);
         imageLoader.start();
         
-        
+        //thumbnailCache = new thumbnailCache(context, )
 	}
 	
 	public int getCount() {
@@ -144,8 +145,6 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
  			thumbnail = BitmapFactory.decodeFile(cacheFile.getPath());
 			
 			setThumbnail(holder, thumbnail, position);
- 			
- 			// look into BitmapFactory.inPurgeable, probably not relevant once I cache the PNGs myself
  		}
 		else
 		{
@@ -168,7 +167,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
     }
 
     public static class ViewHolder {
-    	int index;
+    	public int index;
     	ViewSwitcher viewSwitcher;
         TextView text;
         ImageView thumbnail;

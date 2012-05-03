@@ -64,13 +64,24 @@ public class ImageLoader extends Thread
 		{
 			public void run()
 			{
+				if(holder.index != position)
+		 		{
+		 			// If the on-screen view index doesn't match the thumbnail index, that means
+					// it went off-screen and got recycled before the this event ever got a chance
+					// to fire. Just forget about it for now, we'll load it next time it scrolls by
+					// which keeps the UI more responsive and relevant.
+		 			return;
+		 		}
+				
 				String cacheFileName = String.valueOf(position); //String.format("%03d", index);
 		 		File cacheDir = new File(context.getCacheDir(), "thumbnails");
 		 		File cacheFile = new File(cacheDir, cacheFileName);
-				
+		 		
 				if(cacheFile.exists())
 		 		{
-		 			//Log.i(TAG, "sweet, my work is already done, now to go die real quick");
+					// This shouldn't occur under usual circumstances, but if it does, the work's already done
+					// so there's nothing else left to do.
+		 			return;
 		 		}
 				else
 				{
