@@ -1,0 +1,24 @@
+0.8.1 May 2, 2012
+
+- dressed up playlist chooser with a more Earthboundy-looking theme
+- now properly cropping background textures to 256x224 (source textures are 256x256)
+- minor internal corrections
+
+0.7.0 April 24, 2012
+
+- upgraded background viewer into a playlist chooser as per feedback requests
+
+0.6.0 April 18th, 2012
+
+- first public (alpha) release
+
+0.x.x
+
+- code evolves, basic effects are implemented
+- move from application to service at some point, incorporating external gllivewallpaper class
+- preferences added
+- gui begins to take shape
+
+0.0.0 February 2012
+
+- project's humble beginnings as an Android OpenGL ES 2.0 demo exercise
