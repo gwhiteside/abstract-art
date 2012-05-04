@@ -269,17 +269,20 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static void setNewBackground(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
+		// if the playlist hasn't been loaded yet
 		if(backgroundList == null)
 		{
 			backgroundList = new ArrayList<Integer>(renderer.getBackgroundsTotal());
 		}
 		
-		if(backgroundListIsDirty)
+		// is the playlist runs through or is updated in the chooser, reload it from file
+		if(backgroundList.isEmpty() || backgroundListIsDirty)
 		{
 	 		backgroundList = getBackgroundListFromFile(renderer);
 	 		backgroundListIsDirty = false;
 		}
 		
+		// if a playlist exists and has elements in it
 		if(backgroundList.size() > 0)
 		{
 			// pull up a random background from the playlist
@@ -289,7 +292,7 @@ public class Wallpaper extends GLWallpaperService
 			
 			renderer.loadBattleBackground(selection);
 		}
-		else
+		else // it's possible to create a blank playlist; this accounts for it by loading randomly
 		{
 			renderer.setRandomBackground();
 		}
