@@ -24,7 +24,7 @@ public class ImageLoader extends Thread
 		void onImageLoaded(final ViewHolder holder, final Bitmap bitmap, final int position);
 	}
 	
-	private static final String TAG = "aa-debug";
+	private static final String TAG = "ImageLoader";
 	ImageLoadListener mListener = null;
 	private Handler handler;
 	private Context context;
@@ -60,73 +60,80 @@ public class ImageLoader extends Thread
 	
 	public synchronized void queueImageLoad(final int position, final ViewHolder holder)
 	{
-		handler.post(new Runnable()
+		try
 		{
-			public void run()
+			handler.post(new Runnable()
 			{
-				if(holder.index != position)
-		 		{
-		 			// If the on-screen view index doesn't match the thumbnail index, that means
-					// it went off-screen and got recycled before the this event ever got a chance
-					// to fire. Just forget about it for now, we'll load it next time it scrolls by
-					// which keeps the UI more responsive and relevant.
-		 			return;
-		 		}
-				
-				String cacheFileName = String.valueOf(position); //String.format("%03d", index);
-		 		File cacheDir = new File(context.getCacheDir(), "thumbnails");
-		 		File cacheFile = new File(cacheDir, cacheFileName);
-		 		
-				if(cacheFile.exists())
-		 		{
-					// This shouldn't occur under usual circumstances, but if it does, the work's already done
-					// so there's nothing else left to do.
-		 			return;
-		 		}
-				else
+				public void run()
 				{
-					try
-					{
-						//Bitmap thumbnail = null;
-			 			//Log.i(TAG, "generating thumbnail");
-			 			
-			 			// reacquire an EGL context for every pass in this thread
-			 			// (setRenderer might be a bit heavy for this purpose, look into doing less if possible)
-			 			if(!glOffscreenSurface.checkCurrentThread())
-			 			{
-			 				glOffscreenSurface.setRenderer(renderer);
-			 			}
-			 			
-			 			renderer.loadBattleBackground(position);
-			 			
-			 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
-			 			
-			 			//Log.i(TAG, "thumbnail generated; writing to disk cache...");
-			 			
-			 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
-			 			
-		 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
-		 				thumbnail.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
-			 			
-		 				// thumbnail cached correctly; poke the UI thread right in its callback
-		 				
-			 			if(mListener != null)
-			 			{
-							mListener.onImageLoaded(holder, thumbnail, position);
-						}
-					}
-					catch (FileNotFoundException e)
-					{
-			 			Log.i(TAG, "coult not write thumbnail to disk cache");
-		 				e.printStackTrace();
+					if(holder.index != position)
+			 		{
+			 			// If the on-screen view index doesn't match the thumbnail index, that means
+						// it went off-screen and got recycled before the this event ever got a chance
+						// to fire. Just forget about it for now, we'll load it next time it scrolls by
+						// which keeps the UI more responsive and relevant.
+			 			return;
 			 		}
-					catch(Exception e)
+					
+					String cacheFileName = String.valueOf(position); //String.format("%03d", index);
+			 		File cacheDir = new File(context.getCacheDir(), "thumbnails");
+			 		File cacheFile = new File(cacheDir, cacheFileName);
+			 		
+					if(cacheFile.exists())
+			 		{
+						// This shouldn't occur under usual circumstances, but if it does, the work's already done
+						// so there's nothing else left to do.
+			 			return;
+			 		}
+					else
 					{
-			 			Log.e(TAG, "Something exploded: \"" + e.getMessage() + "\"");
-			 			e.printStackTrace();
-					}
-		 		}
-			}
-		});
+						try
+						{
+							//Bitmap thumbnail = null;
+				 			//Log.i(TAG, "generating thumbnail");
+				 			
+				 			// reacquire an EGL context for every pass in this thread
+				 			// (setRenderer might be a bit heavy for this purpose, look into doing less if possible)
+				 			if(!glOffscreenSurface.checkCurrentThread())
+				 			{
+				 				glOffscreenSurface.setRenderer(renderer);
+				 			}
+				 			
+				 			renderer.loadBattleBackground(position);
+				 			
+				 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
+				 			
+				 			//Log.i(TAG, "thumbnail generated; writing to disk cache...");
+				 			
+				 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
+				 			
+			 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+			 				thumbnail.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+				 			
+			 				// thumbnail cached correctly; poke the UI thread right in its callback
+			 				
+				 			if(mListener != null)
+				 			{
+								mListener.onImageLoaded(holder, thumbnail, position);
+							}
+						}
+						catch (FileNotFoundException e)
+						{
+				 			Log.i(TAG, "coult not write thumbnail to disk cache");
+			 				e.printStackTrace();
+				 		}
+						catch(Exception e)
+						{
+				 			Log.e(TAG, "Something exploded: \"" + e.getMessage() + "\"");
+				 			e.printStackTrace();
+						}
+			 		}
+				}
+			});
+		}
+		catch(Exception e)
+		{
+			Log.w(TAG, "Failed to post an ImageLoader event");
+		}
 	}
 }
