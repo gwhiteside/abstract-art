@@ -42,6 +42,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private SharedPreferences sharedPreferences;
 	
+	private BattleBackground bbg;
+	private BattleEnemyFactory battleEnemyFactory;
+	private ShaderFactory shader;
+	
 	private FPSCounter mFPSCounter = new FPSCounter();
 	
 	private FloatBuffer quadVertexBuffer;
@@ -84,8 +88,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private Boolean mFilterOutput = false;
 	
-	private BattleBackground bbg;
-	private ShaderFactory shader;
+	
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
@@ -150,6 +153,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		bbg = new BattleBackground(context);
+		battleEnemyFactory = new BattleEnemyFactory(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
