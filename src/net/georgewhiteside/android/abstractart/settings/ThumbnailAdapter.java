@@ -1,48 +1,32 @@
 package net.georgewhiteside.android.abstractart.settings;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.nio.ByteBuffer;
-import java.nio.IntBuffer;
 import java.util.List;
 
 import net.georgewhiteside.android.abstractart.ImageLoader;
 import net.georgewhiteside.android.abstractart.ImageLoader.ImageLoadListener;
 import net.georgewhiteside.android.abstractart.R;
-import net.georgewhiteside.android.abstractart.Cache;
 import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
-import net.georgewhiteside.android.abstractart.Wallpaper;
 import android.content.Context;
-import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
-import android.graphics.Bitmap.CompressFormat;
-import android.graphics.BitmapFactory;
-import android.opengl.GLSurfaceView;
 import android.os.Handler;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewGroup.LayoutParams;
 import android.widget.BaseAdapter;
 import android.widget.FrameLayout;
-import android.widget.GridView;
 import android.widget.ImageView;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.ViewSwitcher;
 
 // TODO: add code path in Renderer to disregard frame limit when thumbnailing... otherwise it causes a silly slowdown :)
 
-public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
-
+public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
+{
 	private static final String TAG = "ThumbnailAdapter";
 	private Context context;
 	private LayoutInflater mInflater;
 	private ImageLoader imageLoader;
-	//private ThumbnailCache thumbnailCache;
 	private Handler handler;
 	
 	private int thumbnailWidth, thumbnailHeight;
@@ -54,7 +38,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 	private static final int LOADING_VIEW = 0;
 	private static final int THUMBNAIL_VIEW = 1;
 	
-	public ThumbnailAdapter(Context context, List<Integer> backgroundList) {
+	public ThumbnailAdapter(Context context, List<Integer> backgroundList)
+	{
 		this.context = context;
 		
 		this.backgroundList = backgroundList;
@@ -64,7 +49,6 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 		
 		glOffscreenSurface = new GLOffscreenSurface(thumbnailWidth, thumbnailHeight);
 		glOffscreenSurface.setEGLContextClientVersion(2);
-		//glOffscreenSurface.setRenderer(renderer);
 		
         mInflater = LayoutInflater.from(context); // Cache the LayoutInflater to avoid asking for a new one each time
         
@@ -72,19 +56,20 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         
         imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this);
         imageLoader.start();
-        
-        //thumbnailCache = new thumbnailCache(context, )
 	}
 	
-	public int getCount() {
+	public int getCount()
+	{
 		return renderer.getBackgroundsTotal();
 	}
 
-	public Object getItem(int position) {
+	public Object getItem(int position)
+	{
 		return position;
 	}
 
-	public long getItemId(int position) {
+	public long getItemId(int position)
+	{
 		return position;
 	}
 	
@@ -174,7 +159,3 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
 		});
 	}
 }
-
-
-
-

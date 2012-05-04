@@ -52,8 +52,6 @@ public class BackgroundSelector extends Activity
 	
 	private int selectionMode;
 	
-	
-	
 	@Override
 	public void onSaveInstanceState(Bundle outState)
 	{
