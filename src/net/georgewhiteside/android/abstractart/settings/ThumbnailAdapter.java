@@ -7,9 +7,11 @@ import net.georgewhiteside.android.abstractart.ImageLoader.ImageLoadListener;
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
+import net.georgewhiteside.android.abstractart.Wallpaper;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -127,9 +129,11 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         ImageView thumbnailCheckmark;
     }
     
-    public void setCheckmark(ViewHolder viewHolder, int position)
+    public void updateCheckmark(ViewHolder viewHolder)
     {
-    	if(backgroundList.contains(new Integer(position)))
+    	Log.i(Wallpaper.TAG, "toggled item: " + viewHolder.index);
+    	
+    	if(backgroundList.contains(new Integer(viewHolder.index)))
 		{
 			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
     	}
@@ -151,7 +155,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 					viewHolder.thumbnail.setImageBitmap(bitmap);
 					viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
 					
-					setCheckmark(viewHolder, position);
+					updateCheckmark(viewHolder);
 					
 					viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
 				}

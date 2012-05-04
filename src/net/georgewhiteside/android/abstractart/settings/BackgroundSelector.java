@@ -23,6 +23,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -45,7 +46,7 @@ public class BackgroundSelector extends Activity
 	private Renderer renderer;
 	private SharedPreferences sharedPreferences;
 	private ThumbnailAdapter thumbnailAdapter;
-	private UniformGridView uniformGridView;
+	private UniformGridView gridView;
 	private int selectedPosition = 1;
 	
 	private List<Integer> backgroundList;
@@ -94,11 +95,11 @@ public class BackgroundSelector extends Activity
 		
 		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList);
 		
-		uniformGridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
-		uniformGridView.setColumnWidth(128);
-		uniformGridView.setAdapter(thumbnailAdapter);
-		uniformGridView.setOnItemClickListener(new GridViewOnItemClickListener());
-		uniformGridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
+		gridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
+		gridView.setColumnWidth(128);
+		gridView.setAdapter(thumbnailAdapter);
+		gridView.setOnItemClickListener(new GridViewOnItemClickListener());
+		gridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
 		
 		// start up little corner arrow animation
 		
@@ -163,14 +164,14 @@ public class BackgroundSelector extends Activity
 	        case R.id.select_all:
 	        	List<Integer> completeList = Wallpaper.createInitialBackgroundList(renderer);
 	        	thumbnailAdapter.setBackgroundList(completeList);
-	        	thumbnailAdapter.notifyDataSetChanged();
+	        	updateVisibleCheckmarks(); //thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = completeList;
 	            return true;
 	            
 	        case R.id.clear_all:
 	        	List<Integer> emptyList = Wallpaper.createEmptyBackgroundList(renderer);
 	        	thumbnailAdapter.setBackgroundList(emptyList);
-	        	thumbnailAdapter.notifyDataSetChanged();
+	        	updateVisibleCheckmarks(); //thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = emptyList;
 	            return true;
 	            
@@ -181,6 +182,29 @@ public class BackgroundSelector extends Activity
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
+	}
+	
+	/*
+	 * This could be done simply with notifyDataSetChanged(), but I'm doing it this way to avoid the brief
+	 * (but noticeable) redraw as the ViewSwitcher on the thumbnails kicks in momentarily.
+	 */
+	private void updateVisibleCheckmarks()
+	{
+		int first = gridView.getFirstVisiblePosition();
+		int last = gridView.getLastVisiblePosition();
+		int numVisible = last - first;
+		
+		for (int i = 0; i <= numVisible; i++)
+		{
+			View view = (View)gridView.getChildAt(i);
+			
+			if(view != null)
+			{
+				ViewHolder viewHolder = (ViewHolder) view.getTag();
+			    thumbnailAdapter.updateCheckmark(viewHolder);
+			}
+		    
+		}
 	}
 	
 	private void showHelpDialog()
@@ -270,7 +294,7 @@ public class BackgroundSelector extends Activity
 		}
 		
 		ViewHolder holder = (ViewHolder) view.getTag();
-		thumbnailAdapter.setCheckmark(holder, position);
+		thumbnailAdapter.updateCheckmark(holder);
 	}
 }
 
