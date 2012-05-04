@@ -95,19 +95,16 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
      *
      * http://developer.android.com/resources/samples/ApiDemos/src/com/example/android/apis/view/List14.html
      */
-    public View getView(int position, View convertView, ViewGroup parent) {
-        // A ViewHolder keeps references to children views to avoid unnecessary calls
-        // to findViewById() on each row.
+    public View getView(int position, View convertView, ViewGroup parent)
+    {
+        // A ViewHolder keeps references to children views to avoid unnecessary calls to findViewById() on each row
         ViewHolder holder;
 
-        // When convertView is not null, we can reuse it directly, there is no need
-        // to reinflate it. We only inflate a new View when the convertView supplied
-        // by ListView is null.
-        if (convertView == null) {
+        if (convertView == null) // Create a new view
+        {
             convertView = mInflater.inflate(R.layout.thumbnail_layout, null);
             
-            // Creates a ViewHolder and store references to the two children views
-            // we want to bind data to.
+            // Creates a ViewHolder and stores references to the children views we want to bind data to
             holder = new ViewHolder();
             holder.viewSwitcher = (ViewSwitcher) convertView.findViewById(R.id.thumbnail_view_switcher);
             holder.text = (TextView) convertView.findViewById(R.id.thumbnail_text);
@@ -118,46 +115,16 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
             frameLayout.setLayoutParams(new ViewSwitcher.LayoutParams(thumbnailWidth, thumbnailHeight));
             
             convertView.setTag(holder);
-        } else {
-            // Get the ViewHolder back to get fast access to the TextView
-            // and the ImageView.
+        }
+        else // Recycle an old view
+        {
             holder = (ViewHolder) convertView.getTag();
         }
+ 		
+ 		holder.index = position; // set the image index for the on-screen GridView element so onImageLoaded doesn't override it if it scrolls out of view
+ 		holder.viewSwitcher.setDisplayedChild(LOADING_VIEW);
+        imageLoader.queueImageLoad(position, holder);
         
-        holder.index = position; // set the image index we want for the on-screen GridView element so onImageLoaded doesn't override it if it scrolls out of view
-        
-        
-        
-        String cacheFileName = String.valueOf(position); //String.format("%03d", index);
- 		File cacheDir = new File(context.getCacheDir(), "thumbnails");
- 		File cacheFile = new File(cacheDir, cacheFileName);
-		
-		Bitmap thumbnail = null;
-		
-		// hit up the image cache first
- 		// if there's no cached copy, we've got to generate it
-		
-		if(cacheFile.exists())
- 		{
- 			holder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
- 			
- 			//Log.i(TAG, "reading thumbnail from disk cache");
- 			thumbnail = BitmapFactory.decodeFile(cacheFile.getPath());
-			
-			setThumbnail(holder, thumbnail, position);
- 		}
-		else
-		{
-			holder.viewSwitcher.setDisplayedChild(LOADING_VIEW);
-	        imageLoader.queueImageLoad(position, holder);
-		}
-        
-        
-
-        // Bind the data efficiently with the holder.
- 		//holder.text.setText(String.valueOf(position));
- 		//holder.thumbnail.setImageBitmap(thumbnail);
-
         return convertView;
     }
     
@@ -166,7 +133,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
     	this.backgroundList = backgroundList;
     }
 
-    public static class ViewHolder {
+    public static class ViewHolder
+    {
     	public int index;
     	ViewSwitcher viewSwitcher;
         TextView text;
@@ -174,38 +142,32 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener {
         ImageView thumbnailCheckmark;
     }
     
-    public void setThumbnail(ViewHolder holder, Bitmap bitmap, int position)
-    {
-    	holder.thumbnail.setImageBitmap(bitmap);
-    	holder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
-    	
-    	setCheckmark(holder, position);
-    }
-    
-    public void setCheckmark(ViewHolder holder, int position)
+    public void setCheckmark(ViewHolder viewHolder, int position)
     {
     	if(backgroundList.contains(new Integer(position)))
-    	{
-    		holder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
+		{
+			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
     	}
-    	else
-    	{
-    		holder.thumbnailCheckmark.setVisibility(ImageView.INVISIBLE);
+		else
+		{
+    		viewHolder.thumbnailCheckmark.setVisibility(ImageView.INVISIBLE);
     	}
     }
 
-	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position) {
-		handler.post(new Runnable() {
-			public void run() {
-				
+	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position)
+	{
+		handler.post(new Runnable()
+		{
+			public void run()
+			{
 				// set the grid item to the image thumbnail only if it hasn't scrolled off screen and been recycled
-				// this does, however, tie up the past scrolled thumbnails from showing up until the rest of the queue
-				// catches up
 				if(viewHolder.index == position)
 				{
-					setThumbnail(viewHolder, bitmap, position);
+					viewHolder.thumbnail.setImageBitmap(bitmap);
+					viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
 					
-					// explicitly tell the view switcher to show the second view
+					setCheckmark(viewHolder, position);
+					
 					viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
 				}
 			}

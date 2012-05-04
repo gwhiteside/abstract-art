@@ -1,7 +1,8 @@
 0.x.x -
 
 - fixed a decent performance bottleneck in the image chooser gridview adapter; deeply queued thumbnail generating events are discarded in favor of more recent ones
-- reduced an occasional bug where a thumbnail wouldn't update until scrolled out of and back into view (related to bottleneck above)
+- fixed an occasional bug where a thumbnail wouldn't update until scrolled out of and back into view (related to bottleneck above)
+- existing thumbnails are now loaded before new ones are generated/loaded
 - smoothed over an uncommon thread-related crash bug when the background chooser first opens
 
 0.8.1 May 2, 2012
