@@ -5,9 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -15,11 +13,7 @@ import org.jf.GLWallpaper.GLWallpaperService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -31,7 +25,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
-import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -42,9 +35,6 @@ import android.view.WindowManager;
 
 public class Wallpaper extends GLWallpaperService 
 {
-	public static final int SINGLE_BACKGROUND = 0;
-	public static final int MULTIPLE_BACKGROUNDS = 1;
-	
 	public static final String TAG = "AbstractArt";
 	
 	private static Context context;
@@ -52,7 +42,7 @@ public class Wallpaper extends GLWallpaperService
 	private static SharedPreferences sharedPreferences;
 	public static Random random = new Random();
 	
-	public static boolean backgroundListDirty = false;
+	public static boolean backgroundListIsDirty = false;
 	
 	private static List<Integer> backgroundList;
 	
@@ -279,45 +269,25 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static void setNewBackground(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
-		// if single background, set it...
-		// else
-		//   if there are backgrounds in the list, pull one and set it
-		//   else recreate the list, pull one, and set it
-		
-		int selectionMode = Integer.valueOf(sharedPreferences.getString("selectionMode", Integer.toString(MULTIPLE_BACKGROUNDS)));
-		
-		if(selectionMode == SINGLE_BACKGROUND)
+		if(backgroundList == null)
 		{
-			// set single background from shared preferences
-			renderer.setRandomBackground(); // TODO temporary until code is set up
+			backgroundList = new ArrayList<Integer>(renderer.getBackgroundsTotal());
 		}
-		else if(selectionMode == MULTIPLE_BACKGROUNDS)
+		
+		if(backgroundListIsDirty)
 		{
-			if(backgroundList == null)
-			{
-				backgroundList = new ArrayList<Integer>(renderer.getBackgroundsTotal());
-			}
+	 		backgroundList = getBackgroundListFromFile(renderer);
+	 		backgroundListIsDirty = false;
+		}
+		
+		if(backgroundList.size() > 0)
+		{
+			// pull up a random background from the playlist
+			int location = random.nextInt(backgroundList.size());
+			int selection = backgroundList.get(location);
+			backgroundList.remove(location);
 			
-			if(backgroundList.isEmpty() || backgroundListDirty)
-			{
-		 		backgroundList = getBackgroundListFromFile(renderer);
-				backgroundListDirty = false;
-			}
-			
-			if(backgroundList.size() > 0)
-			{
-				// pull up a random background from the playlist
-				int location = random.nextInt(backgroundList.size());
-				int selection = backgroundList.get(location);
-				backgroundList.remove(location);
-				
-				renderer.loadBattleBackground(selection);
-			}
-			else
-			{
-				// if the background playlist (the copy stored on disk) is empty, just load a random background
-				renderer.setRandomBackground();
-			}
+			renderer.loadBattleBackground(selection);
 		}
 		else
 		{
@@ -392,7 +362,7 @@ public class Wallpaper extends GLWallpaperService
 			String jsonString = jsonObject.toString();
 			fos.write(jsonString.getBytes());
 			fos.close();
-			backgroundListDirty = true;
+			backgroundListIsDirty = true;
 		}
 	    catch (FileNotFoundException e)
 	    {

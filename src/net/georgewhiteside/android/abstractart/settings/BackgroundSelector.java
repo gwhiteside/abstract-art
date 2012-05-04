@@ -50,13 +50,11 @@ public class BackgroundSelector extends Activity
 	
 	private List<Integer> backgroundList;
 	
-	private int selectionMode;
-	
 	@Override
-	public void onSaveInstanceState(Bundle outState)
+	public void onSaveInstanceState(Bundle instanceState)
 	{
-		outState.putInt("selectedPosition", selectedPosition);
-		super.onSaveInstanceState(outState);
+		// save any state here (view lost during orientation change, incoming call, etc.)
+		super.onSaveInstanceState(instanceState);
 	}
 	
 	private void loadBattleBackground(final int index)
@@ -69,23 +67,20 @@ public class BackgroundSelector extends Activity
 	}
 	
 	@Override
-	public void onCreate(Bundle savedInstanceState)
+	public void onCreate(Bundle instanceState)
 	{
-		super.onCreate(savedInstanceState);
+		super.onCreate(instanceState);
 		context = this;
 		
-		// restore any saved instance state if it exists
-		
-		if(savedInstanceState != null)
+		if(instanceState != null)
 		{
-			selectedPosition = savedInstanceState.getInt("selectedPosition", Wallpaper.MULTIPLE_BACKGROUNDS);
+			// restore any saved instance state if it exists
 		}
 		
 		setContentView(R.layout.background_selector_preference);
 		
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		selectionMode = Integer.valueOf(sharedPreferences.getString("selectionMode", Integer.toString(Wallpaper.MULTIPLE_BACKGROUNDS)));
-		
+
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
 		renderer = new Renderer(this, selectedPosition);
@@ -150,8 +145,6 @@ public class BackgroundSelector extends Activity
 		{
 			e.printStackTrace();
 		}
-
-		
 	}
 	
 	@Override
@@ -172,7 +165,6 @@ public class BackgroundSelector extends Activity
 	        	thumbnailAdapter.setBackgroundList(completeList);
 	        	thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = completeList;
-	        	//gridView.invalidateViews();
 	            return true;
 	            
 	        case R.id.clear_all:
@@ -180,7 +172,6 @@ public class BackgroundSelector extends Activity
 	        	thumbnailAdapter.setBackgroundList(emptyList);
 	        	thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = emptyList;
-	        	//gridView.invalidateViews();
 	            return true;
 	            
 	        case R.id.help:
@@ -194,6 +185,8 @@ public class BackgroundSelector extends Activity
 	
 	private void showHelpDialog()
 	{
+		// TODO I just jammed this in here last second to get the update to market. Do this right.
+		
 		/*WebView webView = new WebView(context);
     	webView.setBackgroundColor(0);
     	webView.loadUrl("file:///android_asset/background_selector/index.html");*/
@@ -228,17 +221,9 @@ public class BackgroundSelector extends Activity
     	dialog.show();
 	}
 	
-	public void savePreferences()
-	{
-		Editor editor = sharedPreferences.edit();
-        editor.putString("selectionMode", String.valueOf(selectionMode));
-        editor.commit();
-	}
-	
 	public void onDestroy() {  
         super.onDestroy();  
         
-        savePreferences();
         Wallpaper.saveBackgroundList(backgroundList);
         //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
     }  
@@ -253,8 +238,6 @@ public class BackgroundSelector extends Activity
 		public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
         	if(position == selectedPosition)
         	{
-        		//((ThumbnailAdapter) parent.getAdapter()).toggleItem(view, position);
-        		
         		toggleItem(view, position);
         		//Toast.makeText(context, "item " + renderer.getRomBackgroundIndex(position) + " toggled", Toast.LENGTH_SHORT).show();
         	}
@@ -269,7 +252,7 @@ public class BackgroundSelector extends Activity
 	class GridViewOnItemLongClickListener implements OnItemLongClickListener
 	{
 		public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-			Toast.makeText(context, "long click", Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, "Ouch. You're squishing me.", Toast.LENGTH_SHORT).show();
 			return true; // consume the click
 		}
 	}
