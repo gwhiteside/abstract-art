@@ -109,6 +109,7 @@ public class ImageLoader extends Thread
 				 			
 			 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
 			 				thumbnail.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+			 				fileOutputStream.close();
 				 			
 			 				// thumbnail cached correctly; poke the UI thread right in its callback
 			 				
