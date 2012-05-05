@@ -176,7 +176,7 @@ public class Translation
 	
 	public int getDuration()
 	{
-		return ROMUtil.unsigned(data[mIndex].getShort(0));
+		return RomUtil.unsigned(data[mIndex].getShort(0));
 	}
 	
 	public int getHorizontalVelocity()
@@ -208,7 +208,7 @@ public class Translation
 	{
 		mNumberOfTranslations = 0;
 		for(int i = 0; i < 4; i++) {
-			int index = ROMUtil.unsigned(translationIndices.get(i));
+			int index = RomUtil.unsigned(translationIndices.get(i));
 			if(index > 0)
 				mNumberOfTranslations++;
 			translationData.position(index * 10);

@@ -7,7 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public final class ROMUtil
+public final class RomUtil
 {
 	// This is an internal optimization for the comp/decomp methods.
 	// Every element in this array is the binary reverse of its index.

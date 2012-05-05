@@ -167,7 +167,7 @@ public class Layer
 	
 	public int getPaletteCycleSpeed()
 	{
-		return ROMUtil.unsigned(bgData.get(8));
+		return RomUtil.unsigned(bgData.get(8));
 	}
 	
 	/**
@@ -226,7 +226,7 @@ public class Layer
 		// load color palette
 		
 		romData.position(0xADCD9 - OFFSET + getPaletteIndex() * 4);
-		int pPaletteData = ROMUtil.toHex(romData.getInt()) - OFFSET;
+		int pPaletteData = RomUtil.toHex(romData.getInt()) - OFFSET;
 		paletteId = pPaletteData;  // hack for disabled color effects
 		
 		
@@ -352,14 +352,14 @@ public class Layer
 		// load tile graphics
 		
 		romData.position(0xAD9A1 - OFFSET + index * 4);
-		int pTileData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		tileDataLength = ROMUtil.decompress(pTileData, tileData, TILE_MAX, romData);
+		int pTileData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		tileDataLength = RomUtil.decompress(pTileData, tileData, TILE_MAX, romData);
 		
 		// load tile arrangement data
 		
 		romData.position(0xADB3D - OFFSET + index * 4);
-		int pArrangeData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		arrangeDataLength = ROMUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
+		int pArrangeData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}
 	
 	public boolean checkIfCached(int imageNumber)
