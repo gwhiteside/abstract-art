@@ -82,11 +82,16 @@ public final class Cache
 	 */
 	public static void write(File cacheFile, byte[] input)
 	{
+		write(cacheFile, input, input.length);
+	}
+	
+	public static void write(File cacheFile, byte[] input, int length)
+	{
 		cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
 		
 		try {
 			FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
-			fileOutputStream.write(input);
+			fileOutputStream.write(input, 0, length);
 			fileOutputStream.close();
 		} catch (FileNotFoundException e) {
 			Log.e(TAG, String.format("Cache file %s could not be found", cacheFile.getPath()));
