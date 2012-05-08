@@ -87,7 +87,9 @@ public final class Cache
 	
 	public static void write(File cacheFile, byte[] input, int length)
 	{
-		cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
+		File parentFile = cacheFile.getParentFile();
+		
+		if(parentFile != null) parentFile.mkdirs(); // safely does nothing if path exists
 		
 		try {
 			FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);

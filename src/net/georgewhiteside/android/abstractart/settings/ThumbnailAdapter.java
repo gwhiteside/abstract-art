@@ -131,8 +131,6 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
     
     public void updateCheckmark(ViewHolder viewHolder)
     {
-    	Log.i(Wallpaper.TAG, "toggled item: " + viewHolder.index);
-    	
     	if(backgroundList.contains(new Integer(viewHolder.index)))
 		{
 			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);

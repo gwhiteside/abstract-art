@@ -88,11 +88,17 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private Boolean mFilterOutput = false;
 	
-	
+	private Boolean mRenderEnemies = true;
+	private int mEnemyPositionHandle;
+	private int mEnemyTextureHandle;
+	private int mEnemyTextureLoc;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
+	
+	private int[] mBattleSpriteId = new int[1];
+	private int mBattleSpriteProgramId;
 	
 	private int currentBackground;
 	private boolean persistBackgroundSelection;
@@ -153,7 +159,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		bbg = new BattleBackground(context);
-		enemy = new Enemy(context); enemy.load(1);
+		enemy = new Enemy(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -201,14 +207,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mRenderWidth = mSurfaceWidth;
 		mRenderHeight = mSurfaceHeight;
 		
-		if(mHighRes)
-		{
-			renderBattleBackground();
-		}
-		else
-		{
-			renderToTexture();
-		}
+		renderScene();
 			
 		bbg.doTick();
 		
@@ -531,7 +530,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			mProgram = shader.getShader(bbg);
 			
 			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-			if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+			//if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
 			
 			mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 			mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
@@ -556,10 +555,49 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			// old stuff
 			mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 			mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			
+			/* enemy loading stuff */
+			if(mRenderEnemies)
+			{
+				enemy.load(14);
+				byte[] spriteData = enemy.getBattleSprite();
+				ByteBuffer sprite = ByteBuffer.allocateDirect(spriteData.length);
+				
+		        sprite.put(spriteData).position(0);
+				
+				GLES20.glGenTextures(1, mBattleSpriteId, 0);
+				
+				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
+				
+		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, enemy.getBattleSpriteWidth(), enemy.getBattleSpriteHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, sprite);
+		        
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+				
+		        mBattleSpriteProgramId = shader.getPassthroughShader();
+		        
+		        mEnemyPositionHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_position"); // a_position
+				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
+				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
+			}
+			
 		}
 	}
 	
-	private void renderToTexture() // "low res" render
+	private void renderScene()
 	{
 		mRenderWidth = 256.0f;
 		mRenderHeight = 224.0f;
@@ -573,6 +611,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		/* it may be prudent to check the framebuffer status here before continuing... */
 		
 		renderBattleBackground();
+		if(mRenderEnemies) renderEnemy();
 		
 		/* now, try to render the texture? */
 		
@@ -608,10 +647,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		hMVPMatrix = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");/* projection and camera */
 		
-		//GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // render to screen buffer
-		
-		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-		
 		GLES20.glUseProgram(mProgram);
 		
 		/* load vertex positions */
@@ -637,6 +672,37 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glUniform1i(mPaletteLoc, 2);
 		
 		updateShaderVariables(); // be mindful of which active program this applies to!!
+		
+		/* apply model view projection transformation */
+		
+		GLES20.glUniformMatrix4fv(hMVPMatrix, 1, false, mProjMatrix, 0);	/* projection and camera */
+		
+		/* draw the triangles */
+		
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+	}
+	
+	private void renderEnemy()
+	{
+		hMVPMatrix = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "uMVPMatrix");/* projection and camera */
+		
+		//GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
+		
+		GLES20.glUseProgram(mBattleSpriteProgramId);
+		
+		/* load vertex positions */
+		
+		GLES20.glVertexAttribPointer(mEnemyPositionHandle, 3, GLES20.GL_FLOAT, false, 12, quadVertexBuffer);
+		GLES20.glEnableVertexAttribArray(mEnemyPositionHandle);
+		
+		/* load texture mapping */
+
+		GLES20.glVertexAttribPointer(mEnemyTextureHandle, 2, GLES20.GL_FLOAT, false, 8, textureVertexBuffer);
+		GLES20.glEnableVertexAttribArray(mEnemyTextureHandle);
+		
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE3);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
+		GLES20.glUniform1i(mEnemyTextureLoc, 3);
 		
 		/* apply model view projection transformation */
 		

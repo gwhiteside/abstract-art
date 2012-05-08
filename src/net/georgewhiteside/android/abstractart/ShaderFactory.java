@@ -43,6 +43,16 @@ public class ShaderFactory
 		"    v_texCoord = a_texCoord;\n" +
 		"}\n";
 	
+	private String passthroughFragmentShader =
+		"precision mediump float;\n" +
+		"varying vec2 v_texCoord;\n" +
+		"uniform sampler2D s_texture;\n" +
+		"\n" +
+		"void main()\n" +
+		"{\n" +
+		"    gl_FragColor = texture2D(s_texture, v_texCoord);\n" +
+		"}\n";
+	
 	private String fragmentHeader =
 		"precision highp float;\n" +
 
@@ -334,7 +344,16 @@ public class ShaderFactory
 		//Log.d("shader", vertexShader);
 		//Log.d("shader", fragmentShader);
 		
-		return createProgram(vertexShader, fragmentShader);
+		int result = createProgram(vertexShader, fragmentShader);
+		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		return result;
+	}
+	
+	public int getPassthroughShader()
+	{
+		int result = createProgram(vertexShader, passthroughFragmentShader);
+		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		return result;
 	}
 	
 	private int createProgram(String vertexSource, String fragmentSource)
