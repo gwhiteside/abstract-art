@@ -43,7 +43,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private SharedPreferences sharedPreferences;
 	
 	private BattleBackground bbg;
-	private EnemyFactory enemyFactory;
+	private Enemy enemy;
 	private ShaderFactory shader;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
@@ -153,7 +153,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		bbg = new BattleBackground(context);
-		enemyFactory = new EnemyFactory(context); enemyFactory.getEnemy(1);
+		enemy = new Enemy(context); enemy.load(1);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);

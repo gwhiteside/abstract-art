@@ -1,6 +1,6 @@
 package net.starmen.pkhack;
 
-// Originally made by AnyoneEB. 
+// Original code by AnyoneEB
 // Code released under the GPL - http://www.gnu.org/licenses/gpl.txt
 
 public class HackModule {
