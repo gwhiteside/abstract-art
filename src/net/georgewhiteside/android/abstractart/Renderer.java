@@ -92,6 +92,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private int mEnemyPositionHandle;
 	private int mEnemyTextureHandle;
 	private int mEnemyTextureLoc;
+	private FloatBuffer enemyVertexBuffer;
+	private FloatBuffer enemyTextureVertexBuffer;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
@@ -591,6 +593,47 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		        mEnemyPositionHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_position"); // a_position
 				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
 				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
+				
+				
+				
+				float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+				float textureRatio = 256.0f / 224.0f;
+				
+				float x = (float)enemy.getBattleSpriteWidth() / 256.0f;
+				float y = (float)enemy.getBattleSpriteHeight() / 224.0f;
+				
+				
+				
+				
+				float quadVertices[] =
+				{
+					-x,	-y,	 0.0f,
+					 x,	-y,	 0.0f,
+					-x,	 y,	 0.0f,
+					 x,	 y,	 0.0f			 
+				};
+				
+				float textureMap[] =
+				{
+					0.0f,	 1.0f,
+					1.0f,	 1.0f,
+					0.0f,	 0.0f,
+					1.0f,	 0.0f 
+				};
+				
+				enemyVertexBuffer = ByteBuffer
+						.allocateDirect(quadVertices.length * 4) // float is 4 bytes
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer(); 
+				enemyVertexBuffer.put(quadVertices);
+				enemyVertexBuffer.position(0);
+				
+				enemyTextureVertexBuffer = ByteBuffer
+						.allocateDirect(textureMap.length * 4) // float is 4 bytes
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer(); 
+				enemyTextureVertexBuffer.put(textureMap);
+				enemyTextureVertexBuffer.position(0);
 			}
 			
 		}
@@ -691,12 +734,12 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		/* load vertex positions */
 		
-		GLES20.glVertexAttribPointer(mEnemyPositionHandle, 3, GLES20.GL_FLOAT, false, 12, quadVertexBuffer);
+		GLES20.glVertexAttribPointer(mEnemyPositionHandle, 3, GLES20.GL_FLOAT, false, 12, enemyVertexBuffer);
 		GLES20.glEnableVertexAttribArray(mEnemyPositionHandle);
 		
 		/* load texture mapping */
 
-		GLES20.glVertexAttribPointer(mEnemyTextureHandle, 2, GLES20.GL_FLOAT, false, 8, textureVertexBuffer);
+		GLES20.glVertexAttribPointer(mEnemyTextureHandle, 2, GLES20.GL_FLOAT, false, 8, enemyTextureVertexBuffer);
 		GLES20.glEnableVertexAttribArray(mEnemyTextureHandle);
 		
 		GLES20.glActiveTexture(GLES20.GL_TEXTURE3);
