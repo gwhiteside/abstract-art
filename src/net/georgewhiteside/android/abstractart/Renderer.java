@@ -301,7 +301,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		}
 	}
 	
-	private void setupQuad()
+	private void setupScreenQuad()
 	{
 		float quadVertices[] =
 		{
@@ -347,14 +347,13 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				.asFloatBuffer(); 
 		textureOutputBuffer.put(textureMapFlip);
 		textureOutputBuffer.position(0);
-		
 	}
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
 		//queryGl(unused);
 		
-		setupQuad();
+		setupScreenQuad();
 		
 		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
 		GLES20.glDisable(GLES20.GL_DITHER); // dithering causes really crappy/distracting visual artifacts when distorting the textures
@@ -570,7 +569,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			/* enemy loading stuff */
 			if(mRenderEnemies)
 			{
-				enemy.load(14);
+				enemy.load(0x18);
 				byte[] spriteData = enemy.getBattleSprite();
 				ByteBuffer sprite = ByteBuffer.allocateDirect(spriteData.length);
 				
@@ -587,7 +586,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
 				
-		        mBattleSpriteProgramId = shader.getPassthroughShader();
+		        mBattleSpriteProgramId = shader.getSpriteShader();
 		        
 		        mEnemyPositionHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_position"); // a_position
 				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord

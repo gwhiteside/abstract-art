@@ -33,7 +33,7 @@ public class ShaderFactory
 	
 	private static final String[] bgPrefix = {"bg3_", "bg4_"};
 	
-	private String vertexShader =
+	private String spriteVertexShader =
 		"uniform mat4 uMVPMatrix;\n" +
 		"attribute vec4 a_position;\n" +
 		"attribute vec2 a_texCoord;\n" +
@@ -43,15 +43,27 @@ public class ShaderFactory
 		"    v_texCoord = a_texCoord;\n" +
 		"}\n";
 	
-	private String passthroughFragmentShader =
+	private String spriteFragmentShader =
 		"precision mediump float;\n" +
 		"varying vec2 v_texCoord;\n" +
 		"uniform sampler2D s_texture;\n" +
 		"\n" +
 		"void main()\n" +
 		"{\n" +
-		"    gl_FragColor = texture2D(s_texture, v_texCoord);\n" +
+		"    vec4 color = texture2D(s_texture, v_texCoord);\n" +
+		"    if(color.a < 0.5) { discard; }\n" +
+		"    gl_FragColor = color;\n" +
 		"}\n";
+
+	private String vertexShader =
+			"uniform mat4 uMVPMatrix;\n" +
+			"attribute vec4 a_position;\n" +
+			"attribute vec2 a_texCoord;\n" +
+			"varying vec2 v_texCoord;\n" +
+			"void main() {\n" +
+			"    gl_Position = uMVPMatrix * a_position;\n" +
+			"    v_texCoord = a_texCoord;\n" +
+			"}\n";
 	
 	private String fragmentHeader =
 		"precision highp float;\n" +
@@ -349,9 +361,9 @@ public class ShaderFactory
 		return result;
 	}
 	
-	public int getPassthroughShader()
+	public int getSpriteShader()
 	{
-		int result = createProgram(vertexShader, passthroughFragmentShader);
+		int result = createProgram(spriteVertexShader, spriteFragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
 		return result;
 	}
