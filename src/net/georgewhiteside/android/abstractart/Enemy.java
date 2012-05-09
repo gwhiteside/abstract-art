@@ -32,7 +32,7 @@ public class Enemy
 	private static final int GRAPHICS = 0xD0200;
 	private static final int POINTER_TABLE = 0xE64EE;
 	private static final int PALETTES = 0xE6714;
-	private static final int NUM_GRAPHIC_ENTRIES = 110;
+	//private static final int NUM_GRAPHIC_ENTRIES = 110;
 	
 	private static final int ATTRIBUTES_CHUNK_OFFSET = 0x159789;
 	private static final int ATTRIBUTES = 0x159789;
@@ -71,7 +71,7 @@ public class Enemy
 	
 	public void load(int index)
 	{
-		if(index < 0 || index >= NUM_GRAPHIC_ENTRIES)
+		if(index < 0 || index >= 231)
 		{
 			Log.e(TAG, "getEnemy(): invalid index");
 			return;
@@ -149,6 +149,25 @@ public class Enemy
 		//Cache.write(outFile, spriteRgba, spriteRgba.length);
 	}
 	
+	private void loadInvisibleSprite()
+	{
+		dimensions = DIMENSIONS[0];
+		
+		// create fully transparent black sprite
+		
+		byte[] spriteRgba = new byte[dimensions.width * dimensions.height * 4];
+		battleSprite = ByteBuffer.wrap(spriteRgba);
+		IntBuffer rgba = battleSprite.asIntBuffer();
+		
+		for(int i = 0; i < spriteRgba.length; i += 4)
+		{
+			rgba.put(0x00000000);
+		}
+		
+		//File outFile = new File(context.getExternalCacheDir(), "image.bin");
+		//Cache.write(outFile, spriteRgba, spriteRgba.length);
+	}
+	
 	private void loadAttributes(int enemyIndex)
 	{
 		attributeData.position(enemyIndex * 94);
@@ -216,7 +235,8 @@ public class Enemy
 		
 		int spriteIndex = attributes.getShort(0x1c);
 		
-		loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
+		if(spriteIndex > 0 ) loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
+		else loadInvisibleSprite();
 	}
 	
 

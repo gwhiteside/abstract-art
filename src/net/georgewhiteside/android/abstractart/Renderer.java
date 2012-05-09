@@ -42,7 +42,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private SharedPreferences sharedPreferences;
 	
-	private BattleBackground bbg;
+	private BattleGroup battleGroup;
 	private Enemy enemy;
 	private ShaderFactory shader;
 	
@@ -120,7 +120,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public int getRomBackgroundIndex(int address)
 	{
-		return bbg.getRomBackgroundIndex(address);
+		return battleGroup.battleBackground.getRomBackgroundIndex(address);
 	}
 	
 	public int getCacheableImagesTotal()
@@ -132,17 +132,17 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public int getBackgroundsTotal()
 	{
-		return bbg.getNumberOfBackgrounds();
+		return battleGroup.battleBackground.getNumberOfBackgrounds();
 	}
 	
 	public void cacheImage(int index)
 	{
-		bbg.setIndex(index);
+		battleGroup.load(index);
 	}
 	
 	public void setRandomBackground()
 	{
-		int number = Wallpaper.random.nextInt(bbg.getNumberOfBackgrounds() - 1) + 1;
+		int number = Wallpaper.random.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
 	
@@ -160,7 +160,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		bbg = new BattleBackground(context);
+		battleGroup = new BattleGroup(context);
 		enemy = new Enemy(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -211,7 +211,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		renderScene();
 			
-		bbg.doTick();
+		battleGroup.battleBackground.doTick();
 		
 		mFPSCounter.logEndFrame();
 	}
@@ -412,8 +412,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		// glUniform* calls always act on the current program that is bound with glUseProgram
 		// have this method take an argument to determine which program to apply to
 		
-		Layer bg3 = bbg.getBg3();
-		Layer bg4 = bbg.getBg4();
+		Layer bg3 = battleGroup.battleBackground.getBg3();
+		Layer bg4 = battleGroup.battleBackground.getBg4();
 		
 		// update shader resolution
 		
@@ -449,13 +449,13 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{	
 		synchronized(lock) {
 			currentBackground = index;
-			Log.i(Wallpaper.TAG, "Loading battle background " + index);
-			bbg.setIndex(index);
+			Log.i(Wallpaper.TAG, "Loading battle group " + index);
+			battleGroup.load(index);
 			
-			byte[] dataA = bbg.getBg3().getImage();
-			byte[] dataB = bbg.getBg4().getImage();
-			byte[] paletteBg3 = bbg.getBg3().getPalette();
-			byte[] paletteBg4 = bbg.getBg4().getPalette();
+			byte[] dataA = battleGroup.battleBackground.getBg3().getImage();
+			byte[] dataB = battleGroup.battleBackground.getBg4().getImage();
+			byte[] paletteBg3 = battleGroup.battleBackground.getBg3().getPalette();
+			byte[] paletteBg4 = battleGroup.battleBackground.getBg4().getPalette();
 			int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 			
 			//bbg.layerA.distortion.dump(0);
@@ -528,7 +528,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        
 	        /* shader for effects, update program uniforms */
 			
-			mProgram = shader.getShader(bbg);
+			mProgram = shader.getShader(battleGroup.battleBackground);
 			
 			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
 			//if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
@@ -571,7 +571,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			/* enemy loading stuff */
 			if(mRenderEnemies)
 			{
-				enemy.load(0x18);
+				enemy.load(battleGroup.getEnemyIndex());
+				Log.i(Wallpaper.TAG, "Loaded " + enemy.getName());
 				byte[] spriteData = enemy.getBattleSprite();
 				ByteBuffer sprite = ByteBuffer.allocateDirect(spriteData.length);
 				
