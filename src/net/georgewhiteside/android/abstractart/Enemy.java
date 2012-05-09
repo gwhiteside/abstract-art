@@ -151,7 +151,7 @@ public class Enemy
 	
 	private void loadInvisibleSprite()
 	{
-		dimensions = DIMENSIONS[0];
+		dimensions = DIMENSIONS[1];
 		
 		// create fully transparent black sprite
 		
