@@ -449,7 +449,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{	
 		synchronized(lock) {
 			currentBackground = index;
-			
+			Log.i(Wallpaper.TAG, "Loading battle background " + index);
 			bbg.setIndex(index);
 			
 			byte[] dataA = bbg.getBg3().getImage();
