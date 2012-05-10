@@ -195,7 +195,14 @@ public class Enemy
 				character -= 0x30;
 			}
 			
-			sb.append((char)(character));
+			if(character == 0x7C) // pipe character is interpreted as the main character's name
+			{
+				sb.append("Ness");
+			}
+			else
+			{
+				sb.append((char)(character));
+			}
 		}
 		
 		name = sb.toString();

@@ -176,6 +176,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		currentBackground = -1;
 		persistBackgroundSelection = false;
+		
+		Log.i(TAG, "Renderer created");
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -395,6 +397,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 60); // SharedPreference
 		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false); // SharedPreference
+		
+		Log.i(TAG, "Surface created");
 	}
 	
 	private void updateShaderVariables()
