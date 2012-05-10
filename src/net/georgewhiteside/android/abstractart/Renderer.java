@@ -98,6 +98,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private FloatBuffer enemyVertexBuffer;
 	private FloatBuffer enemyTextureVertexBuffer;
 	
+	private float mLetterBoxSize = 0.0f;
+	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
@@ -236,6 +238,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		mSurfaceHorizontalOffset = 0;
 		mSurfaceVerticalOffset = 0;
+		mLetterBoxSize = 0.0f;
 		
 		if(surfaceRatio == textureRatio) // thumbnail
 		{
@@ -254,7 +257,11 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
 				
 				int extraSpace = height - multiples * 224;
-				if(extraSpace >= 128) multiples += 1;
+				if(extraSpace >= 128)
+				{
+					multiples += 1;
+					extraSpace = 0;
+				}
 				
 				int bestWidthFit = multiples * 256;
 				int bestHeightFit = multiples * 224;
@@ -358,7 +365,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glTexImage2D( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null );//GLES20.GL_UNSIGNED_SHORT_5_6_5, null ); //GLES20.GL_UNSIGNED_BYTE, null );
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
-		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
+		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
@@ -489,7 +496,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureA);
 	        
-	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
@@ -500,7 +507,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, format, 256, 256, 0, format, GLES20.GL_UNSIGNED_BYTE, mTextureB);
 	
-	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter);
+	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_REPEAT);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_REPEAT);
@@ -522,7 +529,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        
 	        /* shader for effects, update program uniforms */
 			
-			mProgram = shader.getShader(battleGroup.battleBackground, 0.0f);
+			mProgram = shader.getShader(battleGroup.battleBackground, mLetterBoxSize);
 			
 			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
 			//if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
@@ -578,7 +585,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				
 		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, enemy.getBattleSpriteWidth(), enemy.getBattleSpriteHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, sprite);
 		        
-		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_NEAREST);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
