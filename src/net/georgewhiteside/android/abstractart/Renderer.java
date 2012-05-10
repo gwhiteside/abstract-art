@@ -79,6 +79,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private float mRenderWidth;
 	private float mRenderHeight;
 	
+	private int mSurfaceVerticalOffset = 0;
+	private int mSurfaceHorizontalOffset = 0;
+	
 	private int hMVPMatrix;
 	private float[] mProjMatrix = new float[16];
 	
@@ -216,28 +219,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 
-	private int mSurfaceVerticalOffset = 0;
-	private int mSurfaceHorizontalOffset = 0;
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
-		
-		/*
-		mSurfaceWidth = width;
-		mSurfaceHeight = height;
-		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-		
-		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
-		float textureRatio = 256.0f / 224.0f;
-		
-		Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
-		
-		//Matrix.scaleM(mProjMatrix, 0, 1, 224.0f / 256.0f, 1); // scale it vertically to match the 256x224 texture
-		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
-		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
-		*/
-		
-		
-		
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
 		
@@ -258,30 +241,32 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		}
 		else if(surfaceRatio < textureRatio) // portrait
 		{
-			boolean letterbox = false;
+			boolean letterbox = true;
 			
 			if(letterbox)
 			{
 				// letter box output (scale height to nearest multiple of 224 < screen height)
 				
-				if(height >= 224 )
-				{
-					int multiples = mSurfaceHeight / 224;
-					
-					int bestFit = multiples * 224;
-					
-					float ratio = (float)mSurfaceHeight;
-					
-					mSurfaceWidth = (int)(width);
-					mSurfaceHeight = bestFit;
-					mSurfaceVerticalOffset = (height - bestFit) / 2;
-				}
+				int multiples = mSurfaceHeight / 224;
+				
+				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
+				
+				int extraSpace = height - multiples * 224;
+				if(extraSpace >= 128) multiples += 1;
+				
+				int bestWidthFit = multiples * 256;
+				int bestHeightFit = multiples * 224;
 				
 				
-				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
 				
-				//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
+				//Log.i(TAG, "extra space: " + (height - bestHeightFit) / multiples);
 				
+				mSurfaceWidth = bestWidthFit;
+				mSurfaceHeight = bestHeightFit;
+				mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+				mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
+			
+				Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 			}
 			else
 			{
@@ -292,21 +277,19 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		}
 		else // landscape
 		{
-			int multiples = mSurfaceHeight / 224;
+			int multiples = mSurfaceWidth / 256;
+			
+			if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
 			
 			int bestWidthFit = multiples * 256;
 			int bestHeightFit = multiples * 224;
-			
-			float ratio = (float)mSurfaceHeight;
 			
 			mSurfaceWidth = bestWidthFit;
 			mSurfaceHeight = bestHeightFit;
 			mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
 			mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
 			
-			Matrix.orthoM(mProjMatrix, 0, -1, 1, -1.0f, 1.0f, -1.0f, 1.0f);
-			//Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
-			
+			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 		}
 	}
 	
@@ -535,7 +518,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        
 	        /* shader for effects, update program uniforms */
 			
-			mProgram = shader.getShader(battleGroup.battleBackground);
+			mProgram = shader.getShader(battleGroup.battleBackground, 0.0f);
 			
 			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
 			//if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }

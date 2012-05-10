@@ -135,7 +135,7 @@ public class ShaderFactory
 		return 0;
 	}
 	
-	public int getShader(BattleBackground bbg)
+	public int getShader(BattleBackground bbg, float letterBoxSize)
 	{
 		String fragmentShader = "";
 		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
@@ -153,7 +153,8 @@ public class ShaderFactory
 			fragmentShader +=
 				"void main()\n" +
 				"{\n" +
-					"float y = v_texCoord.y * 256.0;\n";
+				"    float y = v_texCoord.y * 256.0;\n" + 
+				"    if(y < " + letterBoxSize + " || y > 224.0 - " + letterBoxSize + ") { gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0); } else {";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -350,7 +351,7 @@ public class ShaderFactory
 		
 			// ...aaand the final curly brace:
 			
-			fragmentShader += "}\n";
+			fragmentShader += "}}\n";
 		}
 		
 		//Log.d("shader", vertexShader);
