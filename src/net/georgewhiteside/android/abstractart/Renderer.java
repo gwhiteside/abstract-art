@@ -85,7 +85,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private int[] mFramebuffer = new int[1];
 	private int[] mRenderTexture = new int[1];
 	
-	
+	private Boolean mFilterBackgrounds = false;
 	private Boolean mFilterOutput = false;
 	
 	private Boolean mRenderEnemies = true;
@@ -205,9 +205,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logStartFrame();
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-		mRenderWidth = mSurfaceWidth;
-		mRenderHeight = mSurfaceHeight;
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
+		//mRenderWidth = mSurfaceWidth;
+		//mRenderHeight = mSurfaceHeight;
 		
 		renderScene();
 			
@@ -217,6 +217,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	}
 
 	private int mSurfaceVerticalOffset = 0;
+	private int mSurfaceHorizontalOffset = 0;
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
 		
@@ -248,11 +249,14 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
 		float textureRatio = 256.0f / 224.0f;
 		
+		mSurfaceHorizontalOffset = 0;
+		mSurfaceVerticalOffset = 0;
+		
 		if(surfaceRatio == textureRatio) // thumbnail
 		{
 			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 		}
-		else if(surfaceRatio < textureRatio)
+		else if(surfaceRatio < textureRatio) // portrait
 		{
 			boolean letterbox = false;
 			
@@ -286,20 +290,23 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			
 			
 		}
-		else
+		else // landscape
 		{
 			int multiples = mSurfaceHeight / 224;
 			
-			int bestFit = multiples * 224;
+			int bestWidthFit = multiples * 256;
+			int bestHeightFit = multiples * 224;
 			
 			float ratio = (float)mSurfaceHeight;
 			
-			mSurfaceWidth = (int)(width);
-			mSurfaceHeight = bestFit;
-			mSurfaceVerticalOffset = (height - bestFit) / 2;
+			mSurfaceWidth = bestWidthFit;
+			mSurfaceHeight = bestHeightFit;
+			mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+			mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
 			
-			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);
-			Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+			Matrix.orthoM(mProjMatrix, 0, -1, 1, -1.0f, 1.0f, -1.0f, 1.0f);
+			//Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
+			
 		}
 	}
 	
@@ -366,7 +373,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glTexImage2D( GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, 256, 256, 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, null );//GLES20.GL_UNSIGNED_SHORT_5_6_5, null ); //GLES20.GL_UNSIGNED_BYTE, null );
 		int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, filter );
-		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR );
+		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, filter );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glTexParameteri( GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE );
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
@@ -456,7 +463,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			byte[] dataB = battleGroup.battleBackground.getBg4().getImage();
 			byte[] paletteBg3 = battleGroup.battleBackground.getBg3().getPalette();
 			byte[] paletteBg4 = battleGroup.battleBackground.getBg4().getPalette();
-			int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
+			int filter = mFilterBackgrounds ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 			
 			//bbg.layerA.distortion.dump(0);
 			//bbg.layerA.translation.dump(0);
@@ -597,12 +604,12 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				
 				
 				
-				float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
-				float textureRatio = 256.0f / 224.0f;
+				//float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
+				//float textureRatio = 256.0f / 224.0f;
 				
-				float x = (float)enemy.getBattleSpriteWidth() / 256.0f;
-				float y = (float)enemy.getBattleSpriteHeight() / 224.0f;
-				
+				float x = (1.0f / 256.0f) * (enemy.getBattleSpriteWidth());
+				float y = (1.0f / 224.0f) * (enemy.getBattleSpriteHeight());
+
 				
 				
 				
@@ -660,7 +667,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		GLES20.glUseProgram(hFXProgram);
 		
-		GLES20.glViewport(0, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
+		GLES20.glViewport(mSurfaceHorizontalOffset, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
 		
