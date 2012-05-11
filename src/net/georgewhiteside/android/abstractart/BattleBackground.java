@@ -90,6 +90,9 @@ public class BattleBackground
 	public Layer bg3;
 	public Layer bg4;
 	
+	// backgrounds we don't want showing up in the background viewer for one reason or another
+	private static final List<Integer> blacklist = Arrays.asList(0, 483);
+	
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
 	 */
@@ -160,6 +163,8 @@ public class BattleBackground
 		
 		for(int i = 0; i < MAX_ENTRIES; i++)
 		{
+			if(blacklist.contains(Integer.valueOf(i))) continue;
+			
 			short value0 = romData.getShort();
 			short value1 = romData.getShort();
 			
@@ -172,6 +177,8 @@ public class BattleBackground
 					break;
 				}
 			}
+			
+			//if(value0 == 0 && value1 == 0) continue;
 			
 			if(isUnique == true)
 			{

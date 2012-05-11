@@ -98,7 +98,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private FloatBuffer enemyVertexBuffer;
 	private FloatBuffer enemyTextureVertexBuffer;
 	
-	private float mLetterBoxSize = 0.0f;
+	private float mLetterBoxSize;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
@@ -223,15 +223,14 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 
+	
+	int outputScaler = 1;
+	int outputPadding = 0;
+	
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
-		
-		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight); // does nothing; gets set later
-		
-		// TODO: this was done all sloppy; the output looks acceptable (it's only marginally off), but it's liable
-		// to break down the road on different screens... this needs to be corrected at some point
 		
 		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
 		float textureRatio = 256.0f / 224.0f;
@@ -240,65 +239,62 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mSurfaceVerticalOffset = 0;
 		mLetterBoxSize = 0.0f;
 		
+		boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", true);
+		
 		if(surfaceRatio == textureRatio) // thumbnail
 		{
 			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 		}
 		else if(surfaceRatio < textureRatio) // portrait
 		{
-			boolean letterbox = true;
+			// letter box output (scale height to nearest multiple of 224 < screen height)
 			
-			if(letterbox)
+			outputScaler = mSurfaceHeight / 224;
+			
+			if(outputScaler < 1) outputScaler = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
+			
+			outputPadding = (height - outputScaler * 224) / 2;
+			
+			if(enableLetterboxing == false && outputPadding > 0)
 			{
-				// letter box output (scale height to nearest multiple of 224 < screen height)
-				
-				int multiples = mSurfaceHeight / 224;
-				
-				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
-				
-				int extraSpace = height - multiples * 224;
-				if(extraSpace >= 128)
-				{
-					multiples += 1;
-					extraSpace = 0;
-				}
-				
-				int bestWidthFit = multiples * 256;
-				int bestHeightFit = multiples * 224;
-				
-				
-				
-				//Log.i(TAG, "extra space: " + (height - bestHeightFit) / multiples);
-				
-				mSurfaceWidth = bestWidthFit;
-				mSurfaceHeight = bestHeightFit;
-				mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
-				mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
-			
-				Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+				outputScaler += 1;
+				outputPadding = 0;
 			}
-			else
-			{
-				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
-			}
-			
-			
-		}
-		else // landscape
-		{
-			int multiples = mSurfaceWidth / 256;
-			
-			if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
-			
-			int bestWidthFit = multiples * 256;
-			int bestHeightFit = multiples * 224;
+
+			//if(enableLetterboxing && outputPadding >= 56) outputScaler += 1; // 56 + 56 = 112 = half the unscaled vertical output size
+
+			int bestWidthFit = outputScaler * 256;
+			int bestHeightFit = outputScaler * 224;
 			
 			mSurfaceWidth = bestWidthFit;
 			mSurfaceHeight = bestHeightFit;
 			mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
 			mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
-			
+		
 			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		}
+		else // landscape
+		{
+			if(enableLetterboxing)
+			{
+				int multiples = mSurfaceWidth / 256;
+				
+				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
+				
+				int bestWidthFit = multiples * 256;
+				int bestHeightFit = multiples * 224;
+				
+				mSurfaceWidth = bestWidthFit;
+				mSurfaceHeight = bestHeightFit;
+				mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+				mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
+				
+				Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+			}
+			else
+			{
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);
+			}
 		}
 	}
 	
@@ -463,6 +459,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			//bbg.layerA.translation.dump(0);
 			
 			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+			boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", true);
 			
 			int bufferSize;
 			int format;
@@ -522,17 +519,50 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+	      
+	        // set up output display letterbox values for the shader
 	        
-	        
-	         
-	        
-	        
+	        if(enableLetterboxing == true)
+	        {
+	        	
+	            /*<item>variable</item>
+	            <item>none</item>
+	            <item>small</item>
+	            <item>medium</item>
+	            <item>large</item>*/
+	        	
+	        	String letterboxSize = sharedPreferences.getString("letterboxSize", null);
+	        	
+	        	if(letterboxSize.equals("he"));
+	        	
+	        	String[] letterboxValues = context.getResources().getStringArray(R.array.letterbox_size_values);
+	        	
+	        	if(letterboxSize.equals("variable"))
+	        	{
+	        		// attempt to include the existing extra space as a portion of the background's specified letter box
+	        		// mLetterBoxSize = (battleGroup.getLetterBoxPixelSize() - outputPadding / outputScaler);
+	        		mLetterBoxSize = battleGroup.getLetterBoxPixelSize();
+	        	}
+	        	else if(letterboxSize.equals("none")) {
+	        		mLetterBoxSize = 0;
+	        	} else if(letterboxSize.equals("small")) {
+	        		mLetterBoxSize = 48;
+	        	} else if(letterboxSize.equals("medium")) {
+	        		mLetterBoxSize = 58;
+	        	} else if(letterboxSize.equals("large")) {
+	        		mLetterBoxSize = 68;
+	        	}
+	        	
+
+	        }
+	        else
+	        {
+	        	mLetterBoxSize = 0;
+			}
+			
 	        /* shader for effects, update program uniforms */
 			
 			mProgram = shader.getShader(battleGroup.battleBackground, mLetterBoxSize);
-			
-			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-			//if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
 			
 			mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 			mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord

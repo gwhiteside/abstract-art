@@ -34,5 +34,8 @@
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
     <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
+    <string name="enable_letterboxing_title">Enable letterboxing</string>
+    <string name="enable_letterboxing_summary">Black borders above and below</string>
+    <string name="letterbox_size_title">Letterbox size</string>
     
 </resources>

@@ -23,4 +23,19 @@
         <item>settings</item>
     </string-array>
     
+    <string-array name="letterbox_size_entries">        
+        <item>Default (varies)</item>
+        <item>Absolute minimum</item>
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    <string-array name="letterbox_size_values">        
+        <item>variable</item>
+        <item>none</item>
+        <item>small</item>
+        <item>medium</item>
+        <item>large</item>
+    </string-array>
+    
 </resources>

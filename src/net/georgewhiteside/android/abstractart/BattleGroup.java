@@ -41,6 +41,18 @@ public class BattleGroup
 		return letterBoxSize;
 	}
 	
+	public int getLetterBoxPixelSize()
+	{
+		switch(letterBoxSize)
+		{
+			default: return 0;
+			case LETTER_BOX_NONE: return 0;
+			case LETTER_BOX_SMALL: return 48;	
+			case LETTER_BOX_MEDIUM: return 58;
+			case LETTER_BOX_LARGE: return 68;
+		}
+	}
+	
 	public void load(int index)
 	{
 		battleBackground.setIndex(index);
