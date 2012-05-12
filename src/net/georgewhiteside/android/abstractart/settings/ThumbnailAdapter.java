@@ -40,7 +40,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	private static final int LOADING_VIEW = 0;
 	private static final int THUMBNAIL_VIEW = 1;
 	
-	public ThumbnailAdapter(Context context, List<Integer> backgroundList)
+	public ThumbnailAdapter(Context context, List<Integer> backgroundList, boolean renderEnemies)
 	{
 		this.context = context;
 		
@@ -56,7 +56,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         
         handler = new Handler();
         
-        imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this);
+        
+        imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this, renderEnemies);
         imageLoader.start();
 	}
 	

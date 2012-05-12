@@ -19,6 +19,8 @@ import android.widget.ViewSwitcher;
 
 public class ImageLoader extends Thread
 {
+	private boolean renderEnemies;
+	
 	public interface ImageLoadListener
 	{
 		void onImageLoaded(final ViewHolder holder, final Bitmap bitmap, final int position);
@@ -31,12 +33,13 @@ public class ImageLoader extends Thread
 	private GLOffscreenSurface glOffscreenSurface;
 	private Renderer renderer;
 	
-	public ImageLoader(Context context, Renderer renderer, GLOffscreenSurface glOffscreenSurface, ImageLoadListener lListener)
+	public ImageLoader(Context context, Renderer renderer, GLOffscreenSurface glOffscreenSurface, ImageLoadListener lListener, boolean renderEnemies)
 	{
 		this.context = context;
 		mListener = lListener;
 		this.renderer = renderer;
 		this.glOffscreenSurface = glOffscreenSurface;
+		this.renderEnemies = renderEnemies;
 	}
 	
 	@Override
@@ -126,8 +129,15 @@ public class ImageLoader extends Thread
 	
 	public synchronized void queueImageLoad(final int position, final ViewHolder holder)
 	{
-		String cacheFileName = String.valueOf(position); //String.format("%03d", index);
- 		File cacheDir = new File(context.getCacheDir(), "thumbnails");
+		String thumbnailDirectory;
+		if(renderEnemies) {
+			thumbnailDirectory = "thumbnails-with-enemies";
+		} else {
+			thumbnailDirectory = "thumbnails";
+		}
+		
+		String cacheFileName = String.valueOf(position) + ".png"; //String.format("%03d", index);
+ 		File cacheDir = new File(context.getCacheDir(), thumbnailDirectory);
  		File cacheFile = new File(cacheDir, cacheFileName);
  		
  		try

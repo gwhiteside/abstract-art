@@ -81,6 +81,8 @@ public class BackgroundSelector extends Activity
 		setContentView(R.layout.background_selector_preference);
 		
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+		
+		boolean renderEnemies = sharedPreferences.getBoolean("enableEnemies", true);
 
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
@@ -93,7 +95,7 @@ public class BackgroundSelector extends Activity
 		glSurfaceView.setRenderer(renderer);
 		glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		
-		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList);
+		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList, renderEnemies);
 		
 		gridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
 		gridView.setColumnWidth(128);
