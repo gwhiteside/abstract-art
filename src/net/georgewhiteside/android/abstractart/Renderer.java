@@ -42,7 +42,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private SharedPreferences sharedPreferences;
 	
-	private BattleGroup battleGroup;
+	public BattleGroup battleGroup;
 	private ShaderFactory shader;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();

@@ -41,6 +41,8 @@ public class Enemy
 	private static final int NUM_ATTRIBUTE_ENTRIES = 231;
 	private static final int ATTRIBUTE_ENTRY_LEN = 94;
 	
+	private int currentIndex;
+	
 	private int[] palette = new int[16];
 	private String name;
 	private int row; // 0 = front, 1 = back
@@ -72,17 +74,21 @@ public class Enemy
 		abstractArt = (AbstractArt)context.getApplicationContext();
 		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data);
 		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data);
+		currentIndex = -1;
 	}
 	
 	public void load(int index)
 	{
-		if(index < 0 || index >= 231)
+		if(currentIndex != index)
 		{
-			Log.e(TAG, "getEnemy(): invalid index");
-			return;
+			if(index < 0 || index >= 231)
+			{
+				Log.e(TAG, "getEnemy(): invalid index");
+				return;
+			}
+	
+			loadAttributes(index);
 		}
-		
-		loadAttributes(index);
 	}
 	
 	public byte[] getBattleSprite()
@@ -220,6 +226,8 @@ public class Enemy
 	
 	private void loadAttributes(int enemyIndex)
 	{
+		currentIndex = enemyIndex;
+		
 		attributeData.position(enemyIndex * 94);
 		ByteBuffer attributes = attributeData.slice();
 		

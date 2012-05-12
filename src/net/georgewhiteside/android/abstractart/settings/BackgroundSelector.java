@@ -28,6 +28,9 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -48,8 +51,12 @@ public class BackgroundSelector extends Activity
 	private ThumbnailAdapter thumbnailAdapter;
 	private UniformGridView gridView;
 	private int selectedPosition = 0;
+	boolean renderEnemies;
 	
 	private List<Integer> backgroundList;
+	
+	TextView nameTextView;
+	AnimationSet animationSet;
 	
 	@Override
 	public void onSaveInstanceState(Bundle instanceState)
@@ -82,7 +89,7 @@ public class BackgroundSelector extends Activity
 		
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
-		boolean renderEnemies = sharedPreferences.getBoolean("enableEnemies", true);
+		renderEnemies = sharedPreferences.getBoolean("enableEnemies", true);
 
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
@@ -112,6 +119,30 @@ public class BackgroundSelector extends Activity
 		        animation.start();        
 		    }
 		});
+		
+		// set up the cool name text animation
+		
+		nameTextView = (TextView) findViewById(R.id.thumbnail_name);
+		
+		final Animation inAnimation = new AlphaAnimation(0.0f, 1.0f);
+		inAnimation.setDuration(500);
+
+		final Animation outAnimation = new AlphaAnimation(1.0f, 0.0f);
+		outAnimation.setDuration(500);
+
+		animationSet = new AnimationSet(true);
+		animationSet.addAnimation(inAnimation);
+		outAnimation.setStartOffset(1000);
+		animationSet.addAnimation(outAnimation);
+		animationSet.setFillAfter(true);
+		
+		renderer.battleGroup.load(selectedPosition);
+		
+		nameTextView.setText(renderer.battleGroup.enemy.getName());
+		nameTextView.setBackgroundColor(0x60000000);
+		nameTextView.setTextColor(0xFFFFFFFF);
+		
+		nameTextView.startAnimation(animationSet);
 		
 		// see if we should display help screen automatically
 		
@@ -271,6 +302,20 @@ public class BackgroundSelector extends Activity
         	{
         		selectedPosition = position;
         		loadBattleBackground(position);
+        		
+        		// cool fading name text
+        		if(renderEnemies)
+        		{
+	        		// this is sliiightly hack-ish; we already have the loadBattleBackground call above, but it's queued in the GL
+	        		// thread so we end up grabbing the enemy text from the previously-loaded enemy... it only needs to be queued
+	        		// that way because it does some GL calls on load. What I'm doing here is just loading the background data
+	        		// immediately in this thread before accessing the name so it's the correct one. When the GL thread finally
+	        		// does pick up the load event, it causes negligible overhead because all those load methods already check
+	        		// to see if the requested index is already loaded. So not too bad!
+	        		renderer.battleGroup.load(position);
+	        		nameTextView.setText(renderer.battleGroup.enemy.getName());
+	        		nameTextView.startAnimation(animationSet);
+        		}
         	}
         }
 	}
