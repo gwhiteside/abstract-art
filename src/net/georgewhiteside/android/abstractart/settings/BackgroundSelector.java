@@ -121,28 +121,30 @@ public class BackgroundSelector extends Activity
 		});
 		
 		// set up the cool name text animation
-		
-		nameTextView = (TextView) findViewById(R.id.thumbnail_name);
-		
-		final Animation inAnimation = new AlphaAnimation(0.0f, 1.0f);
-		inAnimation.setDuration(500);
-
-		final Animation outAnimation = new AlphaAnimation(1.0f, 0.0f);
-		outAnimation.setDuration(500);
-
-		animationSet = new AnimationSet(true);
-		animationSet.addAnimation(inAnimation);
-		outAnimation.setStartOffset(1000);
-		animationSet.addAnimation(outAnimation);
-		animationSet.setFillAfter(true);
-		
-		renderer.battleGroup.load(selectedPosition);
-		
-		nameTextView.setText(renderer.battleGroup.enemy.getName());
-		nameTextView.setBackgroundColor(0x60000000);
-		nameTextView.setTextColor(0xFFFFFFFF);
-		
-		nameTextView.startAnimation(animationSet);
+		if(renderEnemies)
+		{
+			nameTextView = (TextView) findViewById(R.id.thumbnail_name);
+			
+			final Animation inAnimation = new AlphaAnimation(0.0f, 1.0f);
+			inAnimation.setDuration(500);
+	
+			final Animation outAnimation = new AlphaAnimation(1.0f, 0.0f);
+			outAnimation.setDuration(500);
+	
+			animationSet = new AnimationSet(true);
+			animationSet.addAnimation(inAnimation);
+			outAnimation.setStartOffset(1000);
+			animationSet.addAnimation(outAnimation);
+			animationSet.setFillAfter(true);
+			
+			renderer.battleGroup.load(selectedPosition);
+			
+			nameTextView.setText(renderer.battleGroup.enemy.getName());
+			nameTextView.setBackgroundColor(0x60000000);
+			nameTextView.setTextColor(0xFFFFFFFF);
+			
+			nameTextView.startAnimation(animationSet);
+		}
 		
 		// see if we should display help screen automatically
 		
