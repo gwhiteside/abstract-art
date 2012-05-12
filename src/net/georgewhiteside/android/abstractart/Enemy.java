@@ -7,12 +7,14 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
+import java.util.Arrays;
 
 import net.georgewhiteside.utility.Dimension;
 import net.starmen.pkhack.HackModule;
 
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Bitmap.CompressFormat;
 import android.util.Log;
 
@@ -46,6 +48,8 @@ public class Enemy
 	Dimension dimensions;
 	
 	byte[] buffer = new byte[128 * 128 / 2]; // max X dimension * max Y dimension * 4bpp
+	byte[] spriteIndexedBuffer = new byte[128 * 128];
+	byte[] spriteRgbaBuffer = new byte[128 * 128 * 4];
 	
 	public final static Dimension[] DIMENSIONS = new Dimension[]
 	{
@@ -102,6 +106,11 @@ public class Enemy
 	
 	private void loadBattleSprite(int spriteIndex)
 	{
+		String cacheFileName = name + ".png";
+		File cacheDir = new File(context.getCacheDir(), "sprites");
+		
+		File cacheFile = new File(cacheDir, cacheFileName);
+		
 		spriteData.position(GRAPHICS - GRAPHICS_CHUNK_OFFSET);
 		ByteBuffer graphics = spriteData.slice();
 		
@@ -112,41 +121,76 @@ public class Enemy
 		int pSpriteData = RomUtil.toHex(pointerTable.getInt()) - GRAPHICS_CHUNK_OFFSET;
 		dimensions = DIMENSIONS[pointerTable.get()];
 		
-		// build sprite image from ROM data
-		
-		int decompLen = RomUtil.decompress(pSpriteData, buffer, buffer.length, graphics);
-		
-		byte[] spriteIndexed = new byte[dimensions.width * dimensions.height];
-		
-		int offset = 0;
-		for(int q = 0; q < (dimensions.height / 32); q++)
-        {
-            for(int r = 0; r < (dimensions.width / 32); r++)
-            {
-                for(int a = 0; a < 4; a++)
-                {
-                    for(int j = 0; j < 4; j++)
-                    {
-                        HackModule.read4BPPArea(spriteIndexed, buffer, offset, (j + r * 4) * 8, (a + q * 4) * 8, dimensions.width, 0);
-                        offset += 32;
-                    }
-                }
-            }
-        }
-		
-		// colorize the indexed image giving us an array of RGBA values
-		
-		byte[] spriteRgba = new byte[spriteIndexed.length * 4];
-		battleSprite = ByteBuffer.wrap(spriteRgba);
-		IntBuffer rgba = battleSprite.asIntBuffer();
-		
-		for(int i = 0; i < spriteIndexed.length; i++)
+		if(cacheFile.exists())
 		{
-			rgba.put(palette[spriteIndexed[i]]);
+			Log.i(TAG, "Loading existing sprite: " + cacheFileName);
+			// TODO: integrate the nitty-gritty into the Cache class
+
+			ByteBuffer bitmapBuffer = ByteBuffer.allocate(dimensions.width * dimensions.height * 4);
+
+			// can cause a crash on rare occasions ... mainly when adding new features ;)
+			// SO, just trapping any potential problems here so I don't get slowed down
+			try {
+				BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(bitmapBuffer);
+			}
+			catch(Exception e) {
+				Log.e("AbstractArt", "Couldn't open " + cacheFile.getPath() + " ... " + e.getMessage());
+			}
+			
+			battleSprite = bitmapBuffer;
 		}
-		
-		//File outFile = new File(context.getExternalCacheDir(), "image.bin");
-		//Cache.write(outFile, spriteRgba, spriteRgba.length);
+		else
+		{
+			// build sprite image from ROM data
+			
+			int decompLen = RomUtil.decompress(pSpriteData, buffer, buffer.length, graphics);
+			
+			Arrays.fill(spriteIndexedBuffer, (byte) 0);
+			
+			int offset = 0;
+			for(int q = 0; q < (dimensions.height / 32); q++)
+	        {
+	            for(int r = 0; r < (dimensions.width / 32); r++)
+	            {
+	                for(int a = 0; a < 4; a++)
+	                {
+	                    for(int j = 0; j < 4; j++)
+	                    {
+	                        HackModule.read4BPPArea(spriteIndexedBuffer, buffer, offset, (j + r * 4) * 8, (a + q * 4) * 8, dimensions.width, 0);
+	                        offset += 32;
+	                    }
+	                }
+	            }
+	        }
+			
+			// colorize the indexed image giving us an array of RGBA values
+			
+			battleSprite = ByteBuffer.wrap(spriteRgbaBuffer, 0, dimensions.width * dimensions.height * 4);
+			IntBuffer rgba = battleSprite.asIntBuffer();
+			
+			for(int i = 0; i < dimensions.width * dimensions.height; i++)
+			{
+				rgba.put(palette[spriteIndexedBuffer[i]]);
+			}
+			
+			// save the image to cache
+			Log.i(TAG, "Saving sprite " + name + " to cache");
+			
+			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
+ 			
+ 			try {
+ 				Bitmap img = Bitmap.createBitmap(dimensions.width, dimensions.height, Bitmap.Config.ARGB_8888);
+ 				img.copyPixelsFromBuffer(battleSprite);
+ 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+ 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+ 				fileOutputStream.close();
+ 			} catch (FileNotFoundException e) {
+ 				e.printStackTrace();
+ 			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	private void loadInvisibleSprite()

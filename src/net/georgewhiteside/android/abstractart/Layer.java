@@ -3,6 +3,7 @@ package net.georgewhiteside.android.abstractart;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -340,9 +341,13 @@ public class Layer
 	 				img.copyPixelsFromBuffer(ByteBuffer.wrap(image));
 	 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
 	 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+	 				fileOutputStream.close();
 	 			} catch (FileNotFoundException e) {
 	 				e.printStackTrace();
-	 			}
+	 			} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}

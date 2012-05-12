@@ -43,7 +43,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private SharedPreferences sharedPreferences;
 	
 	private BattleGroup battleGroup;
-	private Enemy enemy;
 	private ShaderFactory shader;
 	
 	private FPSCounter mFPSCounter = new FPSCounter();
@@ -166,7 +165,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		battleGroup = new BattleGroup(context);
-		enemy = new Enemy(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -581,9 +579,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			/* enemy loading stuff */
 			if(mRenderEnemies)
 			{
-				enemy.load(battleGroup.getEnemyIndex());
-				Log.i(Wallpaper.TAG, "Loaded " + enemy.getName());
-				byte[] spriteData = enemy.getBattleSprite();
+				byte[] spriteData = battleGroup.enemy.getBattleSprite();
 				ByteBuffer sprite = ByteBuffer.allocateDirect(spriteData.length);
 				
 		        sprite.put(spriteData).position(0);
@@ -592,7 +588,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				
 				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
 				
-		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, enemy.getBattleSpriteWidth(), enemy.getBattleSpriteHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, sprite);
+		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, battleGroup.enemy.getBattleSpriteWidth(), battleGroup.enemy.getBattleSpriteHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, sprite);
 		        
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
 		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
@@ -605,8 +601,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
 				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
 				
-				float x = (1.0f / 256.0f) * (enemy.getBattleSpriteWidth());
-				float y = (1.0f / 224.0f) * (enemy.getBattleSpriteHeight());
+				float x = (1.0f / 256.0f) * (battleGroup.enemy.getBattleSpriteWidth());
+				float y = (1.0f / 224.0f) * (battleGroup.enemy.getBattleSpriteHeight());
 
 				float quadVertices[] =
 				{

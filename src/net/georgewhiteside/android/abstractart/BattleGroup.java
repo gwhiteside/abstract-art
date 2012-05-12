@@ -11,6 +11,7 @@ public class BattleGroup
 	private Context context;
 	private AbstractArt abstractArt;
 	public BattleBackground battleBackground;
+	public Enemy enemy;
 	
 	private ByteBuffer enemyBattleGroupPointers;
 	private ByteBuffer enemyBattleGroupData;
@@ -27,6 +28,7 @@ public class BattleGroup
 		this.context = context;
 		abstractArt = (AbstractArt)context.getApplicationContext();
 		battleBackground = new BattleBackground(context);
+		enemy = new Enemy(context);
 		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers);
 		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data);
 	}
@@ -56,6 +58,7 @@ public class BattleGroup
 	public void load(int index)
 	{
 		battleBackground.setIndex(index);
+		
 		int trueIndex = battleBackground.getRomBackgroundIndex(index); // necessary so long as we prune the background list of "duplicates"
 		
 		// for now we're just loading up an enemy group, rendering the first enemy, and leaving it at that.
@@ -72,11 +75,11 @@ public class BattleGroup
 		
 		enemyBattleGroupData.position(pBattleGroup);
 		//List<Integer> enemyBattleGroup = new ArrayList<Integer>();
-		int amount = 0, enemy = 0;
+		int amount = 0;
 		
 		amount = RomUtil.unsigned(enemyBattleGroupData.get());
-		enemy = RomUtil.unsigned(enemyBattleGroupData.getShort());
+		enemyIndex = RomUtil.unsigned(enemyBattleGroupData.getShort());
 		
-		enemyIndex = enemy;
+		enemy.load(enemyIndex);
 	}
 }
