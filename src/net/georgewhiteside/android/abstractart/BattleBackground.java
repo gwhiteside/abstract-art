@@ -91,7 +91,19 @@ public class BattleBackground
 	public Layer bg4;
 	
 	// backgrounds we don't want showing up in the background viewer for one reason or another
-	private static final List<Integer> blacklist = Arrays.asList(0, 483);
+	private static final List<Integer> blacklist = Arrays.asList(
+		// things I just don't want to include for the moment
+		9,		// skate punk; already exists (in our currently incomplete enemy loader)
+		11,		// skate punk; already exists (in our currently incomplete enemy loader)
+		371,	// fobby; already exists (in our currently incomplete enemy loader)
+		
+		// things I probably never want to include in the list
+		0,		// (unused) spiteful crow (3); blank background
+		425,	// magic butterfly; blank
+		473,	// starman jr.; blank
+		481,	// magic butterfly??
+		483		// giygas; blank
+	);
 	
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
@@ -163,10 +175,10 @@ public class BattleBackground
 		
 		for(int i = 0; i < MAX_ENTRIES; i++)
 		{
-			if(blacklist.contains(Integer.valueOf(i))) continue;
-			
 			short value0 = romData.getShort();
 			short value1 = romData.getShort();
+			
+			if(blacklist.contains(Integer.valueOf(i))) continue;
 			
 			boolean isUnique = true;
 			for(int j = 0; j < uniqueCount; j++)
@@ -177,8 +189,6 @@ public class BattleBackground
 					break;
 				}
 			}
-			
-			//if(value0 == 0 && value1 == 0) continue;
 			
 			if(isUnique == true)
 			{

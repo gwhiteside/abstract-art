@@ -149,11 +149,16 @@ public class Wallpaper extends GLWallpaperService
 		        		startActivity(myIntent);
 					}
 		            
-		            // versionCode 8 introduces new thumbnails, so detect and clear out any old cache
-		            if(lastVersionCode <= 7)
+		            // versionCode 8 will need to regenerate thumbnails (indices are different), so detect and clear out any old cache
+		            // TODO: make thumbnail filenames independent of gridview position indices (should just be the ROM background index)
+		            if(lastVersionCode <= 8)
 		            {
-		            	Log.i(TAG, "lastVersionCode <= 7 detected; clearing obsolete thumbnail cache");
+		            	Log.i(TAG, "lastVersionCode <= 8 detected; clearing thumbnail cache and playlist");
 		            	clearCache(); // ok, actually we'll clear out ALL the cache... so sue me
+		            	// need to clear the playlist out too
+		            	if(backgroundListFile.exists()) {
+		            		backgroundListFile.delete();
+		            	}
 		            }
 				}
 			}

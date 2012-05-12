@@ -26,7 +26,13 @@
         
     </PreferenceCategory>
     
-    <PreferenceCategory android:title="@string/settings.effect_settings_title">
+    <PreferenceCategory android:title="@string/settings.appearance_title">
+        
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enableEnemies"
+            android:title="@string/enable_enemies_title"
+            android:summary="@string/enable_enemies_summary" />
         
         <CheckBoxPreference
             android:defaultValue="true"

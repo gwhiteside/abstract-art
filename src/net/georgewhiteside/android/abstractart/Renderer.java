@@ -458,6 +458,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			//bbg.layerA.distortion.dump(0);
 			//bbg.layerA.translation.dump(0);
 			
+			mRenderEnemies = sharedPreferences.getBoolean("enableEnemies", true); // set an instance variable here once so we're not loading the preference every frame
 			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
 			boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", true);
 			
@@ -577,15 +578,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			
 			
 			
-			
-			
-			
-			
-			
-			
-			
-			
-			
 			/* enemy loading stuff */
 			if(mRenderEnemies)
 			{
@@ -613,17 +605,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
 				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
 				
-				
-				
-				//float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
-				//float textureRatio = 256.0f / 224.0f;
-				
 				float x = (1.0f / 256.0f) * (enemy.getBattleSpriteWidth());
 				float y = (1.0f / 224.0f) * (enemy.getBattleSpriteHeight());
 
-				
-				
-				
 				float quadVertices[] =
 				{
 					-x,	-y,	 0.0f,
@@ -746,8 +730,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private void renderEnemy()
 	{
 		hMVPMatrix = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "uMVPMatrix");/* projection and camera */
-		
-		//GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
 		
 		GLES20.glUseProgram(mBattleSpriteProgramId);
 		
