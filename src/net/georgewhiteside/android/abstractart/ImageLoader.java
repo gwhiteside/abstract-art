@@ -131,6 +131,8 @@ public class ImageLoader extends Thread
 	{
 		String thumbnailDirectory;
 		if(renderEnemies) {
+			// this is less space-efficient than, say, drawing the cached sprites over the thumbnails if enabled, but
+			// it's a heck of a lot simpler to implement, maintain, and extend... especially in the long run
 			thumbnailDirectory = "thumbnails-with-enemies";
 		} else {
 			thumbnailDirectory = "thumbnails";

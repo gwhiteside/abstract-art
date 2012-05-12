@@ -47,7 +47,7 @@ public class BackgroundSelector extends Activity
 	private SharedPreferences sharedPreferences;
 	private ThumbnailAdapter thumbnailAdapter;
 	private UniformGridView gridView;
-	private int selectedPosition = 1;
+	private int selectedPosition = 0;
 	
 	private List<Integer> backgroundList;
 	

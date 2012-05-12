@@ -601,15 +601,22 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
 				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
 				
+				float rowOffset = 0.0f;
+				if(battleGroup.enemy.getName().equals("Giygas")) {
+					// quick hack to get the one Giygas background aligned properly in lieu of supporting multiple enemies
+					// and their rows (for now)
+					rowOffset = battleGroup.enemy.getRow() * (1.0f / 224.0f) * 32.0f;
+				}
+				
 				float x = (1.0f / 256.0f) * (battleGroup.enemy.getBattleSpriteWidth());
 				float y = (1.0f / 224.0f) * (battleGroup.enemy.getBattleSpriteHeight());
 
 				float quadVertices[] =
 				{
-					-x,	-y,	 0.0f,
-					 x,	-y,	 0.0f,
-					-x,	 y,	 0.0f,
-					 x,	 y,	 0.0f			 
+					-x,	-y + rowOffset,	 0.0f,
+					 x,	-y + rowOffset,	 0.0f,
+					-x,	 y + rowOffset,	 0.0f,
+					 x,	 y + rowOffset,	 0.0f			 
 				};
 				
 				float textureMap[] =

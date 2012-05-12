@@ -43,6 +43,7 @@ public class Enemy
 	
 	private int[] palette = new int[16];
 	private String name;
+	private int row; // 0 = front, 1 = back
 	
 	ByteBuffer battleSprite;
 	Dimension dimensions;
@@ -102,6 +103,11 @@ public class Enemy
 	public String getName()
 	{
 		return name;
+	}
+	
+	public int getRow()
+	{
+		return row;
 	}
 	
 	private void loadBattleSprite(int spriteIndex)
@@ -251,6 +257,8 @@ public class Enemy
 		
 		name = sb.toString();
 		
+		// load row
+		row = RomUtil.unsigned(attributes.get(0x5B));
 		
 		// load palette
 		
