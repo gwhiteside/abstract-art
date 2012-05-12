@@ -84,6 +84,9 @@ public class Wallpaper extends GLWallpaperService
 	        
 	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	        
+	        // fill out the default preference values if they're not yet set:
+	        PreferenceManager.setDefaultValues(context, R.xml.settings, true);
+	        
 	        // snag some display information
 	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
 	        int displayPixelFormat = display.getPixelFormat();

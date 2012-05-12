@@ -524,18 +524,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        
 	        if(enableLetterboxing == true)
 	        {
-	        	
-	            /*<item>variable</item>
-	            <item>none</item>
-	            <item>small</item>
-	            <item>medium</item>
-	            <item>large</item>*/
-	        	
 	        	String letterboxSize = sharedPreferences.getString("letterboxSize", null);
-	        	
-	        	if(letterboxSize.equals("he"));
-	        	
-	        	String[] letterboxValues = context.getResources().getStringArray(R.array.letterbox_size_values);
 	        	
 	        	if(letterboxSize.equals("variable"))
 	        	{
@@ -552,8 +541,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        	} else if(letterboxSize.equals("large")) {
 	        		mLetterBoxSize = 68;
 	        	}
-	        	
-
 	        }
 	        else
 	        {
