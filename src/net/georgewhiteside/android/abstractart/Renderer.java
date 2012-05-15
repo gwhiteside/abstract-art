@@ -237,7 +237,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mSurfaceVerticalOffset = 0;
 		mLetterBoxSize = 0.0f;
 		
-		boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", true);
+		boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", false);
 		
 		if(surfaceRatio == textureRatio) // thumbnail
 		{
@@ -396,8 +396,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 60); // SharedPreference
-		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false); // SharedPreference
+		Log.i(Wallpaper.TAG, "Renderer.onSurfaceCreated sharedPreferences.getString(\"intFramerate\", null)) - " + sharedPreferences.getString("intFramerate", null));
+		frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
 		
 		Log.i(TAG, "Surface created");
 	}
@@ -456,9 +456,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			//bbg.layerA.distortion.dump(0);
 			//bbg.layerA.translation.dump(0);
 			
-			mRenderEnemies = sharedPreferences.getBoolean("enableEnemies", true); // set an instance variable here once so we're not loading the preference every frame
-			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
-			boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", true);
+			// http://code.google.com/p/android/issues/detail?id=6641
+			mRenderEnemies = sharedPreferences.getBoolean("enableEnemies", false); // set instance variable here once so we're not loading the preference every frame
+			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false);
+			boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", false);
 			
 			int bufferSize;
 			int format;

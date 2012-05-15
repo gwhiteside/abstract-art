@@ -138,7 +138,7 @@ public class ShaderFactory
 	public int getShader(BattleBackground bbg, float letterBoxSize)
 	{
 		String fragmentShader = "";
-		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false); // SharedPreference
 		
 		if(knobMonolithic)
 		{

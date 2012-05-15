@@ -89,7 +89,7 @@ public class BackgroundSelector extends Activity
 		
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
-		renderEnemies = sharedPreferences.getBoolean("enableEnemies", true);
+		renderEnemies = sharedPreferences.getBoolean("enableEnemies", false);
 
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		

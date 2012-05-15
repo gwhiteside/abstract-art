@@ -272,7 +272,7 @@ public class Layer
 	{
 		// TODO: the image data ultimately needs to be a Buffer; change the byte[] image to a ByteBuffer
 		
-		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false); // SharedPreference
 		String cacheFileName;
 		File cacheDir;
 		int bufferSize;

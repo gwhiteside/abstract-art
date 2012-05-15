@@ -35,7 +35,7 @@
             android:summary="@string/enable_enemies_summary" />
         
         <CheckBoxPreference
-            android:defaultValue="true"
+            android:defaultValue="false"
             android:key="enableLetterboxing"
             android:title="@string/enable_letterboxing_title"
             android:summary="@string/enable_letterboxing_summary" />
@@ -55,7 +55,7 @@
             android:summary="@string/enable_palette_effects_summary" />
         
         <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
-	        android:defaultValue="@integer/framerate_default"
+	        android:defaultValue="37"
 	        android:key="intFramerate"
 	        android:title="@string/frame_rate_title" 
 	        android:summary="@string/frame_rate_summary" />

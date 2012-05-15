@@ -58,7 +58,10 @@ public class Wallpaper extends GLWallpaperService
 	@Override
 	public Engine onCreateEngine()
 	{
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        PreferenceManager.setDefaultValues(context, R.xml.settings, true); // fill out the default preference values if they're not yet set
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
+		
 		return new AbstractArtEngine(this);
 	}
 	
@@ -82,10 +85,7 @@ public class Wallpaper extends GLWallpaperService
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
 	        
-	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	        
-	        // fill out the default preference values if they're not yet set:
-	        PreferenceManager.setDefaultValues(context, R.xml.settings, true);
 	        
 	        // snag some display information
 	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -176,7 +176,7 @@ public class Wallpaper extends GLWallpaperService
             	long thisTap = System.currentTimeMillis();
             	if(thisTap - lastTap < TAP_THRESHOLD)
             	{
-            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", "next");
+            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", null);
             		
             		if(behavior.equals("nothing"))
             		{
