@@ -55,7 +55,7 @@
             android:summary="@string/enable_palette_effects_summary" />
         
         <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
-	        android:defaultValue="37"
+	        android:defaultValue="60"
 	        android:key="intFramerate"
 	        android:title="@string/frame_rate_title" 
 	        android:summary="@string/frame_rate_summary" />
