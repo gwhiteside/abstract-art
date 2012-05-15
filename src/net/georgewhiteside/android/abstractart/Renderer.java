@@ -602,7 +602,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
 				
 				float rowOffset = 0.0f;
-				if(battleGroup.enemy.getName().equals("Giygas")) {
+				if(battleGroup.enemy.getCurrentName().equals("Giygas")) {
 					// quick hack to get the one Giygas background aligned properly in lieu of supporting multiple enemies
 					// and their rows (for now)
 					rowOffset = battleGroup.enemy.getRow() * (1.0f / 224.0f) * 32.0f;

@@ -137,9 +137,7 @@ public class BackgroundSelector extends Activity
 			animationSet.addAnimation(outAnimation);
 			animationSet.setFillAfter(true);
 			
-			renderer.battleGroup.load(selectedPosition);
-			
-			nameTextView.setText(renderer.battleGroup.enemy.getName());
+			nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(selectedPosition)));
 			nameTextView.setBackgroundColor(0x60000000);
 			nameTextView.setTextColor(0xFFFFFFFF);
 			
@@ -308,14 +306,7 @@ public class BackgroundSelector extends Activity
         		// cool fading name text
         		if(renderEnemies)
         		{
-	        		// this is sliiightly hack-ish; we already have the loadBattleBackground call above, but it's queued in the GL
-	        		// thread so we end up grabbing the enemy text from the previously-loaded enemy... it only needs to be queued
-	        		// that way because it does some GL calls on load. What I'm doing here is just loading the background data
-	        		// immediately in this thread before accessing the name so it's the correct one. When the GL thread finally
-	        		// does pick up the load event, it causes negligible overhead because all those load methods already check
-	        		// to see if the requested index is already loaded. So not too bad!
-	        		renderer.battleGroup.load(position);
-	        		nameTextView.setText(renderer.battleGroup.enemy.getName());
+	        		nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(position)));
 	        		nameTextView.startAnimation(animationSet);
         		}
         	}

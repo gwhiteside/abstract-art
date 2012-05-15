@@ -44,7 +44,7 @@ public class Enemy
 	private int currentIndex;
 	
 	private int[] palette = new int[16];
-	private String name;
+	private String mName;
 	private int row; // 0 = front, 1 = back
 	
 	ByteBuffer battleSprite;
@@ -88,6 +88,8 @@ public class Enemy
 			}
 	
 			loadAttributes(index);
+			
+			currentIndex = index; // note the currently loaded index so the data can be accessed efficiently
 		}
 	}
 	
@@ -106,9 +108,49 @@ public class Enemy
 		return dimensions.height;
 	}
 	
-	public String getName()
+	public String getCurrentName()
 	{
-		return name;
+		return mName;
+	}
+	
+	public String getName(int enemyIndex)
+	{
+		// save some processing time if the name was already decoded
+		if(currentIndex == enemyIndex) {
+			return mName;
+		}
+		
+		attributeData.position(enemyIndex * 94);
+		ByteBuffer attributes = attributeData.slice();
+		
+		// load name
+		
+		attributes.position(1);
+		int maxStringLen = 25;
+		
+		StringBuilder sb = new StringBuilder(maxStringLen);
+		
+		for(int i = 0; i < maxStringLen; i++)
+		{
+			short character = RomUtil.unsigned(attributes.get());
+			
+			if(character == 0x00) break;
+			
+			if(character < 0x30) {
+				character = '?';
+			} else {
+				character -= 0x30;
+			}
+			
+			if(character == 0x7C)  {
+				// pipe character is interpreted as the main character's name
+				sb.append("Ness");
+			} else {
+				sb.append((char)(character));
+			}
+		}
+		
+		return sb.toString();
 	}
 	
 	public int getRow()
@@ -118,7 +160,7 @@ public class Enemy
 	
 	private void loadBattleSprite(int spriteIndex)
 	{
-		String cacheFileName = name + ".png";
+		String cacheFileName = mName + ".png";
 		File cacheDir = new File(context.getCacheDir(), "sprites");
 		
 		File cacheFile = new File(cacheDir, cacheFileName);
@@ -186,7 +228,7 @@ public class Enemy
 			}
 			
 			// save the image to cache
-			Log.i(TAG, "Saving sprite " + name + " to cache");
+			Log.i(TAG, "Saving sprite " + mName + " to cache");
 			
 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
  			
@@ -226,44 +268,12 @@ public class Enemy
 	
 	private void loadAttributes(int enemyIndex)
 	{
-		currentIndex = enemyIndex;
-		
 		attributeData.position(enemyIndex * 94);
 		ByteBuffer attributes = attributeData.slice();
 		
 		// load name
 		
-		attributes.position(1);
-		int maxStringLen = 25;
-		
-		StringBuilder sb = new StringBuilder(maxStringLen);
-		
-		for(int i = 0; i < maxStringLen; i++)
-		{
-			short character = RomUtil.unsigned(attributes.get());
-			
-			if(character == 0x00) break;
-			
-			if(character < 0x30)
-			{
-				character = '?';
-			}
-			else
-			{
-				character -= 0x30;
-			}
-			
-			if(character == 0x7C) // pipe character is interpreted as the main character's name
-			{
-				sb.append("Ness");
-			}
-			else
-			{
-				sb.append((char)(character));
-			}
-		}
-		
-		name = sb.toString();
+		mName = getName(enemyIndex);
 		
 		// load row
 		row = RomUtil.unsigned(attributes.get(0x5B));
@@ -271,7 +281,7 @@ public class Enemy
 		// load palette
 		
 		int paletteNum = attributes.get(0x35);
-		Log.i(TAG, name + " palette number: " + paletteNum);
+		Log.i(TAG, mName + " palette number: " + paletteNum);
 		spriteData.position(PALETTES - GRAPHICS_CHUNK_OFFSET);
 		ShortBuffer paletteData = spriteData.asShortBuffer().slice();
 		

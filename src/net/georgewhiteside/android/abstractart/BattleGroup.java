@@ -33,9 +33,25 @@ public class BattleGroup
 		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data);
 	}
 	
-	public int getEnemyIndex()
+	public int getCurrentEnemyIndex()
 	{
 		return enemyIndex;
+	}
+	
+	/*
+	 * TODO I'm just letting stuff get really hacky now... fix this
+	 */
+	public int getEnemyIndex(int battleGroupIndex)
+	{
+		int trueIndex = battleBackground.getRomBackgroundIndex(battleGroupIndex); // necessary so long as we prune the background list of "duplicates"
+		ByteBuffer myEnemyBattleGroupPointers = enemyBattleGroupPointers.duplicate();
+		myEnemyBattleGroupPointers.position(trueIndex * 8);
+		int pBattleGroup = RomUtil.toHex(myEnemyBattleGroupPointers.getInt()) - ENEMY_BATTLE_GROUP_DATA_OFFSET;
+		ByteBuffer myEnemyBattleGroupData = enemyBattleGroupData.duplicate();
+		myEnemyBattleGroupData.position(pBattleGroup + 1); // skip first byte of entry (number of "this enemy"s that appear)
+		int myEnemyIndex = RomUtil.unsigned(myEnemyBattleGroupData.getShort()); // enemy table index of enemy to appear
+		
+		return myEnemyIndex;
 	}
 	
 	public int getLetterBoxSize()
@@ -81,5 +97,7 @@ public class BattleGroup
 		enemyIndex = RomUtil.unsigned(enemyBattleGroupData.getShort());
 		
 		enemy.load(enemyIndex);
+		
+		
 	}
 }

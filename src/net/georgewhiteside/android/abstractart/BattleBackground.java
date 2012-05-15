@@ -231,7 +231,7 @@ public class BattleBackground
 		return images;
 	}
 	
-	protected int getRomBackgroundIndex(int address)
+	public int getRomBackgroundIndex(int address)
 	{
 		//return currentRomBackgroundIndex;
 		return layerTable[address][2];
