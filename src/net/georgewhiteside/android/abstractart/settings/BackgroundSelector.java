@@ -145,8 +145,9 @@ public class BackgroundSelector extends Activity
 		}
 		
 		// see if we should display help screen automatically
+		//checkHelpPopup(7);
 		
-		checkHelpPopup(7);
+		Toast.makeText(context, "Press menu for extra functions", Toast.LENGTH_SHORT).show();
 		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 	}

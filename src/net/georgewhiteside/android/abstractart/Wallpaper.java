@@ -123,43 +123,50 @@ public class Wallpaper extends GLWallpaperService
 		{
 			try
 			{
-				PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
-				int lastVersionCode = sharedPreferences.getInt("lastVersionCode", 0);
-				if(lastVersionCode < packageInfo.versionCode)
+				// This part is slick at least. We need only bump the app version in AndroidManifest.xml, and this code will
+				// only run once per upgrade, forevermore.
+				int currentVersionCode = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA).versionCode;
+				int previousVersionCode = sharedPreferences.getInt("previousVersionCode", 0);
+				if(previousVersionCode < currentVersionCode)
 				{
 					// bump the last version code in the shared preferences
 					Editor editor = sharedPreferences.edit();
-		            editor.putInt("lastVersionCode", packageInfo.versionCode);
-		            editor.commit();
+		            editor.putInt("previousVersionCode", currentVersionCode);
 		            
 		            // detect the dreaded palette bug
 		            if(detectPaletteBug())
 					{
+		            	Log.w(TAG, "Palette cycling bug detected. Effect disabled by default.");
 		            	clearCache();
 		            	
 		            	editor.putBoolean("enablePaletteEffects", false);
-		            	editor.commit();
+		            	editor.putBoolean("infoPaletteBugDetected", true);
 		            	
 		            	// hack to display a dialog from my wallpaper service... I know dialogs aren't meant to be run from services,
 		            	// but I promise this is actually helpful and desirable in this case.
-		            	Intent myIntent = new Intent();
+		            	/*Intent myIntent = new Intent();
 		        		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        		myIntent.putExtra("message", getResources().getText(R.string.message_palette_bug));
 		        		myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.ServiceDialog"));
-		        		startActivity(myIntent);
+		        		startActivity(myIntent);*/
+					} else {
+						editor.putBoolean("enablePaletteEffects", true);
+						editor.putBoolean("infoPaletteBugDetected", false);
 					}
 		            
 		            // versionCode 8 will need to regenerate thumbnails (indices are different), so detect and clear out any old cache
 		            // TODO: make thumbnail filenames independent of gridview position indices (should just be the ROM background index)
-		            if(lastVersionCode <= 8)
+		            int minimumCompatibleCacheVersion = 9;
+		            if(previousVersionCode < minimumCompatibleCacheVersion)
 		            {
-		            	Log.i(TAG, "lastVersionCode <= 8 detected; clearing thumbnail cache and playlist");
+		            	Log.i(TAG, "previousVersionCode < " + minimumCompatibleCacheVersion + " detected; clearing thumbnail cache and playlist.");
 		            	clearCache(); // ok, actually we'll clear out ALL the cache... so sue me
-		            	// need to clear the playlist out too
 		            	if(backgroundListFile.exists()) {
-		            		backgroundListFile.delete();
+		            		backgroundListFile.delete(); // need to clear the playlist out too
 		            	}
 		            }
+		            
+		            editor.commit(); // write the preferences out
 				}
 			}
 			catch (NameNotFoundException e)
@@ -222,11 +229,21 @@ public class Wallpaper extends GLWallpaperService
 			int width = 256, height = 256;
 			GLOffscreenSurface glOffscreenSurface = new GLOffscreenSurface(width, height);
 			glOffscreenSurface.setEGLContextClientVersion(2);
-			glOffscreenSurface.setRenderer(renderer);
+ 			glOffscreenSurface.setRenderer(renderer);
 			
-			renderer.loadBattleBackground(1);
- 			
+			// we need to make sure that enemies aren't drawn for this test, but we don't want to clobber the default/previous
+			// value for the preference, so we're saving it, setting it false, performing the test, then restoring the old value
+			
+			Editor editor = sharedPreferences.edit();
+			boolean originalValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
+			editor.putBoolean("enableEnemies", false).commit(); // explicitly disable enemy drawing
+			
+			renderer.loadBattleBackground(1); // load up a test background
+
  			Bitmap thumbnail = glOffscreenSurface.getBitmap();
+ 			
+ 			editor.putBoolean("enableEnemies", originalValue).commit(); // restore original preference value
+ 			
  			int firstPixel = thumbnail.getPixel(0, 0);
  			
  			for(int y = 0; y < height; y++)

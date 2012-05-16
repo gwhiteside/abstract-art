@@ -11,6 +11,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
 import android.util.Log;
+import android.widget.Toast;
 
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
 {
@@ -45,6 +46,15 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 		// automatically set listpreference summaries to reflect their current values
 	    Preference preference = findPreference(key);
 	    setSummary(preference);
+	    
+	    // check if palette cycling was just checked; if the bug is present, give the user a warning:
+	    if(key.equals("enablePaletteEffects")) {
+	    	boolean infoPaletteBugDetected = sharedPreferences.getBoolean("infoPaletteBugDetected", false); // only initialized (to true) in Wallpaper.java
+	    	boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false);
+	    	if(infoPaletteBugDetected && enablePaletteEffects) {
+	    		Toast.makeText(this, "Warning: palette effects don't seem to work on your phone (yet).", Toast.LENGTH_LONG).show();
+	    	}
+	    }
 	}
 	
 	/**

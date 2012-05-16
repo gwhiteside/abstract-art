@@ -72,7 +72,6 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 		final Integer value = Integer.valueOf(typedArray.getString(index));
 		currentFramerate = value;
 		persistedFramerate = currentFramerate;
-		Log.i(Wallpaper.TAG, "onGetDefaultValue: " + value);
 		return value;
 	}
 	
@@ -82,7 +81,6 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 		currentFramerate = Integer.valueOf(initialValue);
 		persistedFramerate = currentFramerate;
 		persistString(initialValue);
-		Log.i(Wallpaper.TAG, "onSetInitialValue: " + initialValue);
 	}
 	
 	/**

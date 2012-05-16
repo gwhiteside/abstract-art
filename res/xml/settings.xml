@@ -41,7 +41,7 @@
             android:summary="@string/enable_letterboxing_summary" />
         
         <ListPreference
-            android:defaultValue="none"
+            android:defaultValue="variable"
             android:key="letterboxSize"
             android:title="@string/letterbox_size_title"
             android:entries="@array/letterbox_size_entries"

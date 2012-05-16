@@ -129,9 +129,12 @@ public class ImageLoader extends Thread
 	
 	public synchronized void queueImageLoad(final int position, final ViewHolder holder)
 	{
-		String thumbnailDirectory;
+		String thumbnailDirectory = "thumbnails";
+		// TODO implement this; it's a minor cosmetic bug at the moment
+		//String enemiesString = null;
+		//String letterboxString = null;
 		if(renderEnemies) {
-			// this is less space-efficient than, say, drawing the cached sprites over the thumbnails if enabled, but
+			// this is less space-efficient than, say, drawing the cached sprites over the thumbnails if enabled etc., but
 			// it's a heck of a lot simpler to implement, maintain, and extend... especially in the long run
 			thumbnailDirectory = "thumbnails-with-enemies";
 		} else {
