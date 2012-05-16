@@ -14,7 +14,7 @@ import android.widget.TextView;
 
 // TODO: this needs a lot of cleaning up
 
-public class FrameratePreference extends DialogPreference implements OnSeekBarChangeListener
+public class FrameRatePreference extends DialogPreference implements OnSeekBarChangeListener
 {
 	private int mMinimum = 5;
 	private int mMaximum = 60;
@@ -26,7 +26,7 @@ public class FrameratePreference extends DialogPreference implements OnSeekBarCh
 	private SeekBar framerateSeekBar;
 	private TextView framerateTextViewValue;
 
-	public FrameratePreference(Context context, AttributeSet attrs)
+	public FrameRatePreference(Context context, AttributeSet attrs)
 	{
 		super(context, attrs);
 		this.setPersistent(true);
