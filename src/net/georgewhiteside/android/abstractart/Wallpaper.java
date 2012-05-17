@@ -121,6 +121,12 @@ public class Wallpaper extends GLWallpaperService
 		 */
 		private void handleUpgrades()
 		{
+			
+			
+			//boolean dpb = detectPaletteBug();
+			//Log.i(TAG, "detectPaletteBug: " + dpb);
+			
+			
 			try
 			{
 				// This part is slick at least. We need only bump the app version in AndroidManifest.xml, and this code will
@@ -235,14 +241,18 @@ public class Wallpaper extends GLWallpaperService
 			// value for the preference, so we're saving it, setting it false, performing the test, then restoring the old value
 			
 			Editor editor = sharedPreferences.edit();
-			boolean originalValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
-			editor.putBoolean("enableEnemies", false).commit(); // explicitly disable enemy drawing
+			boolean originalEnableEnemiesValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
+			boolean originalEnablePaletteEffectsValue = sharedPreferences.getBoolean("enablePaletteEffects", false);
+			editor.putBoolean("enableEnemies", false); // explicitly disable enemy drawing
+			editor.putBoolean("enablePaletteEffects", true); // and enable palette effects
+			editor.commit();
 			
 			renderer.loadBattleBackground(1); // load up a test background
-
  			Bitmap thumbnail = glOffscreenSurface.getBitmap();
  			
- 			editor.putBoolean("enableEnemies", originalValue).commit(); // restore original preference value
+ 			editor.putBoolean("enableEnemies", originalEnableEnemiesValue); // restore original preference values
+ 			editor.putBoolean("enablePaletteEffects", originalEnablePaletteEffectsValue);
+ 			editor.commit();
  			
  			int firstPixel = thumbnail.getPixel(0, 0);
  			

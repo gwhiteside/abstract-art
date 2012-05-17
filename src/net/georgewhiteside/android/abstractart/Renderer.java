@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.Buffer;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -476,8 +477,12 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mTextureB = ByteBuffer.allocateDirect(bufferSize);
 			}
 			
-	        mTextureA.put(dataA).position(0);
-	        mTextureB.put(dataB).position(0);
+			try {
+		        mTextureA.put(dataA).position(0);
+		        mTextureB.put(dataB).position(0);
+			} catch(BufferOverflowException e) {
+				
+			}
 	        
 	        mPalette.position(0);
 	        mPalette.put(paletteBg3).position(0);
