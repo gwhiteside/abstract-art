@@ -162,7 +162,7 @@ public class Wallpaper extends GLWallpaperService
 		            
 		            // versionCode 8 will need to regenerate thumbnails (indices are different), so detect and clear out any old cache
 		            // TODO: make thumbnail filenames independent of gridview position indices (should just be the ROM background index)
-		            int minimumCompatibleCacheVersion = 9;
+		            int minimumCompatibleCacheVersion = 10;
 		            if(previousVersionCode < minimumCompatibleCacheVersion)
 		            {
 		            	Log.i(TAG, "previousVersionCode < " + minimumCompatibleCacheVersion + " detected; clearing thumbnail cache and playlist.");
