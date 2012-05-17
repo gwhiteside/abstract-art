@@ -396,7 +396,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
+		frameTime = 1000 / 60; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
+		
 		
 		Log.i(TAG, "Surface created");
 	}
