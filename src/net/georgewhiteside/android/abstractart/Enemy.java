@@ -312,8 +312,16 @@ public class Enemy
 		
 		int spriteIndex = attributes.getShort(0x1c);
 		
-		if(spriteIndex > 0 ) loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
+		// TODO: loadBattleSprite has been crashing for several people (line 174, pointerTable.position(spriteIndex * 5);) but I can't reproduce
+		// the problem on either of my phones. It only seems to be this part with the enemy loading, the backgrounds themselves have worked fine 
+		// for a while. SO, until I can find a device that has this problem, I'm just going to have to check to make sure the index is <= 110
+		// so we don't get crazy out of bounds exceptions. I have no idea why that's happening.
+		if(spriteIndex > 0 && spriteIndex <= 110) loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
 		else loadInvisibleSprite();
+		
+		if(spriteIndex > 110) {
+		    Log.e(TAG, "Error: spriteIndex > 110 attempted (?!). Loading invisible sprite instead.");
+		}
 	}
 	
 
