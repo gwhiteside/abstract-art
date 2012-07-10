@@ -1,6 +1,7 @@
 package net.georgewhiteside.android.abstractart;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import android.util.Log;
 
@@ -149,7 +150,7 @@ public class Distortion
 			if(index > 0)
 				mNumberOfEffects++;
 			distortionData.position(index * 17);
-			data[i] = distortionData.slice();
+			data[i] = distortionData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		}
 		
 		setIndex(0);

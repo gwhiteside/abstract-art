@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.nio.ShortBuffer;
 import java.util.Arrays;
@@ -72,8 +73,8 @@ public class Enemy
 	{
 		this.context = context;
 		abstractArt = (AbstractArt)context.getApplicationContext();
-		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data);
-		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data);
+		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
+		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
 		currentIndex = -1;
 	}
 	
@@ -121,7 +122,7 @@ public class Enemy
 		}
 		
 		attributeData.position(enemyIndex * 94);
-		ByteBuffer attributes = attributeData.slice();
+		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		
@@ -166,10 +167,10 @@ public class Enemy
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
 		spriteData.position(GRAPHICS - GRAPHICS_CHUNK_OFFSET);
-		ByteBuffer graphics = spriteData.slice();
+		ByteBuffer graphics = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		spriteData.position(POINTER_TABLE - GRAPHICS_CHUNK_OFFSET);
-		ByteBuffer pointerTable = spriteData.slice();
+		ByteBuffer pointerTable = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
 
 		pointerTable.position(spriteIndex * 5);
 		int pSpriteData = RomUtil.toHex(pointerTable.getInt()) - GRAPHICS_CHUNK_OFFSET;
@@ -269,7 +270,7 @@ public class Enemy
 	private void loadAttributes(int enemyIndex)
 	{
 		attributeData.position(enemyIndex * 94);
-		ByteBuffer attributes = attributeData.slice();
+		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		

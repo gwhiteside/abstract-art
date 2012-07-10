@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,6 +97,7 @@ public class Layer
 		image = new byte[256 * 256 * 1];
 		palette = new byte[16 * 1 * 4];
 		romData = data;
+		romData.order(ByteOrder.LITTLE_ENDIAN);
 	}
 	
 	public void doTick()
@@ -202,7 +204,7 @@ public class Layer
 		// load background attribute data
 		
 		romData.position(0xADEA1 - OFFSET + index * 17);
-		bgData = romData.slice();
+		bgData = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		//Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		

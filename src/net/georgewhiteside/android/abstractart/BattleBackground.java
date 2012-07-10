@@ -114,7 +114,7 @@ public class BattleBackground
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		abstractArt = (AbstractArt)context.getApplicationContext();
 		
-		romData = abstractArt.loadData(R.raw.bgbank);
+		romData = abstractArt.loadData(R.raw.bgbank).order(ByteOrder.LITTLE_ENDIAN);
 		
 		processLayerTable();
 
