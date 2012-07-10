@@ -1,6 +1,7 @@
 package net.georgewhiteside.android.abstractart;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 
 import android.util.Log;
 
@@ -212,7 +213,8 @@ public class Translation
 			if(index > 0)
 				mNumberOfTranslations++;
 			translationData.position(index * 10);
-			data[i] = translationData.slice();
+			translationData.order(ByteOrder.LITTLE_ENDIAN);
+			data[i] = translationData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		}
 		
 		mHorizontalOffset = 0;

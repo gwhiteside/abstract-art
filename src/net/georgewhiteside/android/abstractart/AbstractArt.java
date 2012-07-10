@@ -34,7 +34,6 @@ public class AbstractArt extends Application
 		}
 		
 		romData = ByteBuffer.wrap(output.toByteArray());
-		romData.order(ByteOrder.LITTLE_ENDIAN);
 		
 		return romData;
 	}

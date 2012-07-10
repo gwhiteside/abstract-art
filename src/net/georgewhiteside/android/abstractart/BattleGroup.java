@@ -1,6 +1,7 @@
 package net.georgewhiteside.android.abstractart;
 
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,8 +30,8 @@ public class BattleGroup
 		abstractArt = (AbstractArt)context.getApplicationContext();
 		battleBackground = new BattleBackground(context);
 		enemy = new Enemy(context);
-		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers);
-		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data);
+		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);;
+		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);;
 	}
 	
 	public int getCurrentEnemyIndex()
@@ -44,10 +45,10 @@ public class BattleGroup
 	public int getEnemyIndex(int battleGroupIndex)
 	{
 		int trueIndex = battleBackground.getRomBackgroundIndex(battleGroupIndex); // necessary so long as we prune the background list of "duplicates"
-		ByteBuffer myEnemyBattleGroupPointers = enemyBattleGroupPointers.duplicate();
+		ByteBuffer myEnemyBattleGroupPointers = enemyBattleGroupPointers.duplicate().order(ByteOrder.LITTLE_ENDIAN);
 		myEnemyBattleGroupPointers.position(trueIndex * 8);
 		int pBattleGroup = RomUtil.toHex(myEnemyBattleGroupPointers.getInt()) - ENEMY_BATTLE_GROUP_DATA_OFFSET;
-		ByteBuffer myEnemyBattleGroupData = enemyBattleGroupData.duplicate();
+		ByteBuffer myEnemyBattleGroupData = enemyBattleGroupData.duplicate().order(ByteOrder.LITTLE_ENDIAN);
 		myEnemyBattleGroupData.position(pBattleGroup + 1); // skip first byte of entry (number of "this enemy"s that appear)
 		int myEnemyIndex = RomUtil.unsigned(myEnemyBattleGroupData.getShort()); // enemy table index of enemy to appear
 		

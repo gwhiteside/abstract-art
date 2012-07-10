@@ -1,3 +1,7 @@
+0.9.3 July 10, 2012
+
+- FINALLY quashed the "backgrounds running at super speed" and "enemy sprite crash/bad enemy index" bugs. Thanks for giving me such a headache with inconsistent ByteBuffer order behavior on different devices, Java/Android!
+
 0.9.0 May 15, 2012
 
 - can now display enemy sprites
