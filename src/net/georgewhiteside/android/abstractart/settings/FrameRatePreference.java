@@ -1,6 +1,7 @@
 package net.georgewhiteside.android.abstractart.settings;
 
 import net.georgewhiteside.android.abstractart.R;
+import net.georgewhiteside.android.abstractart.Wallpaper;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
@@ -53,7 +54,7 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 			if(callChangeListener(currentFramerate))
 			{
 				// user hit OK
-				persistInt(currentFramerate);
+				persistString(String.valueOf(currentFramerate));
 				persistedFramerate = currentFramerate;
 				notifyChanged();	// allow the description to automatically update
 			}
@@ -66,20 +67,20 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 	}
 	
 	@Override
-	protected Object onGetDefaultValue(final TypedArray a, final int index)
+	protected Object onGetDefaultValue(final TypedArray typedArray, final int index)
 	{
-		final int value = a.getInt(index, 0);
+		final Integer value = Integer.valueOf(typedArray.getString(index));
 		currentFramerate = value;
 		persistedFramerate = currentFramerate;
-		Log.d("pref", "onGetDefaultValue: " + currentFramerate);
 		return value;
 	}
 	
 	@Override
-	protected void onSetInitialValue(final boolean restore, final Object defaultValue) {
-		currentFramerate = getPersistedInt(defaultValue == null ? 0 : (Integer)defaultValue);
+	protected void onSetInitialValue(final boolean restorePersistedValue, final Object defaultValue) {
+		String initialValue = restorePersistedValue ? getPersistedString(null) : defaultValue.toString();
+		currentFramerate = Integer.valueOf(initialValue);
 		persistedFramerate = currentFramerate;
-		Log.d("pref", "onSetInitialValue: " + currentFramerate);
+		persistString(initialValue);
 	}
 	
 	/**

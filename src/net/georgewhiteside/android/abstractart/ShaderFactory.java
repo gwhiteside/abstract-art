@@ -33,7 +33,7 @@ public class ShaderFactory
 	
 	private static final String[] bgPrefix = {"bg3_", "bg4_"};
 	
-	private String vertexShader =
+	private String spriteVertexShader =
 		"uniform mat4 uMVPMatrix;\n" +
 		"attribute vec4 a_position;\n" +
 		"attribute vec2 a_texCoord;\n" +
@@ -42,6 +42,28 @@ public class ShaderFactory
 		"    gl_Position = uMVPMatrix * a_position;\n" +
 		"    v_texCoord = a_texCoord;\n" +
 		"}\n";
+	
+	private String spriteFragmentShader =
+		"precision mediump float;\n" +
+		"varying vec2 v_texCoord;\n" +
+		"uniform sampler2D s_texture;\n" +
+		"\n" +
+		"void main()\n" +
+		"{\n" +
+		"    vec4 color = texture2D(s_texture, v_texCoord);\n" +
+		"    if(color.a < 0.5) { discard; }\n" +
+		"    gl_FragColor = color;\n" +
+		"}\n";
+
+	private String vertexShader =
+			"uniform mat4 uMVPMatrix;\n" +
+			"attribute vec4 a_position;\n" +
+			"attribute vec2 a_texCoord;\n" +
+			"varying vec2 v_texCoord;\n" +
+			"void main() {\n" +
+			"    gl_Position = uMVPMatrix * a_position;\n" +
+			"    v_texCoord = a_texCoord;\n" +
+			"}\n";
 	
 	private String fragmentHeader =
 		"precision highp float;\n" +
@@ -113,10 +135,10 @@ public class ShaderFactory
 		return 0;
 	}
 	
-	public int getShader(BattleBackground bbg)
+	public int getShader(BattleBackground bbg, float letterBoxSize)
 	{
 		String fragmentShader = "";
-		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false); // SharedPreference
 		
 		if(knobMonolithic)
 		{
@@ -131,7 +153,8 @@ public class ShaderFactory
 			fragmentShader +=
 				"void main()\n" +
 				"{\n" +
-					"float y = v_texCoord.y * 256.0;\n";
+				"    float y = v_texCoord.y * 256.0;\n" + 
+				"    if(y < " + letterBoxSize + " || y > 224.0 - " + letterBoxSize + ") { gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0); } else {";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -328,13 +351,22 @@ public class ShaderFactory
 		
 			// ...aaand the final curly brace:
 			
-			fragmentShader += "}\n";
+			fragmentShader += "}}\n";
 		}
 		
 		//Log.d("shader", vertexShader);
 		//Log.d("shader", fragmentShader);
 		
-		return createProgram(vertexShader, fragmentShader);
+		int result = createProgram(vertexShader, fragmentShader);
+		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		return result;
+	}
+	
+	public int getSpriteShader()
+	{
+		int result = createProgram(spriteVertexShader, spriteFragmentShader);
+		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		return result;
 	}
 	
 	private int createProgram(String vertexSource, String fragmentSource)

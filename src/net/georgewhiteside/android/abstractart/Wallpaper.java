@@ -5,9 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
 
@@ -15,11 +13,7 @@ import org.jf.GLWallpaper.GLWallpaperService;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
-//import net.rbgrn.android.glwallpaperservice.GLWallpaperService;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.AlertDialog.Builder;
 import android.app.WallpaperManager;
 import android.content.ComponentName;
 import android.content.Context;
@@ -31,7 +25,6 @@ import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
-import android.net.Uri;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -42,9 +35,6 @@ import android.view.WindowManager;
 
 public class Wallpaper extends GLWallpaperService 
 {
-	public static final int SINGLE_BACKGROUND = 0;
-	public static final int MULTIPLE_BACKGROUNDS = 1;
-	
 	public static final String TAG = "AbstractArt";
 	
 	private static Context context;
@@ -52,7 +42,7 @@ public class Wallpaper extends GLWallpaperService
 	private static SharedPreferences sharedPreferences;
 	public static Random random = new Random();
 	
-	public static boolean backgroundListDirty = false;
+	public static boolean backgroundListIsDirty = false;
 	
 	private static List<Integer> backgroundList;
 	
@@ -68,7 +58,10 @@ public class Wallpaper extends GLWallpaperService
 	@Override
 	public Engine onCreateEngine()
 	{
+		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        PreferenceManager.setDefaultValues(context, R.xml.settings, true); // fill out the default preference values if they're not yet set
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
+		
 		return new AbstractArtEngine(this);
 	}
 	
@@ -92,7 +85,7 @@ public class Wallpaper extends GLWallpaperService
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
 	        
-	        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+	        
 	        
 	        // snag some display information
 	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
@@ -128,40 +121,58 @@ public class Wallpaper extends GLWallpaperService
 		 */
 		private void handleUpgrades()
 		{
+			
+			
+			//boolean dpb = detectPaletteBug();
+			//Log.i(TAG, "detectPaletteBug: " + dpb);
+			
+			
 			try
 			{
-				PackageInfo packageInfo = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA);
-				int lastVersionCode = sharedPreferences.getInt("lastVersionCode", 0);
-				if(lastVersionCode < packageInfo.versionCode)
+				// This part is slick at least. We need only bump the app version in AndroidManifest.xml, and this code will
+				// only run once per upgrade, forevermore.
+				int currentVersionCode = getPackageManager().getPackageInfo(getPackageName(), PackageManager.GET_META_DATA).versionCode;
+				int previousVersionCode = sharedPreferences.getInt("previousVersionCode", 0);
+				if(previousVersionCode < currentVersionCode)
 				{
 					// bump the last version code in the shared preferences
 					Editor editor = sharedPreferences.edit();
-		            editor.putInt("lastVersionCode", packageInfo.versionCode);
-		            editor.commit();
+		            editor.putInt("previousVersionCode", currentVersionCode);
 		            
 		            // detect the dreaded palette bug
 		            if(detectPaletteBug())
 					{
+		            	Log.w(TAG, "Palette cycling bug detected. Effect disabled by default.");
 		            	clearCache();
 		            	
 		            	editor.putBoolean("enablePaletteEffects", false);
-		            	editor.commit();
+		            	editor.putBoolean("infoPaletteBugDetected", true);
 		            	
 		            	// hack to display a dialog from my wallpaper service... I know dialogs aren't meant to be run from services,
 		            	// but I promise this is actually helpful and desirable in this case.
-		            	Intent myIntent = new Intent();
+		            	/*Intent myIntent = new Intent();
 		        		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 		        		myIntent.putExtra("message", getResources().getText(R.string.message_palette_bug));
 		        		myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.ServiceDialog"));
-		        		startActivity(myIntent);
+		        		startActivity(myIntent);*/
+					} else {
+						editor.putBoolean("enablePaletteEffects", true);
+						editor.putBoolean("infoPaletteBugDetected", false);
 					}
 		            
-		            // versionCode 8 introduces new thumbnails, so detect and clear out any old cache
-		            if(lastVersionCode <= 7)
+		            // versionCode 8 will need to regenerate thumbnails (indices are different), so detect and clear out any old cache
+		            // TODO: make thumbnail filenames independent of gridview position indices (should just be the ROM background index)
+		            int minimumCompatibleCacheVersion = 10;
+		            if(previousVersionCode < minimumCompatibleCacheVersion)
 		            {
-		            	Log.i(TAG, "lastVersionCode <= 7 detected; clearing obsolete thumbnail cache");
+		            	Log.i(TAG, "previousVersionCode < " + minimumCompatibleCacheVersion + " detected; clearing thumbnail cache and playlist.");
 		            	clearCache(); // ok, actually we'll clear out ALL the cache... so sue me
+		            	if(backgroundListFile.exists()) {
+		            		backgroundListFile.delete(); // need to clear the playlist out too
+		            	}
 		            }
+		            
+		            editor.commit(); // write the preferences out
 				}
 			}
 			catch (NameNotFoundException e)
@@ -178,7 +189,7 @@ public class Wallpaper extends GLWallpaperService
             	long thisTap = System.currentTimeMillis();
             	if(thisTap - lastTap < TAP_THRESHOLD)
             	{
-            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", "next");
+            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", null);
             		
             		if(behavior.equals("nothing"))
             		{
@@ -224,11 +235,25 @@ public class Wallpaper extends GLWallpaperService
 			int width = 256, height = 256;
 			GLOffscreenSurface glOffscreenSurface = new GLOffscreenSurface(width, height);
 			glOffscreenSurface.setEGLContextClientVersion(2);
-			glOffscreenSurface.setRenderer(renderer);
+ 			glOffscreenSurface.setRenderer(renderer);
 			
-			renderer.loadBattleBackground(1);
- 			
+			// we need to make sure that enemies aren't drawn for this test, but we don't want to clobber the default/previous
+			// value for the preference, so we're saving it, setting it false, performing the test, then restoring the old value
+			
+			Editor editor = sharedPreferences.edit();
+			boolean originalEnableEnemiesValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
+			boolean originalEnablePaletteEffectsValue = sharedPreferences.getBoolean("enablePaletteEffects", false);
+			editor.putBoolean("enableEnemies", false); // explicitly disable enemy drawing
+			editor.putBoolean("enablePaletteEffects", true); // and enable palette effects
+			editor.commit();
+			
+			renderer.loadBattleBackground(1); // load up a test background
  			Bitmap thumbnail = glOffscreenSurface.getBitmap();
+ 			
+ 			editor.putBoolean("enableEnemies", originalEnableEnemiesValue); // restore original preference values
+ 			editor.putBoolean("enablePaletteEffects", originalEnablePaletteEffectsValue);
+ 			editor.commit();
+ 			
  			int firstPixel = thumbnail.getPixel(0, 0);
  			
  			for(int y = 0; y < height; y++)
@@ -279,47 +304,30 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static void setNewBackground(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
-		// if single background, set it...
-		// else
-		//   if there are backgrounds in the list, pull one and set it
-		//   else recreate the list, pull one, and set it
-		
-		int selectionMode = Integer.valueOf(sharedPreferences.getString("selectionMode", Integer.toString(MULTIPLE_BACKGROUNDS)));
-		
-		if(selectionMode == SINGLE_BACKGROUND)
+		// if the playlist hasn't been loaded yet
+		if(backgroundList == null)
 		{
-			// set single background from shared preferences
-			renderer.setRandomBackground(); // TODO temporary until code is set up
+			backgroundList = new ArrayList<Integer>(renderer.getBackgroundsTotal());
 		}
-		else if(selectionMode == MULTIPLE_BACKGROUNDS)
+		
+		// is the playlist runs through or is updated in the chooser, reload it from file
+		if(backgroundList.isEmpty() || backgroundListIsDirty)
 		{
-			if(backgroundList == null)
-			{
-				backgroundList = new ArrayList<Integer>(renderer.getBackgroundsTotal());
-			}
-			
-			if(backgroundList.isEmpty() || backgroundListDirty)
-			{
-		 		backgroundList = getBackgroundListFromFile(renderer);
-				backgroundListDirty = false;
-			}
-			
-			if(backgroundList.size() > 0)
-			{
-				// pull up a random background from the playlist
-				int location = random.nextInt(backgroundList.size());
-				int selection = backgroundList.get(location);
-				backgroundList.remove(location);
-				
-				renderer.loadBattleBackground(selection);
-			}
-			else
-			{
-				// if the background playlist (the copy stored on disk) is empty, just load a random background
-				renderer.setRandomBackground();
-			}
+	 		backgroundList = getBackgroundListFromFile(renderer);
+	 		backgroundListIsDirty = false;
 		}
-		else
+		
+		// if a playlist exists and has elements in it
+		if(backgroundList.size() > 0)
+		{
+			// pull up a random background from the playlist
+			int location = random.nextInt(backgroundList.size());
+			int selection = backgroundList.get(location);
+			backgroundList.remove(location);
+			
+			renderer.loadBattleBackground(selection);
+		}
+		else // it's possible to create a blank playlist; this accounts for it by loading randomly
 		{
 			renderer.setRandomBackground();
 		}
@@ -392,7 +400,7 @@ public class Wallpaper extends GLWallpaperService
 			String jsonString = jsonObject.toString();
 			fos.write(jsonString.getBytes());
 			fos.close();
-			backgroundListDirty = true;
+			backgroundListIsDirty = true;
 		}
 	    catch (FileNotFoundException e)
 	    {

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.Buffer;
+import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
@@ -42,6 +43,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private SharedPreferences sharedPreferences;
 	
+	public BattleGroup battleGroup;
+	private ShaderFactory shader;
+	
 	private FPSCounter mFPSCounter = new FPSCounter();
 	
 	private FloatBuffer quadVertexBuffer;
@@ -75,21 +79,33 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	private float mRenderWidth;
 	private float mRenderHeight;
 	
+	private int mSurfaceVerticalOffset = 0;
+	private int mSurfaceHorizontalOffset = 0;
+	
 	private int hMVPMatrix;
 	private float[] mProjMatrix = new float[16];
 	
 	private int[] mFramebuffer = new int[1];
 	private int[] mRenderTexture = new int[1];
 	
-	
+	private Boolean mFilterBackgrounds = false;
 	private Boolean mFilterOutput = false;
 	
-	private BattleBackground bbg;
-	private ShaderFactory shader;
+	private Boolean mRenderEnemies = true;
+	private int mEnemyPositionHandle;
+	private int mEnemyTextureHandle;
+	private int mEnemyTextureLoc;
+	private FloatBuffer enemyVertexBuffer;
+	private FloatBuffer enemyTextureVertexBuffer;
+	
+	private float mLetterBoxSize;
 	
 	private int[] mTextureId = new int[3];
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
+	
+	private int[] mBattleSpriteId = new int[1];
+	private int mBattleSpriteProgramId;
 	
 	private int currentBackground;
 	private boolean persistBackgroundSelection;
@@ -109,7 +125,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public int getRomBackgroundIndex(int address)
 	{
-		return bbg.getRomBackgroundIndex(address);
+		return battleGroup.battleBackground.getRomBackgroundIndex(address);
 	}
 	
 	public int getCacheableImagesTotal()
@@ -121,17 +137,17 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public int getBackgroundsTotal()
 	{
-		return bbg.getNumberOfBackgrounds();
+		return battleGroup.battleBackground.getNumberOfBackgrounds();
 	}
 	
 	public void cacheImage(int index)
 	{
-		bbg.setIndex(index);
+		battleGroup.load(index);
 	}
 	
 	public void setRandomBackground()
 	{
-		int number = Wallpaper.random.nextInt(bbg.getNumberOfBackgrounds() - 1) + 1;
+		int number = Wallpaper.random.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
 	
@@ -149,7 +165,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		bbg = new BattleBackground(context);
+		battleGroup = new BattleGroup(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -161,6 +177,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		currentBackground = -1;
 		persistBackgroundSelection = false;
+		
+		Log.i(TAG, "Renderer created");
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -193,112 +211,93 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logStartFrame();
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-		mRenderWidth = mSurfaceWidth;
-		mRenderHeight = mSurfaceHeight;
+		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
+		//mRenderWidth = mSurfaceWidth;
+		//mRenderHeight = mSurfaceHeight;
 		
-		if(mHighRes)
-		{
-			renderBattleBackground();
-		}
-		else
-		{
-			renderToTexture();
-		}
+		renderScene();
 			
-		bbg.doTick();
+		battleGroup.battleBackground.doTick();
 		
 		mFPSCounter.logEndFrame();
 	}
 
-	private int mSurfaceVerticalOffset = 0;
+	
+	int outputScaler = 1;
+	int outputPadding = 0;
+	
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
-		
-		/*
 		mSurfaceWidth = width;
 		mSurfaceHeight = height;
-		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
 		
 		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
 		float textureRatio = 256.0f / 224.0f;
 		
-		Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, 0.0f, 2.0f);	// configure projection matrix
+		mSurfaceHorizontalOffset = 0;
+		mSurfaceVerticalOffset = 0;
+		mLetterBoxSize = 0.0f;
 		
-		//Matrix.scaleM(mProjMatrix, 0, 1, 224.0f / 256.0f, 1); // scale it vertically to match the 256x224 texture
-		//Matrix.scaleM(mProjMatrix, 0, 256.0f / 224.0f, 256.0f / 224.0f, 1); // expand x and y to fill output
-		Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
-		*/
-		
-		
-		
-		mSurfaceWidth = width;
-		mSurfaceHeight = height;
-		
-		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight); // does nothing; gets set later
-		
-		// TODO: this was done all sloppy; the output looks acceptable (it's only marginally off), but it's liable
-		// to break down the road on different screens... this needs to be corrected at some point
-		
-		float surfaceRatio = (float) mSurfaceWidth / mSurfaceHeight;
-		float textureRatio = 256.0f / 224.0f;
+		boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", false);
 		
 		if(surfaceRatio == textureRatio) // thumbnail
 		{
 			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 		}
-		else if(surfaceRatio < textureRatio)
+		else if(surfaceRatio < textureRatio) // portrait
 		{
-			boolean letterbox = false;
+			// letter box output (scale height to nearest multiple of 224 < screen height)
 			
-			if(letterbox)
+			outputScaler = mSurfaceHeight / 224;
+			
+			if(outputScaler < 1) outputScaler = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
+			
+			outputPadding = (height - outputScaler * 224) / 2;
+			
+			if(enableLetterboxing == false && outputPadding > 0)
 			{
-				// letter box output (scale height to nearest multiple of 224 < screen height)
+				outputScaler += 1;
+				outputPadding = 0;
+			}
+
+			//if(enableLetterboxing && outputPadding >= 56) outputScaler += 1; // 56 + 56 = 112 = half the unscaled vertical output size
+
+			int bestWidthFit = outputScaler * 256;
+			int bestHeightFit = outputScaler * 224;
+			
+			mSurfaceWidth = bestWidthFit;
+			mSurfaceHeight = bestHeightFit;
+			mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+			mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
+		
+			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+		}
+		else // landscape
+		{
+			if(enableLetterboxing)
+			{
+				int multiples = mSurfaceWidth / 256;
 				
-				if(height >= 224 )
-				{
-					int multiples = mSurfaceHeight / 224;
-					
-					int bestFit = multiples * 224;
-					
-					float ratio = (float)mSurfaceHeight;
-					
-					mSurfaceWidth = (int)(width);
-					mSurfaceHeight = bestFit;
-					mSurfaceVerticalOffset = (height - bestFit) / 2;
-				}
+				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
 				
+				int bestWidthFit = multiples * 256;
+				int bestHeightFit = multiples * 224;
 				
-				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+				mSurfaceWidth = bestWidthFit;
+				mSurfaceHeight = bestHeightFit;
+				mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+				mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
 				
-				//Matrix.scaleM(mProjMatrix, 0, 1.0f, 1.0f, 1.0f);
-				
+				Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 			}
 			else
 			{
-				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);	// configure projection matrix
+				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);
 			}
-			
-			
-		}
-		else
-		{
-			int multiples = mSurfaceHeight / 224;
-			
-			int bestFit = multiples * 224;
-			
-			float ratio = (float)mSurfaceHeight;
-			
-			mSurfaceWidth = (int)(width);
-			mSurfaceHeight = bestFit;
-			mSurfaceVerticalOffset = (height - bestFit) / 2;
-			
-			Matrix.orthoM(mProjMatrix, 0, -surfaceRatio, surfaceRatio, -1.0f, 1.0f, -1.0f, 1.0f);
-			Matrix.scaleM(mProjMatrix, 0, textureRatio, 1, 1);
 		}
 	}
 	
-	private void setupQuad()
+	private void setupScreenQuad()
 	{
 		float quadVertices[] =
 		{
@@ -344,14 +343,13 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				.asFloatBuffer(); 
 		textureOutputBuffer.put(textureMapFlip);
 		textureOutputBuffer.position(0);
-		
 	}
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
 		//queryGl(unused);
 		
-		setupQuad();
+		setupScreenQuad();
 		
 		GLES20.glClearColor( 0.0f, 0.0f, 0.0f, 1.0f );	// set surface background color
 		GLES20.glDisable(GLES20.GL_DITHER); // dithering causes really crappy/distracting visual artifacts when distorting the textures
@@ -399,8 +397,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / sharedPreferences.getInt("intFramerate", 60); // SharedPreference
-		mHighRes = sharedPreferences.getBoolean("boolNativeResolution", false); // SharedPreference
+		frameTime = 1000 / 60; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
+		
+		
+		Log.i(TAG, "Surface created");
 	}
 	
 	private void updateShaderVariables()
@@ -408,8 +408,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		// glUniform* calls always act on the current program that is bound with glUseProgram
 		// have this method take an argument to determine which program to apply to
 		
-		Layer bg3 = bbg.getBg3();
-		Layer bg4 = bbg.getBg4();
+		Layer bg3 = battleGroup.battleBackground.getBg3();
+		Layer bg4 = battleGroup.battleBackground.getBg4();
 		
 		// update shader resolution
 		
@@ -445,19 +445,22 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{	
 		synchronized(lock) {
 			currentBackground = index;
+			Log.i(Wallpaper.TAG, "Loading battle group " + index);
+			battleGroup.load(index);
 			
-			bbg.setIndex(index);
-			
-			byte[] dataA = bbg.getBg3().getImage();
-			byte[] dataB = bbg.getBg4().getImage();
-			byte[] paletteBg3 = bbg.getBg3().getPalette();
-			byte[] paletteBg4 = bbg.getBg4().getPalette();
-			int filter = mFilterOutput ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
+			byte[] dataA = battleGroup.battleBackground.getBg3().getImage();
+			byte[] dataB = battleGroup.battleBackground.getBg4().getImage();
+			byte[] paletteBg3 = battleGroup.battleBackground.getBg3().getPalette();
+			byte[] paletteBg4 = battleGroup.battleBackground.getBg4().getPalette();
+			int filter = mFilterBackgrounds ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 			
 			//bbg.layerA.distortion.dump(0);
 			//bbg.layerA.translation.dump(0);
 			
-			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+			// http://code.google.com/p/android/issues/detail?id=6641
+			mRenderEnemies = sharedPreferences.getBoolean("enableEnemies", false); // set instance variable here once so we're not loading the preference every frame
+			boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false);
+			boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", false);
 			
 			int bufferSize;
 			int format;
@@ -474,8 +477,12 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				mTextureB = ByteBuffer.allocateDirect(bufferSize);
 			}
 			
-	        mTextureA.put(dataA).position(0);
-	        mTextureB.put(dataB).position(0);
+			try {
+		        mTextureA.put(dataA).position(0);
+		        mTextureB.put(dataB).position(0);
+			} catch(BufferOverflowException e) {
+				
+			}
 	        
 	        mPalette.position(0);
 	        mPalette.put(paletteBg3).position(0);
@@ -517,17 +524,37 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
 	        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+	      
+	        // set up output display letterbox values for the shader
 	        
-	        
-	         
-	        
-	        
+	        if(enableLetterboxing == true)
+	        {
+	        	String letterboxSize = sharedPreferences.getString("letterboxSize", null);
+	        	
+	        	if(letterboxSize.equals("variable"))
+	        	{
+	        		// attempt to include the existing extra space as a portion of the background's specified letter box
+	        		// mLetterBoxSize = (battleGroup.getLetterBoxPixelSize() - outputPadding / outputScaler);
+	        		mLetterBoxSize = battleGroup.getLetterBoxPixelSize();
+	        	}
+	        	else if(letterboxSize.equals("none")) {
+	        		mLetterBoxSize = 0;
+	        	} else if(letterboxSize.equals("small")) {
+	        		mLetterBoxSize = 48;
+	        	} else if(letterboxSize.equals("medium")) {
+	        		mLetterBoxSize = 58;
+	        	} else if(letterboxSize.equals("large")) {
+	        		mLetterBoxSize = 68;
+	        	}
+	        }
+	        else
+	        {
+	        	mLetterBoxSize = 0;
+			}
+			
 	        /* shader for effects, update program uniforms */
 			
-			mProgram = shader.getShader(bbg);
-			
-			//mProgram = createProgram(readTextFile(R.raw.aspect_vert), readTextFile(R.raw.distortion_frag));
-			if(mProgram == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+			mProgram = shader.getShader(battleGroup.battleBackground, mLetterBoxSize);
 			
 			mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 			mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
@@ -552,10 +579,79 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 			// old stuff
 			mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
 			mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
+			
+			
+			
+			/* enemy loading stuff */
+			if(mRenderEnemies)
+			{
+				byte[] spriteData = battleGroup.enemy.getBattleSprite();
+				ByteBuffer sprite = ByteBuffer.allocateDirect(spriteData.length);
+				
+		        sprite.put(spriteData).position(0);
+				
+				GLES20.glGenTextures(1, mBattleSpriteId, 0);
+				
+				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
+				
+		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, battleGroup.enemy.getBattleSpriteWidth(), battleGroup.enemy.getBattleSpriteHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, sprite);
+		        
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+				
+		        mBattleSpriteProgramId = shader.getSpriteShader();
+		        
+		        mEnemyPositionHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_position"); // a_position
+				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
+				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
+				
+				float rowOffset = 0.0f;
+				if(battleGroup.enemy.getCurrentName().equals("Giygas")) {
+					// quick hack to get the one Giygas background aligned properly in lieu of supporting multiple enemies
+					// and their rows (for now)
+					rowOffset = battleGroup.enemy.getRow() * (1.0f / 224.0f) * 32.0f;
+				}
+				
+				float x = (1.0f / 256.0f) * (battleGroup.enemy.getBattleSpriteWidth());
+				float y = (1.0f / 224.0f) * (battleGroup.enemy.getBattleSpriteHeight());
+
+				float quadVertices[] =
+				{
+					-x,	-y + rowOffset,	 0.0f,
+					 x,	-y + rowOffset,	 0.0f,
+					-x,	 y + rowOffset,	 0.0f,
+					 x,	 y + rowOffset,	 0.0f			 
+				};
+				
+				float textureMap[] =
+				{
+					0.0f,	 1.0f,
+					1.0f,	 1.0f,
+					0.0f,	 0.0f,
+					1.0f,	 0.0f 
+				};
+				
+				enemyVertexBuffer = ByteBuffer
+						.allocateDirect(quadVertices.length * 4) // float is 4 bytes
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer(); 
+				enemyVertexBuffer.put(quadVertices);
+				enemyVertexBuffer.position(0);
+				
+				enemyTextureVertexBuffer = ByteBuffer
+						.allocateDirect(textureMap.length * 4) // float is 4 bytes
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer(); 
+				enemyTextureVertexBuffer.put(textureMap);
+				enemyTextureVertexBuffer.position(0);
+			}
+			
 		}
 	}
 	
-	private void renderToTexture() // "low res" render
+	private void renderScene()
 	{
 		mRenderWidth = 256.0f;
 		mRenderHeight = 224.0f;
@@ -569,12 +665,13 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		/* it may be prudent to check the framebuffer status here before continuing... */
 		
 		renderBattleBackground();
+		if(mRenderEnemies) renderEnemy();
 		
 		/* now, try to render the texture? */
 		
 		GLES20.glUseProgram(hFXProgram);
 		
-		GLES20.glViewport(0, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
+		GLES20.glViewport(mSurfaceHorizontalOffset, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
 		
@@ -604,10 +701,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		hMVPMatrix = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");/* projection and camera */
 		
-		//GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // render to screen buffer
-		
-		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
-		
 		GLES20.glUseProgram(mProgram);
 		
 		/* load vertex positions */
@@ -633,6 +726,35 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glUniform1i(mPaletteLoc, 2);
 		
 		updateShaderVariables(); // be mindful of which active program this applies to!!
+		
+		/* apply model view projection transformation */
+		
+		GLES20.glUniformMatrix4fv(hMVPMatrix, 1, false, mProjMatrix, 0);	/* projection and camera */
+		
+		/* draw the triangles */
+		
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+	}
+	
+	private void renderEnemy()
+	{
+		hMVPMatrix = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "uMVPMatrix");/* projection and camera */
+		
+		GLES20.glUseProgram(mBattleSpriteProgramId);
+		
+		/* load vertex positions */
+		
+		GLES20.glVertexAttribPointer(mEnemyPositionHandle, 3, GLES20.GL_FLOAT, false, 12, enemyVertexBuffer);
+		GLES20.glEnableVertexAttribArray(mEnemyPositionHandle);
+		
+		/* load texture mapping */
+
+		GLES20.glVertexAttribPointer(mEnemyTextureHandle, 2, GLES20.GL_FLOAT, false, 8, enemyTextureVertexBuffer);
+		GLES20.glEnableVertexAttribArray(mEnemyTextureHandle);
+		
+		GLES20.glActiveTexture(GLES20.GL_TEXTURE3);
+		GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
+		GLES20.glUniform1i(mEnemyTextureLoc, 3);
 		
 		/* apply model view projection transformation */
 		

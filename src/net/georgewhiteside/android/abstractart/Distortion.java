@@ -145,7 +145,7 @@ public class Distortion
 	{
 		mNumberOfEffects = 0;
 		for(int i = 0; i < 4; i++) {
-			int index = ROMUtil.unsigned(distortionIndices.get(i));
+			int index = RomUtil.unsigned(distortionIndices.get(i));
 			if(index > 0)
 				mNumberOfEffects++;
 			distortionData.position(index * 17);
@@ -157,7 +157,7 @@ public class Distortion
 	
 	public int getAmplitude()
 	{
-		return ROMUtil.unsigned(data[mIndex].getShort(5));
+		return RomUtil.unsigned(data[mIndex].getShort(5));
 	}
 	
 	public int getAmplitudeDelta()
@@ -177,12 +177,12 @@ public class Distortion
 	
 	public int getDuration()
 	{
-		return ROMUtil.unsigned(data[mIndex].getShort(0));
+		return RomUtil.unsigned(data[mIndex].getShort(0));
 	}
 	
 	public int getFrequency()
 	{
-		return ROMUtil.unsigned(data[mIndex].getShort(3));
+		return RomUtil.unsigned(data[mIndex].getShort(3));
 	}
 	
 	public int getFrequencyDelta()

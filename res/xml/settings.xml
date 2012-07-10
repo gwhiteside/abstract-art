@@ -26,17 +26,40 @@
         
     </PreferenceCategory>
     
-    <PreferenceCategory android:title="@string/settings.effect_settings_title">
+    <PreferenceCategory android:title="@string/settings.appearance_title">
+        
+        <CheckBoxPreference
+            android:defaultValue="true"
+            android:key="enableEnemies"
+            android:title="@string/enable_enemies_title"
+            android:summary="@string/enable_enemies_summary" />
+        
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="enableLetterboxing"
+            android:title="@string/enable_letterboxing_title"
+            android:summary="@string/enable_letterboxing_summary" />
+        
+        <ListPreference
+            android:defaultValue="variable"
+            android:key="letterboxSize"
+            android:title="@string/letterbox_size_title"
+            android:entries="@array/letterbox_size_entries"
+            android:entryValues="@array/letterbox_size_values"
+            android:dependency="enableLetterboxing" />
+        
         <CheckBoxPreference
             android:defaultValue="true"
             android:key="enablePaletteEffects"
             android:title="@string/enable_palette_effects_title"
             android:summary="@string/enable_palette_effects_summary" />
-        <net.georgewhiteside.android.abstractart.settings.FrameRatePreference
-	        android:defaultValue="@integer/framerate_default"
+        
+        <!--net.georgewhiteside.android.abstractart.settings.FrameRatePreference
+	        android:defaultValue="60"
 	        android:key="intFramerate"
 	        android:title="@string/frame_rate_title" 
-	        android:summary="@string/frame_rate_summary" />
+	        android:summary="@string/frame_rate_summary" /-->
+        
     </PreferenceCategory>
     
     <!--PreferenceCategory android:title="@string/settings.rendering_title">

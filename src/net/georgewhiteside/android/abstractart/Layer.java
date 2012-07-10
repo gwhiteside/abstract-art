@@ -3,6 +3,7 @@ package net.georgewhiteside.android.abstractart;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.IntBuffer;
 import java.util.ArrayList;
@@ -167,7 +168,7 @@ public class Layer
 	
 	public int getPaletteCycleSpeed()
 	{
-		return ROMUtil.unsigned(bgData.get(8));
+		return RomUtil.unsigned(bgData.get(8));
 	}
 	
 	/**
@@ -226,7 +227,7 @@ public class Layer
 		// load color palette
 		
 		romData.position(0xADCD9 - OFFSET + getPaletteIndex() * 4);
-		int pPaletteData = ROMUtil.toHex(romData.getInt()) - OFFSET;
+		int pPaletteData = RomUtil.toHex(romData.getInt()) - OFFSET;
 		paletteId = pPaletteData;  // hack for disabled color effects
 		
 		
@@ -271,7 +272,7 @@ public class Layer
 	{
 		// TODO: the image data ultimately needs to be a Buffer; change the byte[] image to a ByteBuffer
 		
-		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", true); // SharedPreference
+		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false); // SharedPreference
 		String cacheFileName;
 		File cacheDir;
 		int bufferSize;
@@ -340,9 +341,13 @@ public class Layer
 	 				img.copyPixelsFromBuffer(ByteBuffer.wrap(image));
 	 				FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
 	 				img.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+	 				fileOutputStream.close();
 	 			} catch (FileNotFoundException e) {
 	 				e.printStackTrace();
-	 			}
+	 			} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
 			}
 		}
 	}
@@ -352,14 +357,14 @@ public class Layer
 		// load tile graphics
 		
 		romData.position(0xAD9A1 - OFFSET + index * 4);
-		int pTileData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		tileDataLength = ROMUtil.decompress(pTileData, tileData, TILE_MAX, romData);
+		int pTileData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		tileDataLength = RomUtil.decompress(pTileData, tileData, TILE_MAX, romData);
 		
 		// load tile arrangement data
 		
 		romData.position(0xADB3D - OFFSET + index * 4);
-		int pArrangeData = ROMUtil.toHex(romData.getInt()) - OFFSET;
-		arrangeDataLength = ROMUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
+		int pArrangeData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}
 	
 	public boolean checkIfCached(int imageNumber)

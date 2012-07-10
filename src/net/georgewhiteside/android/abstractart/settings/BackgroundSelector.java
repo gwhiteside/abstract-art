@@ -23,10 +23,14 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationSet;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.AdapterView.OnItemLongClickListener;
@@ -45,20 +49,20 @@ public class BackgroundSelector extends Activity
 	private Renderer renderer;
 	private SharedPreferences sharedPreferences;
 	private ThumbnailAdapter thumbnailAdapter;
-	private UniformGridView uniformGridView;
-	private int selectedPosition = 1;
+	private UniformGridView gridView;
+	private int selectedPosition = 0;
+	boolean renderEnemies;
 	
 	private List<Integer> backgroundList;
 	
-	private int selectionMode;
-	
-	
+	TextView nameTextView;
+	AnimationSet animationSet;
 	
 	@Override
-	public void onSaveInstanceState(Bundle outState)
+	public void onSaveInstanceState(Bundle instanceState)
 	{
-		outState.putInt("selectedPosition", selectedPosition);
-		super.onSaveInstanceState(outState);
+		// save any state here (view lost during orientation change, incoming call, etc.)
+		super.onSaveInstanceState(instanceState);
 	}
 	
 	private void loadBattleBackground(final int index)
@@ -71,23 +75,22 @@ public class BackgroundSelector extends Activity
 	}
 	
 	@Override
-	public void onCreate(Bundle savedInstanceState)
+	public void onCreate(Bundle instanceState)
 	{
-		super.onCreate(savedInstanceState);
+		super.onCreate(instanceState);
 		context = this;
 		
-		// restore any saved instance state if it exists
-		
-		if(savedInstanceState != null)
+		if(instanceState != null)
 		{
-			selectedPosition = savedInstanceState.getInt("selectedPosition", Wallpaper.MULTIPLE_BACKGROUNDS);
+			// restore any saved instance state if it exists
 		}
 		
 		setContentView(R.layout.background_selector_preference);
 		
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		selectionMode = Integer.valueOf(sharedPreferences.getString("selectionMode", Integer.toString(Wallpaper.MULTIPLE_BACKGROUNDS)));
 		
+		renderEnemies = sharedPreferences.getBoolean("enableEnemies", false);
+
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
 		renderer = new Renderer(this, selectedPosition);
@@ -99,13 +102,13 @@ public class BackgroundSelector extends Activity
 		glSurfaceView.setRenderer(renderer);
 		glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		
-		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList);
+		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList, renderEnemies);
 		
-		uniformGridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
-		uniformGridView.setColumnWidth(128);
-		uniformGridView.setAdapter(thumbnailAdapter);
-		uniformGridView.setOnItemClickListener(new GridViewOnItemClickListener());
-		uniformGridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
+		gridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
+		gridView.setColumnWidth(128);
+		gridView.setAdapter(thumbnailAdapter);
+		gridView.setOnItemClickListener(new GridViewOnItemClickListener());
+		gridView.setOnItemLongClickListener(new GridViewOnItemLongClickListener());
 		
 		// start up little corner arrow animation
 		
@@ -117,9 +120,34 @@ public class BackgroundSelector extends Activity
 		    }
 		});
 		
-		// see if we should display help screen automatically
+		// set up the cool name text animation
+		if(renderEnemies)
+		{
+			nameTextView = (TextView) findViewById(R.id.thumbnail_name);
+			
+			final Animation inAnimation = new AlphaAnimation(0.0f, 1.0f);
+			inAnimation.setDuration(500);
+	
+			final Animation outAnimation = new AlphaAnimation(1.0f, 0.0f);
+			outAnimation.setDuration(500);
+	
+			animationSet = new AnimationSet(true);
+			animationSet.addAnimation(inAnimation);
+			outAnimation.setStartOffset(1000);
+			animationSet.addAnimation(outAnimation);
+			animationSet.setFillAfter(true);
+			
+			nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(selectedPosition)));
+			nameTextView.setBackgroundColor(0x60000000);
+			nameTextView.setTextColor(0xFFFFFFFF);
+			
+			nameTextView.startAnimation(animationSet);
+		}
 		
-		checkHelpPopup(7);
+		// see if we should display help screen automatically
+		//checkHelpPopup(7);
+		
+		Toast.makeText(context, "Press menu for extra functions", Toast.LENGTH_SHORT).show();
 		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 	}
@@ -152,8 +180,6 @@ public class BackgroundSelector extends Activity
 		{
 			e.printStackTrace();
 		}
-
-		
 	}
 	
 	@Override
@@ -172,17 +198,15 @@ public class BackgroundSelector extends Activity
 	        case R.id.select_all:
 	        	List<Integer> completeList = Wallpaper.createInitialBackgroundList(renderer);
 	        	thumbnailAdapter.setBackgroundList(completeList);
-	        	thumbnailAdapter.notifyDataSetChanged();
+	        	updateVisibleCheckmarks(); //thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = completeList;
-	        	//gridView.invalidateViews();
 	            return true;
 	            
 	        case R.id.clear_all:
 	        	List<Integer> emptyList = Wallpaper.createEmptyBackgroundList(renderer);
 	        	thumbnailAdapter.setBackgroundList(emptyList);
-	        	thumbnailAdapter.notifyDataSetChanged();
+	        	updateVisibleCheckmarks(); //thumbnailAdapter.notifyDataSetChanged();
 	        	backgroundList = emptyList;
-	        	//gridView.invalidateViews();
 	            return true;
 	            
 	        case R.id.help:
@@ -194,8 +218,33 @@ public class BackgroundSelector extends Activity
 	    }
 	}
 	
+	/*
+	 * This could be done simply with notifyDataSetChanged(), but I'm doing it this way to avoid the brief
+	 * (but noticeable) redraw as the ViewSwitcher on the thumbnails kicks in momentarily.
+	 */
+	private void updateVisibleCheckmarks()
+	{
+		int first = gridView.getFirstVisiblePosition();
+		int last = gridView.getLastVisiblePosition();
+		int numVisible = last - first;
+		
+		for (int i = 0; i <= numVisible; i++)
+		{
+			View view = (View)gridView.getChildAt(i);
+			
+			if(view != null)
+			{
+				ViewHolder viewHolder = (ViewHolder) view.getTag();
+			    thumbnailAdapter.updateCheckmark(viewHolder);
+			}
+		    
+		}
+	}
+	
 	private void showHelpDialog()
 	{
+		// TODO I just jammed this in here last second to get the update to market. Do this right.
+		
 		/*WebView webView = new WebView(context);
     	webView.setBackgroundColor(0);
     	webView.loadUrl("file:///android_asset/background_selector/index.html");*/
@@ -230,17 +279,9 @@ public class BackgroundSelector extends Activity
     	dialog.show();
 	}
 	
-	public void savePreferences()
-	{
-		Editor editor = sharedPreferences.edit();
-        editor.putString("selectionMode", String.valueOf(selectionMode));
-        editor.commit();
-	}
-	
 	public void onDestroy() {  
         super.onDestroy();  
         
-        savePreferences();
         Wallpaper.saveBackgroundList(backgroundList);
         //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
     }  
@@ -255,8 +296,6 @@ public class BackgroundSelector extends Activity
 		public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
         	if(position == selectedPosition)
         	{
-        		//((ThumbnailAdapter) parent.getAdapter()).toggleItem(view, position);
-        		
         		toggleItem(view, position);
         		//Toast.makeText(context, "item " + renderer.getRomBackgroundIndex(position) + " toggled", Toast.LENGTH_SHORT).show();
         	}
@@ -264,6 +303,13 @@ public class BackgroundSelector extends Activity
         	{
         		selectedPosition = position;
         		loadBattleBackground(position);
+        		
+        		// cool fading name text
+        		if(renderEnemies)
+        		{
+	        		nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(position)));
+	        		nameTextView.startAnimation(animationSet);
+        		}
         	}
         }
 	}
@@ -271,7 +317,7 @@ public class BackgroundSelector extends Activity
 	class GridViewOnItemLongClickListener implements OnItemLongClickListener
 	{
 		public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-			Toast.makeText(context, "long click", Toast.LENGTH_SHORT).show();
+			Toast.makeText(context, "Ouch. You're squishing me.", Toast.LENGTH_SHORT).show();
 			return true; // consume the click
 		}
 	}
@@ -289,7 +335,7 @@ public class BackgroundSelector extends Activity
 		}
 		
 		ViewHolder holder = (ViewHolder) view.getTag();
-		thumbnailAdapter.setCheckmark(holder, position);
+		thumbnailAdapter.updateCheckmark(holder);
 	}
 }
 

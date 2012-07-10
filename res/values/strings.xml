@@ -11,7 +11,7 @@
     
     <string name="settings_background_selection_title">Background selection</string>
     <string name="settings.background_chooser">Background viewer</string>
-    <string name="settings.effect_settings_title">Effect settings</string>
+    <string name="settings.appearance_title">Appearance</string>
     <string name="settings.rendering_title">Rendering</string>
     <string name="settings.cache_title">Cache</string>
     <string name="settings.behavior_title">Behavior</string>
@@ -34,5 +34,10 @@
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
     <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
+    <string name="enable_letterboxing_title">Enable letterboxing</string>
+    <string name="enable_letterboxing_summary">Black borders above and below</string>
+    <string name="letterbox_size_title">Letterbox size</string>
+    <string name="enable_enemies_summary">Show enemy game sprites</string>
+    <string name="enable_enemies_title">Enable enemies</string>
     
 </resources>

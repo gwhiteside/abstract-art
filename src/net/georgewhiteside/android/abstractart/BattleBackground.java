@@ -78,6 +78,7 @@ public class BattleBackground
 	private static final int OFFSET = 0xA0200;
 	SharedPreferences sharedPreferences;
 	Context context;
+	AbstractArt abstractArt;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -89,16 +90,32 @@ public class BattleBackground
 	public Layer bg3;
 	public Layer bg4;
 	
+	// backgrounds we don't want showing up in the background viewer for one reason or another
+	private static final List<Integer> blacklist = Arrays.asList(
+		// things I just don't want to include for the moment
+		9,		// skate punk; already exists (in our currently incomplete enemy loader)
+		11,		// skate punk; already exists (in our currently incomplete enemy loader)
+		371,	// fobby; already exists (in our currently incomplete enemy loader)
+		
+		// things I probably never want to include in the list
+		0,		// (unused) spiteful crow (3); blank background
+		425,	// magic butterfly; blank
+		473,	// starman jr.; blank
+		481,	// magic butterfly??
+		483		// giygas; blank
+	);
+	
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
 	 */
 	public BattleBackground(Context context)
 	{
 		this.context = context;
-		InputStream input = context.getResources().openRawResource(R.raw.bgbank);
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+		abstractArt = (AbstractArt)context.getApplicationContext();
 		
-		loadData(input);
+		romData = abstractArt.loadData(R.raw.bgbank);
+		
 		processLayerTable();
 
 		bg3 = new Layer(romData, context);
@@ -134,25 +151,7 @@ public class BattleBackground
 		return layerTable.length;
 	}
 	
-	private void loadData(InputStream input)
-	{
-		// TODO: rewrite data loader
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
-		
-		int bytesRead;
-		byte[] buffer = new byte[16384];
-		
-		try {
-			while((bytesRead = input.read(buffer)) != -1) {
-				output.write(buffer, 0, bytesRead);
-			}
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		romData = ByteBuffer.wrap(output.toByteArray());
-		romData.order(ByteOrder.LITTLE_ENDIAN);
-	}
+	
 	
 	/**
 	 * Loads the background layer combination table and cleans it up.
@@ -178,6 +177,8 @@ public class BattleBackground
 		{
 			short value0 = romData.getShort();
 			short value1 = romData.getShort();
+			
+			if(blacklist.contains(Integer.valueOf(i))) continue;
 			
 			boolean isUnique = true;
 			for(int j = 0; j < uniqueCount; j++)
@@ -230,7 +231,7 @@ public class BattleBackground
 		return images;
 	}
 	
-	protected int getRomBackgroundIndex(int address)
+	public int getRomBackgroundIndex(int address)
 	{
 		//return currentRomBackgroundIndex;
 		return layerTable[address][2];
