@@ -72,6 +72,14 @@
 
     </PreferenceCategory-->
     
+    <PreferenceCategory android:title="@string/settings_about_title">
+        
+        <Preference
+            android:key="changelog"
+            android:title="@string/listpref_title_changelog" />
+
+    </PreferenceCategory>
+    
     <PreferenceCategory android:title="@string/settings.cache_title">
         
         <net.georgewhiteside.android.abstractart.settings.CreateImageCachePreference

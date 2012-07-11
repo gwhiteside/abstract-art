@@ -1,0 +1,77 @@
+<html>
+<head>
+  <style type='text/css'>
+    ahb            { color:#e0d020 }
+    a            { color:#e09818 }
+    div.title    { 
+        color:#00b080; 
+        font-size:1.2em; 
+        font-weight:bold; 
+        margin-top:1em; 
+        margin-bottom:0.5em; 
+        text-align:center }
+    div.subtitle { 
+        color:#009070; 
+        font-size:0.8em; 
+        margin-bottom:1em; 
+        text-align:center }
+    div.freetext { color:#f0f0f0 }
+    div.list     { color:#7070f0 }
+  </style>
+</head>
+<body>
+
+$ 0.10.0
+  % 0.10.0 (Beautiful UFO)
+  _ July 11, 2012
+    * incorporated Karsten Priegnitz's handy <a href="http://code.google.com/p/android-change-log/">ChangeLog</a> class
+
+$ 0.9.3 (Criminal Caterpillar)
+  % 0.9.3 (Criminal Caterpillar)
+  _ July 10, 2012
+    * FINALLY squashed the "backgrounds running at super speed" and "enemy sprite crash" bugs
+
+$ 0.9.0 (Criminal Caterpillar)
+  % 0.9.0 (Criminal Caterpillar)
+  _ May 15, 2012
+    * can now display enemy sprites
+    * can now do letterboxing
+    * fixed rendering aspect ratio finally
+    * fixed a large responsiveness bottleneck in the image chooser
+    * fixed an occasional bug where a thumbnail wouldn't update until scrolled out of and back into view
+
+$ 0.8.1 (Criminal Caterpillar)
+  % 0.8.1 (Criminal Caterpillar)
+  _ May 2, 2012
+    * dressed up playlist chooser with a more Earthboundy-looking theme
+    * now properly cropping background textures to 256x224 (source textures are 256x256)
+    * minor internal corrections
+
+$ 0.7.0 (Criminal Caterpillar)
+  % 0.7.0 (Criminal Caterpillar)
+  _ April 24, 2012
+    * upgraded background viewer into a playlist chooser as per feedback requests
+    * published <a href="https://github.com/gwhiteside/abstract-art">source code</a> on GitHub
+
+$ 0.6.0 (Criminal Caterpillar)
+  % 0.6.0 (Criminal Caterpillar)
+  _ April 18, 2012
+    * first public (alpha) release
+
+$ 0.5.0
+  % Formative years
+  _ February 08 - April 17, 2012
+    * code evolved, basic background effects were implemented
+    * moved from application to service at some point, incorporating Ben Gruver's <a href="https://github.com/JesusFreke/GLWallpaperService">GLWallpaperService</a> class
+    * preferences added
+    * background selector GUI took shape
+
+$ 0.1.0
+  % Birthday
+  _ February 08, 2012
+    * project's humble beginnings as an Android OpenGL ES 2.0 demo exercise
+    
+$ END_OF_CHANGE_LOG
+
+</body>
+</html>

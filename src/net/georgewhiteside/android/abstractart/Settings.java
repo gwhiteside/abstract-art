@@ -2,6 +2,8 @@ package net.georgewhiteside.android.abstractart;
 
 import java.util.Map;
 
+import sheetrock.panda.changelog.ChangeLog;
+
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -16,6 +18,7 @@ import android.widget.Toast;
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
 {
 	private SharedPreferences sharedPreferences;
+	private ChangeLog changelog;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState)
@@ -26,6 +29,20 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    addPreferencesFromResource(R.xml.settings);
 	    
 	    initSummaries(getPreferenceScreen());
+	    
+	    changelog = new ChangeLog(this);
+	    
+	    final Preference changelogPref = (Preference) getPreferenceManager().findPreference("changelog");
+	    changelogPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {            
+            public boolean onPreferenceClick(Preference preference) {
+                changelog.getFullLogDialog().show();
+                return true;
+            }
+	    });
+	    
+	    if(changelog.firstRun()) {
+	        changelog.getLogDialog().show();
+	    }
 	}
 	
 	@Override
