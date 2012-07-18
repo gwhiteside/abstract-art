@@ -41,6 +41,8 @@
     <string name="enable_enemies_summary">Show enemy game sprites</string>
     <string name="enable_enemies_title">Enable enemies</string>
     <string name="listpref_title_changelog">Changelog</string>
+    <string name="listpref_title_contact">Contact the author</string>
+    <string name="listpref_title_donate">Donate</string>
     
     <string name="changelog_full_title">Changelog</string>
     <string name="changelog_title">What\'s New</string>

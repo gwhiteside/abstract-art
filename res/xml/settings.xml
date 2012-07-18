@@ -77,6 +77,14 @@
         <Preference
             android:key="changelog"
             android:title="@string/listpref_title_changelog" />
+        
+        <Preference
+            android:key="contact"
+            android:title="@string/listpref_title_contact" />
+        
+        <Preference
+            android:key="donate"
+            android:title="@string/listpref_title_donate" />
 
     </PreferenceCategory>
     

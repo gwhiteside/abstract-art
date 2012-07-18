@@ -4,8 +4,10 @@ import java.util.Map;
 
 import sheetrock.panda.changelog.ChangeLog;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -32,6 +34,8 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    
 	    changelog = new ChangeLog(this);
 	    
+	    // set up changelog preference 
+	    
 	    final Preference changelogPref = (Preference) getPreferenceManager().findPreference("changelog");
 	    changelogPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {            
             public boolean onPreferenceClick(Preference preference) {
@@ -39,6 +43,41 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
                 return true;
             }
 	    });
+	    
+	    // set up donate link
+	    
+	    final Preference donatePref = (Preference) getPreferenceManager().findPreference("donate");
+	    donatePref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {            
+            public boolean onPreferenceClick(Preference preference) {
+                // try to launch google play to view donate app; if it fails (not installed, etc.) launch the browser version
+                final String appName = "net.georgewhiteside.android.abstractartarabicaataraxis";
+                try {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + appName)));
+                } catch (android.content.ActivityNotFoundException e) {
+                    startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("http://play.google.com/store/apps/details?id=" + appName)));
+                }
+                return true;
+            }
+        });
+	    
+	    // set up contact author preference
+	    
+	    final Preference contactPref = (Preference) getPreferenceManager().findPreference("contact");
+	    contactPref.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {            
+            public boolean onPreferenceClick(Preference preference) {
+                Intent send = new Intent(Intent.ACTION_SENDTO);
+                String uriText;
+
+                uriText = "mailto:george@georgewhiteside.net" + 
+                          "?subject=Abstract Art";
+                uriText = uriText.replace(" ", "%20");
+                Uri uri = Uri.parse(uriText);
+
+                send.setData(uri);
+                startActivity(Intent.createChooser(send, "Send mail..."));
+                return true;
+            }
+        });
 	    
 	    if(changelog.firstRun()) {
 	        changelog.getLogDialog().show();

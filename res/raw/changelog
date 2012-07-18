@@ -23,7 +23,10 @@
 
 $ 0.10.0
   % 0.10.0 (Beautiful UFO)
-  _ July 11, 2012
+  _ July 18, 2012
+    * created a <a href="https://play.google.com/store/apps/details?id=net.georgewhiteside.android.abstractartarabicaataraxis">donate version</a> due to popular demand
+    * added author contact link in preferences
+    * fixed a scrolling bug affecting a small handful of backgrounds
     * incorporated Karsten Priegnitz's handy <a href="http://code.google.com/p/android-change-log/">ChangeLog</a> class
 
 $ 0.9.3 (Criminal Caterpillar)
