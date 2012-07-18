@@ -14,8 +14,8 @@
     <string name="settings.appearance_title">Appearance</string>
     <string name="settings.rendering_title">Rendering</string>
     <string name="settings.cache_title">Cache</string>
-    <string name="settings.behavior_title">Behavior</string>
-    <string name="settings_about_title">About</string>
+    <string name="settings.options_title">Options</string>
+    <string name="settings_misc_title">Miscellaneous</string>
     
     <string name="selection_mode_title">Selection mode</string>
     <string name="selection_mode_summary">How background changes are decided</string>

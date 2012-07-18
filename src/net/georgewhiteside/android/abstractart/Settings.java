@@ -1,7 +1,5 @@
 package net.georgewhiteside.android.abstractart;
 
-import java.util.Map;
-
 import sheetrock.panda.changelog.ChangeLog;
 
 import android.content.Intent;
@@ -14,7 +12,6 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
@@ -74,8 +71,9 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
                 Uri uri = Uri.parse(uriText);
 
                 send.setData(uri);
-                startActivity(Intent.createChooser(send, "Send mail..."));
+                startActivity(Intent.createChooser(send, "Send e-mail"));
                 return true;
+                
             }
         });
 	    
