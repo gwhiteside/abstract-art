@@ -222,6 +222,7 @@ public class BattleBackground
 	{
 		bg3.loadLayer(A);
 		bg4.loadLayer(B);
+		Log.d(TAG, "loaded layers: " + A + ", " + B);
 	}
 	
 	public int getCacheableImagesTotal()

@@ -92,10 +92,10 @@ public class Translation
 		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0)
 		{
 			//float time = getDuration() - mTranslationDuration;
-			float time;
+			float time = mTicker;
 			
-			if(getDuration() != 0) time = mTicker % getDuration();
-			else time = mTicker;
+			//if(getDuration() != 0) time = mTicker % getDuration();
+			//else time = mTicker;
 			
 			mHorizontalOffset = mHorizontalInitial + mHorizontalVelocity * time + 0.5f * mHorizontalAcceleration * time * time;
 			mVerticalOffset = mVerticalInitial + mVerticalVelocity * time + 0.5f * mVerticalAcceleration * time * time;
@@ -119,6 +119,8 @@ public class Translation
 					mIndex = 0;
 					mTicker = 0;
 				}
+				
+				mTicker = 0; // bug fix?
 				
 				setIndex(mIndex);
 			}
