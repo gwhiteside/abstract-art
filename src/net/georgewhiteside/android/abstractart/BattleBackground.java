@@ -57,13 +57,7 @@ SNES BG3 (main) and BG4 (sub)
 
 // spiteful crow entry rom location: 0xAE930
 
-// TODO: background 34 doesn't render correctly, related to cycling code?
-// fixed xTODO: background index 59 (layer index 43) incorrect, keeps increasing each iteration
-// TODO: is 31(21) correct? must be some sort of skew parameter possibly...? also, should it have the very slight jump? see http://youtu.be/9XGrP7zrVUE?t=3m44s
-// TODO: 129 & 130 are pretty glitchy
-// TODO: layers working on droid x: 33 34 63 84 95 110 224 225 227(briefly) 286 320
-// TODO: background index 223 works briefly, then breaks? effect 0 is fine, effect 1 is fine, then the transition to 2 breaks
-// TODO: layer 304 305 is screwy
+// TODO: is layer 21 (mobile sprout, bg45 in selector) correct? must be some sort of skew parameter possibly...? also, should it have the very slight jump? see http://youtu.be/9XGrP7zrVUE?t=3m44s update: looks correct according to zsnes; check game hardware (or bsnes) just in case
 
 // 0BDA9A-0BE229 (000790) = Battle Group BG Association Data
 
