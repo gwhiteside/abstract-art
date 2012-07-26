@@ -21,6 +21,11 @@
 </head>
 <body>
 
+$ 0.10.1
+  % 0.10.1 (Beautiful UFO)
+  _ July 26, 2012
+    * landscape orientation fixes: aspect ratio, scaling, and garbage at sides of screen (thank you for the report, Squishie!)
+
 $ 0.10.0
   % 0.10.0 (Beautiful UFO)
   _ July 18, 2012

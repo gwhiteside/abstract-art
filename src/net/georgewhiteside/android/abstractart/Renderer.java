@@ -222,10 +222,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 
-	
-	int outputScaler = 1;
-	int outputPadding = 0;
-	
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
 		mSurfaceWidth = width;
@@ -238,63 +234,30 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mSurfaceVerticalOffset = 0;
 		mLetterBoxSize = 0.0f;
 		
-		boolean enableLetterboxing = sharedPreferences.getBoolean("enableLetterboxing", false);
+		if(surfaceRatio == textureRatio) // thumbnail hack (won't scale if someone actually uses an 8:7 screen ratio)
+		{
+			
+		}
+		else
+		{
+		    int outputScaler = 1;
+		    
+		    if(surfaceRatio > textureRatio)
+		        outputScaler = (int)(mSurfaceWidth / 256) + 1; // landscape
+		    
+		    if(surfaceRatio < textureRatio)
+		        outputScaler = (int)(mSurfaceHeight / 224) + 1; //portrait
+		    
+		    int bestWidthFit = outputScaler * 256;
+            int bestHeightFit = outputScaler * 224;
+            
+            mSurfaceWidth = bestWidthFit;
+            mSurfaceHeight = bestHeightFit;
+            mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+            mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
+		}
 		
-		if(surfaceRatio == textureRatio) // thumbnail
-		{
-			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-		}
-		else if(surfaceRatio < textureRatio) // portrait
-		{
-			// letter box output (scale height to nearest multiple of 224 < screen height)
-			
-			outputScaler = mSurfaceHeight / 224;
-			
-			if(outputScaler < 1) outputScaler = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
-			
-			outputPadding = (height - outputScaler * 224) / 2;
-			
-			if(enableLetterboxing == false && outputPadding > 0)
-			{
-				outputScaler += 1;
-				outputPadding = 0;
-			}
-
-			//if(enableLetterboxing && outputPadding >= 56) outputScaler += 1; // 56 + 56 = 112 = half the unscaled vertical output size
-
-			int bestWidthFit = outputScaler * 256;
-			int bestHeightFit = outputScaler * 224;
-			
-			mSurfaceWidth = bestWidthFit;
-			mSurfaceHeight = bestHeightFit;
-			mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
-			mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
-		
-			Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-		}
-		else // landscape
-		{
-			if(enableLetterboxing)
-			{
-				int multiples = mSurfaceWidth / 256;
-				
-				if(multiples < 1) multiples = 1; // just a super-quick-dirty way of avoiding the rare case that a surface is less than 224 pixels in height
-				
-				int bestWidthFit = multiples * 256;
-				int bestHeightFit = multiples * 224;
-				
-				mSurfaceWidth = bestWidthFit;
-				mSurfaceHeight = bestHeightFit;
-				mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
-				mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
-				
-				Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
-			}
-			else
-			{
-				Matrix.orthoM(mProjMatrix, 0, -surfaceRatio / textureRatio, surfaceRatio / textureRatio, -1.0f, 1.0f, -1.0f, 1.0f);
-			}
-		}
+		Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	}
 	
 	private void setupScreenQuad()
