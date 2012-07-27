@@ -14,7 +14,8 @@
     <string name="settings.appearance_title">Appearance</string>
     <string name="settings.rendering_title">Rendering</string>
     <string name="settings.cache_title">Cache</string>
-    <string name="settings.behavior_title">Behavior</string>
+    <string name="settings.options_title">Options</string>
+    <string name="settings_misc_title">Miscellaneous</string>
     
     <string name="selection_mode_title">Selection mode</string>
     <string name="selection_mode_summary">How background changes are decided</string>
@@ -39,5 +40,14 @@
     <string name="letterbox_size_title">Letterbox size</string>
     <string name="enable_enemies_summary">Show enemy game sprites</string>
     <string name="enable_enemies_title">Enable enemies</string>
+    <string name="listpref_title_changelog">Changelog</string>
+    <string name="listpref_title_contact">Contact the author</string>
+    <string name="listpref_title_donate">Donate</string>
+    
+    <string name="changelog_full_title">Changelog</string>
+    <string name="changelog_title">What\'s New</string>
+    <string name="changelog_ok_button">OK</string>
+    <string name="changelog_show_full">More&#8230;</string>
+    
     
 </resources>
