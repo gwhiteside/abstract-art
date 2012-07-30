@@ -163,9 +163,11 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public Renderer(Context context)
 	{
+	    AbstractArt aa = new AbstractArt();
+	    
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		battleGroup = new BattleGroup(context);
+		battleGroup = new BattleGroup(context, aa.loadData(R.raw.mother2data).order(ByteOrder.LITTLE_ENDIAN));
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -177,8 +179,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		currentBackground = -1;
 		persistBackgroundSelection = false;
-		
-		Log.i(TAG, "Renderer created");
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)

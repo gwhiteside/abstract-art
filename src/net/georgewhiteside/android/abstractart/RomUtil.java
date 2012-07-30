@@ -247,11 +247,11 @@ public final class RomUtil
 	
 	public static int toHex(int address)
 	{
-		return address - 0xC00000 + 0x200;
+		return address - 0xC00000;
 	}
 	
 	public static int toSnes(int address)
 	{
-		return address + 0xC00000 - 0x200;
+		return address + 0xC00000;
 	}
 }

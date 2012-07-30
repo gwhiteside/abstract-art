@@ -31,16 +31,10 @@ public class Enemy
 	Context context;
 	AbstractArt abstractArt;
 	
-	private static final int GRAPHICS_CHUNK_OFFSET = 0xD0200;
 	private static final int GRAPHICS = 0xD0200;
 	private static final int POINTER_TABLE = 0xE64EE;
 	private static final int PALETTES = 0xE6714;
 	//private static final int NUM_GRAPHIC_ENTRIES = 110;
-	
-	private static final int ATTRIBUTES_CHUNK_OFFSET = 0x159789;
-	private static final int ATTRIBUTES = 0x159789;
-	private static final int NUM_ATTRIBUTE_ENTRIES = 231;
-	private static final int ATTRIBUTE_ENTRY_LEN = 94;
 	
 	private int currentIndex;
 	
@@ -66,15 +60,13 @@ public class Enemy
         new Dimension(128, 128)
 	};
 	
-	ByteBuffer spriteData;
-	ByteBuffer attributeData;
+	ByteBuffer romData;
 	
-	public Enemy(Context context)
+	public Enemy(Context context, ByteBuffer romData)
 	{
 		this.context = context;
 		abstractArt = (AbstractArt)context.getApplicationContext();
-		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
-		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
+		this.romData = romData;
 		currentIndex = -1;
 	}
 	
@@ -121,8 +113,8 @@ public class Enemy
 			return mName;
 		}
 		
-		attributeData.position(enemyIndex * 94);
-		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		romData.position(enemyIndex * 94);
+		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		
@@ -166,14 +158,14 @@ public class Enemy
 		
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
-		spriteData.position(GRAPHICS - GRAPHICS_CHUNK_OFFSET);
-		ByteBuffer graphics = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		romData.position(GRAPHICS);
+		ByteBuffer graphics = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
-		spriteData.position(POINTER_TABLE - GRAPHICS_CHUNK_OFFSET);
-		ByteBuffer pointerTable = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		romData.position(POINTER_TABLE);
+		ByteBuffer pointerTable = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 
 		pointerTable.position(spriteIndex * 5);
-		int pSpriteData = RomUtil.toHex(pointerTable.getInt()) - GRAPHICS_CHUNK_OFFSET;
+		int pSpriteData = RomUtil.toHex(pointerTable.getInt());
 		dimensions = DIMENSIONS[pointerTable.get()];
 		
 		if(cacheFile.exists())
@@ -269,8 +261,8 @@ public class Enemy
 	
 	private void loadAttributes(int enemyIndex)
 	{
-		attributeData.position(enemyIndex * 94);
-		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
+	    romData.position(enemyIndex * 94);
+		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		
@@ -283,8 +275,8 @@ public class Enemy
 		
 		int paletteNum = attributes.get(0x35);
 		Log.i(TAG, mName + " palette number: " + paletteNum);
-		spriteData.position(PALETTES - GRAPHICS_CHUNK_OFFSET);
-		ShortBuffer paletteData = spriteData.asShortBuffer().slice();
+		romData.position(PALETTES);
+		ShortBuffer paletteData = romData.asShortBuffer().slice();
 		
 		paletteData.position(paletteNum * 16);
 		

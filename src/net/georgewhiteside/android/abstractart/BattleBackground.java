@@ -1,24 +1,9 @@
 package net.georgewhiteside.android.abstractart;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -40,13 +25,6 @@ Animation Bank
 0BDA9A-0BE229 (000790) = Battle Group BG Association Data
 */
 
-
-/*
-2012-02-22: added scrolling background effects
-			added scrolling background effect cycling
-			added distortion effect cycling
-*/
-
 /*
 
 SNES BG3 (main) and BG4 (sub)
@@ -54,8 +32,6 @@ SNES BG3 (main) and BG4 (sub)
 "In all modes and for all BGs, color 0 in any palette is considered transparent."
  
 */
-
-// spiteful crow entry rom location: 0xAE930
 
 // TODO: is layer 21 (mobile sprout, bg45 in selector) correct? must be some sort of skew parameter possibly...? also, should it have the very slight jump? see http://youtu.be/9XGrP7zrVUE?t=3m44s update: looks correct according to zsnes; check game hardware (or bsnes) just in case
 
@@ -70,9 +46,7 @@ public class BattleBackground
 {
 	private static final String TAG = "BattleBackground";
 	private static final int OFFSET = 0xA0200;
-	SharedPreferences sharedPreferences;
 	Context context;
-	AbstractArt abstractArt;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -102,13 +76,10 @@ public class BattleBackground
 	/**
 	 * @param input an <code>InputStream</code> from which to read ROM battle background data
 	 */
-	public BattleBackground(Context context)
+	public BattleBackground(Context context, ByteBuffer romData)
 	{
 		this.context = context;
-		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		abstractArt = (AbstractArt)context.getApplicationContext();
-		
-		romData = abstractArt.loadData(R.raw.bgbank).order(ByteOrder.LITTLE_ENDIAN);
+		this.romData = romData;
 		
 		processLayerTable();
 

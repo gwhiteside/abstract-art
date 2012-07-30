@@ -18,8 +18,6 @@ import android.graphics.Bitmap.CompressFormat;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-// TODO: scrolling bug on background 227?
-
 // layers with second palette cycle: 60 61 (probably others, haven't checked them all)
 
 /*
@@ -32,16 +30,9 @@ public class Layer
 {
 	private final String TAG = "Layer";
 	private ByteBuffer romData;
-	private static final int OFFSET = 0xA0200;
 	
 	private Context context;
 	private SharedPreferences sharedPreferences;
-	
-	//private static final int ATTRIBUTES = 0xADEA1 - OFFSET;
-	
-	//private byte[] bgData = new byte[17];
-	//private short[][] scrollingData = new short[4][5];
-	//private byte[][] distortionData = new byte[4][17];
 	
 	private ByteBuffer bgData;
 	
@@ -203,19 +194,19 @@ public class Layer
 
 		// load background attribute data
 		
-		romData.position(0xADEA1 - OFFSET + index * 17);
+		romData.position(0xADEA1 + index * 17);
 		bgData = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		//Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		
-		romData.position(0xAF458 - OFFSET);
+		romData.position(0xAF458);
 		bgData.position(9);
 		if(translation == null)
 			translation = new Translation(romData.slice(), bgData.slice());
 		else
 			translation.load(romData.slice(), bgData.slice());
 		
-		romData.position(0xAF908 - OFFSET);
+		romData.position(0xAF908);
 		bgData.position(13);
 		if(distortion == null)
 			distortion = new Distortion(romData.slice(), bgData.slice());
@@ -228,8 +219,8 @@ public class Layer
 		
 		// load color palette
 		
-		romData.position(0xADCD9 - OFFSET + getPaletteIndex() * 4);
-		int pPaletteData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		romData.position(0xADCD9 + getPaletteIndex() * 4);
+		int pPaletteData = RomUtil.toHex(romData.getInt());
 		paletteId = pPaletteData;  // hack for disabled color effects
 		
 		
@@ -358,14 +349,14 @@ public class Layer
 	{
 		// load tile graphics
 		
-		romData.position(0xAD9A1 - OFFSET + index * 4);
-		int pTileData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		romData.position(0xAD9A1 + index * 4);
+		int pTileData = RomUtil.toHex(romData.getInt());
 		tileDataLength = RomUtil.decompress(pTileData, tileData, TILE_MAX, romData);
 		
 		// load tile arrangement data
 		
-		romData.position(0xADB3D - OFFSET + index * 4);
-		int pArrangeData = RomUtil.toHex(romData.getInt()) - OFFSET;
+		romData.position(0xADB3D + index * 4);
+		int pArrangeData = RomUtil.toHex(romData.getInt());
 		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}
 	

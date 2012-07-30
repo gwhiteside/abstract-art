@@ -24,12 +24,12 @@ public class BattleGroup
 	private int letterBoxSize = LETTER_BOX_NONE;
 	private int enemyIndex = 0;
 	
-	public BattleGroup(Context context)
+	public BattleGroup(Context context, ByteBuffer romData)
 	{
 		this.context = context;
 		abstractArt = (AbstractArt)context.getApplicationContext();
-		battleBackground = new BattleBackground(context);
-		enemy = new Enemy(context);
+		battleBackground = new BattleBackground(context, romData);
+		enemy = new Enemy(context, romData);
 		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);;
 		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);;
 	}
