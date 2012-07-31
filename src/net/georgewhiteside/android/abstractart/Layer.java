@@ -36,7 +36,7 @@ public class Layer
 	
 	private ByteBuffer bgData;
 	
-	public static final int BG_TILE_POINTERS = 0xAD7A1;     // Battle BGs: Graphics Pointer Table
+	public static final int BG_TILE_POINTERS = 0xAD7A1;        // Battle BGs: Graphics Pointer Table
 	public static final int BG_ARRANGEMENT_POINTERS = 0xAD93D; // Battle BGs: Arrangement Pointer Table
 	public static final int BG_PALETTE_POINTERS = 0xADAD9;     // Battle BGs: Palette Pointer Table
 	public static final int BG_RENDERING_DATA = 0xADCA1;       // Battle BGs: Rendering Data

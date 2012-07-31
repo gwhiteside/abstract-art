@@ -125,44 +125,6 @@ public class Translation
 				setIndex(mIndex);
 			}
 		}
-
-		/*
-		if(mTranslationDuration != 0)
-		{
-			mTranslationDuration--;
-			
-			float time = getDuration() - mTranslationDuration;
-			
-			//mHorizontalVelocity += (float)getHorizontalAcceleration() / 256.0f;
-			mHorizontalVelocity = 0 + getHorizontalAcceleration() / 256.0f * time;
-			mHorizontalOffset = 0 + getHorizontalVelocity() * time + 0.5f * getHorizontalAcceleration() * time * time;
-			
-			mVerticalVelocity += (float)getVerticalAcceleration() / 256.0f;
-			mVerticalOffset += mVerticalVelocity;
-			
-			if(mTranslationDuration == 0)
-			{
-				float hcarry = mHorizontalOffset;
-				float vcarry = mVerticalOffset;
-				
-				mIndex++;
-				
-				if(mIndex >= mNumberOfTranslations)
-				{
-					mIndex = 0;
-					mHorizontalVelocity = 0;
-					mVerticalVelocity = 0;
-				}
-				
-				setIndex(mIndex);
-				
-				mHorizontalOffset = hcarry;
-				mVerticalOffset = vcarry;
-				
-				
-			}
-			
-		}*/
 	}
 	
 	public void dump(int index)
