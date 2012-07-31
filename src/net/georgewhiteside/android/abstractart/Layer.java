@@ -36,6 +36,13 @@ public class Layer
 	
 	private ByteBuffer bgData;
 	
+	public static final int BG_TILE_POINTERS = 0xAD7A1;     // Battle BGs: Graphics Pointer Table
+	public static final int BG_ARRANGEMENT_POINTERS = 0xAD93D; // Battle BGs: Arrangement Pointer Table
+	public static final int BG_PALETTE_POINTERS = 0xADAD9;     // Battle BGs: Palette Pointer Table
+	public static final int BG_RENDERING_DATA = 0xADCA1;       // Battle BGs: Rendering Data
+	public static final int BG_SCROLL_DATA = 0xAF258;          // Battle BGs: Scroll Table
+	public static final int BG_DISTORTION_DATA = 0xAF708;      // Battle BGs: Distortion Table
+	
 	// max sizes were computed in advance; no need to waste time making
 	// multiple decompression passes to determine sizes, and no need
 	// to constantly reallocate graphic buffers
@@ -194,19 +201,19 @@ public class Layer
 
 		// load background attribute data
 		
-		romData.position(0xADEA1 + index * 17);
+		romData.position(BG_RENDERING_DATA + index * 17);
 		bgData = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		//Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		
-		romData.position(0xAF458);
+		romData.position(BG_SCROLL_DATA);
 		bgData.position(9);
 		if(translation == null)
 			translation = new Translation(romData.slice(), bgData.slice());
 		else
 			translation.load(romData.slice(), bgData.slice());
 		
-		romData.position(0xAF908);
+		romData.position(BG_DISTORTION_DATA);
 		bgData.position(13);
 		if(distortion == null)
 			distortion = new Distortion(romData.slice(), bgData.slice());
@@ -215,11 +222,9 @@ public class Layer
 		
 		//Log.d(TAG, String.format("bbg: %d: image %d: %02X %02X %02X %02X", index, getImageIndex(), distortionData[0].get(2), distortionData[1].get(2), distortionData[2].get(2), distortionData[3].get(2)));
 		
-		
-		
 		// load color palette
 		
-		romData.position(0xADCD9 + getPaletteIndex() * 4);
+		romData.position(BG_PALETTE_POINTERS + getPaletteIndex() * 4);
 		int pPaletteData = RomUtil.toHex(romData.getInt());
 		paletteId = pPaletteData;  // hack for disabled color effects
 		
@@ -349,13 +354,13 @@ public class Layer
 	{
 		// load tile graphics
 		
-		romData.position(0xAD9A1 + index * 4);
+		romData.position(BG_TILE_POINTERS + index * 4);
 		int pTileData = RomUtil.toHex(romData.getInt());
 		tileDataLength = RomUtil.decompress(pTileData, tileData, TILE_MAX, romData);
 		
 		// load tile arrangement data
 		
-		romData.position(0xADB3D + index * 4);
+		romData.position(BG_ARRANGEMENT_POINTERS + index * 4);
 		int pArrangeData = RomUtil.toHex(romData.getInt());
 		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}

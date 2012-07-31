@@ -45,8 +45,10 @@ SNES BG3 (main) and BG4 (sub)
 public class BattleBackground
 {
 	private static final String TAG = "BattleBackground";
-	private static final int OFFSET = 0xA0200;
 	Context context;
+	
+	public static final int ENEMY_BG_TABLE = 0xBD89A; // Battle Group BG Association Data
+	public static final int ENEMY_BG_TABLE_ENTRIES = 484;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -131,14 +133,13 @@ public class BattleBackground
 	 */
 	private void processLayerTable()
 	{
-		romData.position(0xBDA9A - OFFSET);
+		romData.position(ENEMY_BG_TABLE);
 		
-		final int MAX_ENTRIES = 484;
 		int uniqueCount = 0;
 		
-		short[][] buffer = new short[MAX_ENTRIES][3];
+		short[][] buffer = new short[ENEMY_BG_TABLE_ENTRIES][3];
 		
-		for(int i = 0; i < MAX_ENTRIES; i++)
+		for(int i = 0; i < ENEMY_BG_TABLE_ENTRIES; i++)
 		{
 			short value0 = romData.getShort();
 			short value1 = romData.getShort();

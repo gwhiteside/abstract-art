@@ -147,7 +147,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public void setRandomBackground()
 	{
-		int number = Wallpaper.random.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
+		int number = rand.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
 	
@@ -163,11 +163,11 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public Renderer(Context context)
 	{
-	    AbstractArt aa = new AbstractArt();
+	    AbstractArt abstractArt = (AbstractArt)context.getApplicationContext();
 	    
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		battleGroup = new BattleGroup(context, aa.loadData(R.raw.mother2data).order(ByteOrder.LITTLE_ENDIAN));
+		battleGroup = new BattleGroup(context, abstractArt.loadData(R.raw.mother2data).order(ByteOrder.LITTLE_ENDIAN));
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);

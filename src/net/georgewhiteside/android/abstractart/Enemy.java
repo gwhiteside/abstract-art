@@ -29,11 +29,11 @@ public class Enemy
 {
 	private static final String TAG = "Enemy";
 	Context context;
-	AbstractArt abstractArt;
 	
-	private static final int GRAPHICS = 0xD0200;
-	private static final int POINTER_TABLE = 0xE64EE;
-	private static final int PALETTES = 0xE6714;
+	private static final int GRAPHICS = 0xD0000;               // Battle Sprites Graphics
+	private static final int POINTER_TABLE = 0xE62EE;          // Battle Sprites Pointer Table
+	private static final int PALETTES = 0xE6514;               // Battle Sprites Palettes
+	private static final int ENEMY_ATTRIBUTE_DATA = 0x159589;  // Enemy Configuration Table
 	//private static final int NUM_GRAPHIC_ENTRIES = 110;
 	
 	private int currentIndex;
@@ -65,7 +65,6 @@ public class Enemy
 	public Enemy(Context context, ByteBuffer romData)
 	{
 		this.context = context;
-		abstractArt = (AbstractArt)context.getApplicationContext();
 		this.romData = romData;
 		currentIndex = -1;
 	}
@@ -113,7 +112,7 @@ public class Enemy
 			return mName;
 		}
 		
-		romData.position(enemyIndex * 94);
+		romData.position(ENEMY_ATTRIBUTE_DATA + enemyIndex * 94);
 		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
@@ -261,7 +260,7 @@ public class Enemy
 	
 	private void loadAttributes(int enemyIndex)
 	{
-	    romData.position(enemyIndex * 94);
+	    romData.position(ENEMY_ATTRIBUTE_DATA + enemyIndex * 94);
 		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
@@ -305,10 +304,6 @@ public class Enemy
 		
 		int spriteIndex = attributes.getShort(0x1c);
 		
-		// TODO: loadBattleSprite has been crashing for several people (line 174, pointerTable.position(spriteIndex * 5);) but I can't reproduce
-		// the problem on either of my phones. It only seems to be this part with the enemy loading, the backgrounds themselves have worked fine 
-		// for a while. SO, until I can find a device that has this problem, I'm just going to have to check to make sure the index is <= 110
-		// so we don't get crazy out of bounds exceptions. I have no idea why that's happening.
 		if(spriteIndex > 0 && spriteIndex <= 110) loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
 		else loadInvisibleSprite();
 		
