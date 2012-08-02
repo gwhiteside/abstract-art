@@ -73,8 +73,6 @@ public class ShaderFactory
 		"uniform sampler2D bg4_texture;\n" +
 		"uniform sampler2D s_palette;\n" +
 	
-		"uniform vec2 resolution;\n" +
-	
 		"uniform int bg3_dist_type;\n" +
 		"uniform vec3 bg3_dist;\n" +
 		"uniform vec4 bg3_palette;\n" +
@@ -154,7 +152,7 @@ public class ShaderFactory
 				"void main()\n" +
 				"{\n" +
 				"    float y = v_texCoord.y * 256.0;\n" + 
-				"    if(y < " + letterBoxSize + " || y > 224.0 - " + letterBoxSize + ") { gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0); } else {";
+				"    if(v_texCoord.y < " + letterBoxSize / 256.0f + " || v_texCoord.y > 0.875 - " + letterBoxSize / 256.0f + ") { gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0); } else {";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -195,12 +193,12 @@ public class ShaderFactory
 									break;
 									
 								case 3:
-									fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
+									fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, 256.0);\n";
 									break;
 									
 								case 4:
 									fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
-														id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
+														id + "offset.x += (y * (" + id + "compression / 256.0));\n";
 									break;
 							}
 						}
@@ -213,12 +211,12 @@ public class ShaderFactory
 													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
 												
 												"} else if(" + id + "dist_type == 3) {\n" +
-													id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n" +
+													id + "offset.y = mod(" + id + "distortion_offset, 256.0);\n" +
 												"}\n" +
 												
 												"if(" + id + "dist_type == 4) {\n" +
 													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
-													id + "offset.x += (y * (" + id + "compression / resolution.y));\n" +
+													id + "offset.x += (y * (" + id + "compression / 256.0));\n" +
 												"}\n";
 						}
 					}
@@ -228,7 +226,7 @@ public class ShaderFactory
 					
 					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
 					{
-						fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n";
+						fragmentShader += id + "offset.y += (y * (" + id + "compression / 256.0));\n";
 					}
 					
 					// layer scrolling
@@ -241,7 +239,7 @@ public class ShaderFactory
 					
 					// divide offset down to correct range
 					
-					fragmentShader += id + "offset /= resolution;\n";
+					fragmentShader += id + "offset /= vec2(256.0);\n";
 					
 					if(enablePaletteEffects == true) {
 						
@@ -355,7 +353,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		//Log.d("shader", fragmentShader);
+		Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }

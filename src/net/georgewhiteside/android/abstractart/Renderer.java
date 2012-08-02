@@ -76,8 +76,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
-	private float mRenderWidth;
-	private float mRenderHeight;
 	
 	private int mSurfaceVerticalOffset = 0;
 	private int mSurfaceHorizontalOffset = 0;
@@ -374,10 +372,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		Layer bg3 = battleGroup.battleBackground.getBg3();
 		Layer bg4 = battleGroup.battleBackground.getBg4();
 		
-		// update shader resolution
-		
-		GLES20.glUniform2f(mResolutionLoc, mRenderWidth, mRenderHeight);
-		
 		// update distortion effect variables for the shader program
 		
 		GLES20.glUniform1i(mBg3DistTypeLoc, bg3.distortion.getType());
@@ -616,9 +610,6 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private void renderScene()
 	{
-		mRenderWidth = 256.0f;
-		mRenderHeight = 224.0f;
-		
 		GLES20.glViewport(0, 0, 256, 224);	// render to native texture size, scale up later
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
