@@ -232,20 +232,20 @@ public class Wallpaper extends GLWallpaperService
 		
 		private boolean detectPaletteBug()
 		{
+		    // we need to make sure that enemies aren't drawn for this test, but we don't want to clobber the default/previous
+            // value for the preference, so we're saving it, setting it false, performing the test, then restoring the old value
+            
+            Editor editor = sharedPreferences.edit();
+            boolean originalEnableEnemiesValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
+            boolean originalEnablePaletteEffectsValue = sharedPreferences.getBoolean("enablePaletteEffects", false);
+            editor.putBoolean("enableEnemies", false); // explicitly disable enemy drawing
+            editor.putBoolean("enablePaletteEffects", true); // and enable palette effects
+            editor.commit();
+            
 			int width = 256, height = 256;
 			GLOffscreenSurface glOffscreenSurface = new GLOffscreenSurface(width, height);
 			glOffscreenSurface.setEGLContextClientVersion(2);
  			glOffscreenSurface.setRenderer(renderer);
-			
-			// we need to make sure that enemies aren't drawn for this test, but we don't want to clobber the default/previous
-			// value for the preference, so we're saving it, setting it false, performing the test, then restoring the old value
-			
-			Editor editor = sharedPreferences.edit();
-			boolean originalEnableEnemiesValue = sharedPreferences.getBoolean("enableEnemies", false); // grab original preference value
-			boolean originalEnablePaletteEffectsValue = sharedPreferences.getBoolean("enablePaletteEffects", false);
-			editor.putBoolean("enableEnemies", false); // explicitly disable enemy drawing
-			editor.putBoolean("enablePaletteEffects", true); // and enable palette effects
-			editor.commit();
 			
 			renderer.loadBattleBackground(1); // load up a test background
  			Bitmap thumbnail = glOffscreenSurface.getBitmap();

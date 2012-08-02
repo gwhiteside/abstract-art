@@ -306,6 +306,8 @@ public class Layer
 				// can cause a crash on rare occasions ... mainly when adding new features ;)
 				// SO, just trapping any potential problems here so I don't get slowed down
 				try {
+				    BitmapFactory.Options opts = new BitmapFactory.Options();
+			        opts.inDither = false;
 					Bitmap img = BitmapFactory.decodeFile(cacheFile.getPath());
 					img.copyPixelsToBuffer(buffer);
 					img.recycle();
