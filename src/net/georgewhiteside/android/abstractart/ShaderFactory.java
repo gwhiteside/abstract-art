@@ -239,7 +239,7 @@ public class ShaderFactory
 					
 					// divide offset down to correct range
 					
-					fragmentShader += id + "offset /= vec2(256.0);\n";
+					fragmentShader += id + "offset *= 0.00390625;\n"; // divide by 256
 					
 					if(enablePaletteEffects == true) {
 						
@@ -353,7 +353,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		Log.d("shader", fragmentShader);
+		//Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }

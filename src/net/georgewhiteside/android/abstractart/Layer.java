@@ -306,7 +306,9 @@ public class Layer
 				// can cause a crash on rare occasions ... mainly when adding new features ;)
 				// SO, just trapping any potential problems here so I don't get slowed down
 				try {
-					BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(buffer);
+					Bitmap img = BitmapFactory.decodeFile(cacheFile.getPath());
+					img.copyPixelsToBuffer(buffer);
+					img.recycle();
 				}
 				catch(Exception e) {
 					Log.e("AbstractArt", "Couldn't open " + cacheFile.getPath() + " ... resuming with blank texture");
