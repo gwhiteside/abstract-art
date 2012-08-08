@@ -247,11 +247,12 @@ public class ShaderFactory
 						
 						// get palette index
 						
-						fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r * 256.0;\n";
+						fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r;\n";
+						fragmentShader += id + "index *= 256.0;\n";
 						
 						// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
 						
-						fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
+						//fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
 						
 						// add palette cycling code if required
 					
