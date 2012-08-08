@@ -6,30 +6,32 @@ import java.util.ArrayList;
 import java.util.List;
 
 import android.content.Context;
-import android.util.Log;
 
 public class BattleGroup
 {
 	private Context context;
+	private AbstractArt abstractArt;
 	public BattleBackground battleBackground;
 	public Enemy enemy;
 	
-	private ByteBuffer romData;
+	private ByteBuffer enemyBattleGroupPointers;
+	private ByteBuffer enemyBattleGroupData;
 	
 	public static final int LETTER_BOX_NONE = 0, LETTER_BOX_SMALL = 1, LETTER_BOX_MEDIUM = 2, LETTER_BOX_LARGE = 3;
 	
-	private static final int ENEMY_BATTLE_GROUP_POINTERS = 0x10C60D;   // Enemy Battle Groups Pointer Table
-	private static final int ENEMY_BATTLE_GROUP_DATA = 0x10D52D;       // Enemy Battle Groups Table
+	private static final int ENEMY_BATTLE_GROUP_DATA_OFFSET = 0x10D72D;
 	
 	private int letterBoxSize = LETTER_BOX_NONE;
 	private int enemyIndex = 0;
 	
-	public BattleGroup(Context context, ByteBuffer romData)
+	public BattleGroup(Context context)
 	{
 		this.context = context;
-		this.romData = romData;
-		battleBackground = new BattleBackground(context, romData);
-		enemy = new Enemy(context, romData);
+		abstractArt = (AbstractArt)context.getApplicationContext();
+		battleBackground = new BattleBackground(context);
+		enemy = new Enemy(context);
+		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);;
+		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);;
 	}
 	
 	public int getCurrentEnemyIndex()
@@ -43,10 +45,12 @@ public class BattleGroup
 	public int getEnemyIndex(int battleGroupIndex)
 	{
 		int trueIndex = battleBackground.getRomBackgroundIndex(battleGroupIndex); // necessary so long as we prune the background list of "duplicates"
-		romData.position(ENEMY_BATTLE_GROUP_POINTERS + trueIndex * 8);
-		int pBattleGroup = RomUtil.toHex(romData.getInt());
-		romData.position(pBattleGroup + 1); // skip first byte of entry (number of "this enemy"s that appear)
-		int myEnemyIndex = RomUtil.unsigned(romData.getShort()); // enemy table index of enemy to appear
+		ByteBuffer myEnemyBattleGroupPointers = enemyBattleGroupPointers.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+		myEnemyBattleGroupPointers.position(trueIndex * 8);
+		int pBattleGroup = RomUtil.toHex(myEnemyBattleGroupPointers.getInt()) - ENEMY_BATTLE_GROUP_DATA_OFFSET;
+		ByteBuffer myEnemyBattleGroupData = enemyBattleGroupData.duplicate().order(ByteOrder.LITTLE_ENDIAN);
+		myEnemyBattleGroupData.position(pBattleGroup + 1); // skip first byte of entry (number of "this enemy"s that appear)
+		int myEnemyIndex = RomUtil.unsigned(myEnemyBattleGroupData.getShort()); // enemy table index of enemy to appear
 		
 		return myEnemyIndex;
 	}
@@ -78,21 +82,23 @@ public class BattleGroup
 		// for future reference, there are "duplicate" backgrounds that actually have different enemy groups,
 		// and multiple enemies could be rendered for some of the battle groups
 		
-		romData.position(ENEMY_BATTLE_GROUP_POINTERS + trueIndex * 8);
-		int pBattleGroup = RomUtil.toHex(romData.getInt());
-		romData.getShort(); // flag identifier (short value)
-		romData.get(); // run away when flag is... (boolean value)
-		letterBoxSize = RomUtil.unsigned(romData.get()); // letterbox size; corresponds to LETTER_BOX_* defined in this class
+		enemyBattleGroupPointers.position(trueIndex * 8);
+		int pBattleGroup = RomUtil.toHex(enemyBattleGroupPointers.getInt()) - ENEMY_BATTLE_GROUP_DATA_OFFSET;
+		enemyBattleGroupPointers.getShort(); // flag identifier (short value)
+		enemyBattleGroupPointers.get(); // run away when flag is... (boolean value)
+		letterBoxSize = RomUtil.unsigned(enemyBattleGroupPointers.get()); // letterbox size; corresponds to LETTER_BOX_* defined in this class
 		
 		// using the pointer we just retrieved, read the data from the enemy battle group data table
 		
-		romData.position(pBattleGroup);
+		enemyBattleGroupData.position(pBattleGroup);
 		//List<Integer> enemyBattleGroup = new ArrayList<Integer>();
 		int amount = 0;
 		
-		amount = RomUtil.unsigned(romData.get());
-		enemyIndex = RomUtil.unsigned(romData.getShort());
+		amount = RomUtil.unsigned(enemyBattleGroupData.get());
+		enemyIndex = RomUtil.unsigned(enemyBattleGroupData.getShort());
 		
 		enemy.load(enemyIndex);
+		
+		
 	}
 }

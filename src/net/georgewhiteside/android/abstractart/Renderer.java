@@ -76,6 +76,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
+	private float mRenderWidth;
+	private float mRenderHeight;
 	
 	private int mSurfaceVerticalOffset = 0;
 	private int mSurfaceHorizontalOffset = 0;
@@ -145,7 +147,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public void setRandomBackground()
 	{
-		int number = rand.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
+		int number = Wallpaper.random.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
 	
@@ -161,11 +163,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public Renderer(Context context)
 	{
-	    AbstractArt abstractArt = (AbstractArt)context.getApplicationContext();
-	    
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		battleGroup = new BattleGroup(context, abstractArt.loadData(R.raw.mother2data).order(ByteOrder.LITTLE_ENDIAN));
+		battleGroup = new BattleGroup(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -177,6 +177,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		currentBackground = -1;
 		persistBackgroundSelection = false;
+		
+		Log.i(TAG, "Renderer created");
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -371,6 +373,10 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		Layer bg3 = battleGroup.battleBackground.getBg3();
 		Layer bg4 = battleGroup.battleBackground.getBg4();
+		
+		// update shader resolution
+		
+		GLES20.glUniform2f(mResolutionLoc, mRenderWidth, mRenderHeight);
 		
 		// update distortion effect variables for the shader program
 		
@@ -610,6 +616,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private void renderScene()
 	{
+		mRenderWidth = 256.0f;
+		mRenderHeight = 224.0f;
+		
 		GLES20.glViewport(0, 0, 256, 224);	// render to native texture size, scale up later
 		
 		GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);

@@ -18,6 +18,8 @@ import android.graphics.Bitmap.CompressFormat;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+// TODO: scrolling bug on background 227?
+
 // layers with second palette cycle: 60 61 (probably others, haven't checked them all)
 
 /*
@@ -30,18 +32,18 @@ public class Layer
 {
 	private final String TAG = "Layer";
 	private ByteBuffer romData;
+	private static final int OFFSET = 0xA0200;
 	
 	private Context context;
 	private SharedPreferences sharedPreferences;
 	
-	private ByteBuffer bgData;
+	//private static final int ATTRIBUTES = 0xADEA1 - OFFSET;
 	
-	public static final int BG_TILE_POINTERS = 0xAD7A1;        // Battle BGs: Graphics Pointer Table
-	public static final int BG_ARRANGEMENT_POINTERS = 0xAD93D; // Battle BGs: Arrangement Pointer Table
-	public static final int BG_PALETTE_POINTERS = 0xADAD9;     // Battle BGs: Palette Pointer Table
-	public static final int BG_RENDERING_DATA = 0xADCA1;       // Battle BGs: Rendering Data
-	public static final int BG_SCROLL_DATA = 0xAF258;          // Battle BGs: Scroll Table
-	public static final int BG_DISTORTION_DATA = 0xAF708;      // Battle BGs: Distortion Table
+	//private byte[] bgData = new byte[17];
+	//private short[][] scrollingData = new short[4][5];
+	//private byte[][] distortionData = new byte[4][17];
+	
+	private ByteBuffer bgData;
 	
 	// max sizes were computed in advance; no need to waste time making
 	// multiple decompression passes to determine sizes, and no need
@@ -201,19 +203,19 @@ public class Layer
 
 		// load background attribute data
 		
-		romData.position(BG_RENDERING_DATA + index * 17);
+		romData.position(0xADEA1 - OFFSET + index * 17);
 		bgData = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		//Log.d(TAG, String.format("layer %d (image %d) bytes 3-8: %02X %02X %02X %02X %02X %02X", index, getImageIndex(), bgData.get(3), bgData.get(4), bgData.get(5), bgData.get(6), bgData.get(7), bgData.get(8)));
 		
-		romData.position(BG_SCROLL_DATA);
+		romData.position(0xAF458 - OFFSET);
 		bgData.position(9);
 		if(translation == null)
 			translation = new Translation(romData.slice(), bgData.slice());
 		else
 			translation.load(romData.slice(), bgData.slice());
 		
-		romData.position(BG_DISTORTION_DATA);
+		romData.position(0xAF908 - OFFSET);
 		bgData.position(13);
 		if(distortion == null)
 			distortion = new Distortion(romData.slice(), bgData.slice());
@@ -222,10 +224,12 @@ public class Layer
 		
 		//Log.d(TAG, String.format("bbg: %d: image %d: %02X %02X %02X %02X", index, getImageIndex(), distortionData[0].get(2), distortionData[1].get(2), distortionData[2].get(2), distortionData[3].get(2)));
 		
+		
+		
 		// load color palette
 		
-		romData.position(BG_PALETTE_POINTERS + getPaletteIndex() * 4);
-		int pPaletteData = RomUtil.toHex(romData.getInt());
+		romData.position(0xADCD9 - OFFSET + getPaletteIndex() * 4);
+		int pPaletteData = RomUtil.toHex(romData.getInt()) - OFFSET;
 		paletteId = pPaletteData;  // hack for disabled color effects
 		
 		
@@ -306,11 +310,7 @@ public class Layer
 				// can cause a crash on rare occasions ... mainly when adding new features ;)
 				// SO, just trapping any potential problems here so I don't get slowed down
 				try {
-				    BitmapFactory.Options opts = new BitmapFactory.Options();
-			        opts.inDither = false;
-					Bitmap img = BitmapFactory.decodeFile(cacheFile.getPath());
-					img.copyPixelsToBuffer(buffer);
-					img.recycle();
+					BitmapFactory.decodeFile(cacheFile.getPath()).copyPixelsToBuffer(buffer);
 				}
 				catch(Exception e) {
 					Log.e("AbstractArt", "Couldn't open " + cacheFile.getPath() + " ... resuming with blank texture");
@@ -358,14 +358,14 @@ public class Layer
 	{
 		// load tile graphics
 		
-		romData.position(BG_TILE_POINTERS + index * 4);
-		int pTileData = RomUtil.toHex(romData.getInt());
+		romData.position(0xAD9A1 - OFFSET + index * 4);
+		int pTileData = RomUtil.toHex(romData.getInt()) - OFFSET;
 		tileDataLength = RomUtil.decompress(pTileData, tileData, TILE_MAX, romData);
 		
 		// load tile arrangement data
 		
-		romData.position(BG_ARRANGEMENT_POINTERS + index * 4);
-		int pArrangeData = RomUtil.toHex(romData.getInt());
+		romData.position(0xADB3D - OFFSET + index * 4);
+		int pArrangeData = RomUtil.toHex(romData.getInt()) - OFFSET;
 		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}
 	

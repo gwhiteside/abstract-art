@@ -33,8 +33,6 @@ public class ImageLoader extends Thread
 	private GLOffscreenSurface glOffscreenSurface;
 	private Renderer renderer;
 	
-	BitmapFactory.Options opts;
-	
 	public ImageLoader(Context context, Renderer renderer, GLOffscreenSurface glOffscreenSurface, ImageLoadListener lListener, boolean renderEnemies)
 	{
 		this.context = context;
@@ -42,11 +40,6 @@ public class ImageLoader extends Thread
 		this.renderer = renderer;
 		this.glOffscreenSurface = glOffscreenSurface;
 		this.renderEnemies = renderEnemies;
-		
-		opts = new BitmapFactory.Options();
-        opts.inDither = false;
-        opts.inPurgeable = true;
-        opts.inInputShareable = true;
 	}
 	
 	@Override
@@ -75,11 +68,9 @@ public class ImageLoader extends Thread
 			public void run()
 			{
 				if(holder.index != position) return;
-
-				Bitmap thumbnail = BitmapFactory.decodeFile(cacheFile.getPath(), opts);
-				if(mListener != null) mListener.onImageLoaded(holder, thumbnail, position);
 				
-				thumbnail = null;
+				Bitmap thumbnail = BitmapFactory.decodeFile(cacheFile.getPath());
+				if(mListener != null) mListener.onImageLoaded(holder, thumbnail, position);
 			}
 		});
 	}
@@ -114,15 +105,13 @@ public class ImageLoader extends Thread
 		 			
 		 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
 		 			
-					FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
-					thumbnail.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
-					fileOutputStream.close();
-	 			
-					// thumbnail cached correctly; poke the UI thread right in its callback
-					
-					if(mListener != null) mListener.onImageLoaded(holder, thumbnail, position);
-					
-					thumbnail = null;
+						FileOutputStream fileOutputStream = new FileOutputStream(cacheFile);
+						thumbnail.compress(CompressFormat.PNG, 80, fileOutputStream); // quality is irrelevant for PNGs
+						fileOutputStream.close();
+		 			
+						// thumbnail cached correctly; poke the UI thread right in its callback
+						
+						if(mListener != null) mListener.onImageLoaded(holder, thumbnail, position);
 				}
 				catch (FileNotFoundException e)
 				{

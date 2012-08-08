@@ -29,12 +29,18 @@ public class Enemy
 {
 	private static final String TAG = "Enemy";
 	Context context;
+	AbstractArt abstractArt;
 	
-	private static final int GRAPHICS = 0xD0000;               // Battle Sprites Graphics
-	private static final int POINTER_TABLE = 0xE62EE;          // Battle Sprites Pointer Table
-	private static final int PALETTES = 0xE6514;               // Battle Sprites Palettes
-	private static final int ENEMY_ATTRIBUTE_DATA = 0x159589;  // Enemy Configuration Table
+	private static final int GRAPHICS_CHUNK_OFFSET = 0xD0200;
+	private static final int GRAPHICS = 0xD0200;
+	private static final int POINTER_TABLE = 0xE64EE;
+	private static final int PALETTES = 0xE6714;
 	//private static final int NUM_GRAPHIC_ENTRIES = 110;
+	
+	private static final int ATTRIBUTES_CHUNK_OFFSET = 0x159789;
+	private static final int ATTRIBUTES = 0x159789;
+	private static final int NUM_ATTRIBUTE_ENTRIES = 231;
+	private static final int ATTRIBUTE_ENTRY_LEN = 94;
 	
 	private int currentIndex;
 	
@@ -60,12 +66,15 @@ public class Enemy
         new Dimension(128, 128)
 	};
 	
-	ByteBuffer romData;
+	ByteBuffer spriteData;
+	ByteBuffer attributeData;
 	
-	public Enemy(Context context, ByteBuffer romData)
+	public Enemy(Context context)
 	{
 		this.context = context;
-		this.romData = romData;
+		abstractArt = (AbstractArt)context.getApplicationContext();
+		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
+		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
 		currentIndex = -1;
 	}
 	
@@ -112,8 +121,8 @@ public class Enemy
 			return mName;
 		}
 		
-		romData.position(ENEMY_ATTRIBUTE_DATA + enemyIndex * 94);
-		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		attributeData.position(enemyIndex * 94);
+		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		
@@ -157,14 +166,14 @@ public class Enemy
 		
 		File cacheFile = new File(cacheDir, cacheFileName);
 		
-		romData.position(GRAPHICS);
-		ByteBuffer graphics = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		spriteData.position(GRAPHICS - GRAPHICS_CHUNK_OFFSET);
+		ByteBuffer graphics = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
-		romData.position(POINTER_TABLE);
-		ByteBuffer pointerTable = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		spriteData.position(POINTER_TABLE - GRAPHICS_CHUNK_OFFSET);
+		ByteBuffer pointerTable = spriteData.slice().order(ByteOrder.LITTLE_ENDIAN);
 
 		pointerTable.position(spriteIndex * 5);
-		int pSpriteData = RomUtil.toHex(pointerTable.getInt());
+		int pSpriteData = RomUtil.toHex(pointerTable.getInt()) - GRAPHICS_CHUNK_OFFSET;
 		dimensions = DIMENSIONS[pointerTable.get()];
 		
 		if(cacheFile.exists())
@@ -260,8 +269,8 @@ public class Enemy
 	
 	private void loadAttributes(int enemyIndex)
 	{
-	    romData.position(ENEMY_ATTRIBUTE_DATA + enemyIndex * 94);
-		ByteBuffer attributes = romData.slice().order(ByteOrder.LITTLE_ENDIAN);
+		attributeData.position(enemyIndex * 94);
+		ByteBuffer attributes = attributeData.slice().order(ByteOrder.LITTLE_ENDIAN);
 		
 		// load name
 		
@@ -274,8 +283,8 @@ public class Enemy
 		
 		int paletteNum = attributes.get(0x35);
 		Log.i(TAG, mName + " palette number: " + paletteNum);
-		romData.position(PALETTES);
-		ShortBuffer paletteData = romData.asShortBuffer().slice();
+		spriteData.position(PALETTES - GRAPHICS_CHUNK_OFFSET);
+		ShortBuffer paletteData = spriteData.asShortBuffer().slice();
 		
 		paletteData.position(paletteNum * 16);
 		
@@ -304,6 +313,10 @@ public class Enemy
 		
 		int spriteIndex = attributes.getShort(0x1c);
 		
+		// TODO: loadBattleSprite has been crashing for several people (line 174, pointerTable.position(spriteIndex * 5);) but I can't reproduce
+		// the problem on either of my phones. It only seems to be this part with the enemy loading, the backgrounds themselves have worked fine 
+		// for a while. SO, until I can find a device that has this problem, I'm just going to have to check to make sure the index is <= 110
+		// so we don't get crazy out of bounds exceptions. I have no idea why that's happening.
 		if(spriteIndex > 0 && spriteIndex <= 110) loadBattleSprite(spriteIndex - 1); // in the game ROM a value of 0 is reserved for "invisible," no actual sprite data is loaded
 		else loadInvisibleSprite();
 		

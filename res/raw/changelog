@@ -21,12 +21,6 @@
 </head>
 <body>
 
-$ 0.10.2
-  % 0.10.2 (Beautiful UFO)
-  _ August 2, 2012
-    * fixed a very minor rendering accuracy issue
-    * removed some very minor cruft from the rendering pipeline
-
 $ 0.10.1
   % 0.10.1 (Beautiful UFO)
   _ July 26, 2012
