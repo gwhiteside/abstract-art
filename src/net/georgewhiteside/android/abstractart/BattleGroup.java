@@ -1,5 +1,8 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -10,7 +13,6 @@ import android.content.Context;
 public class BattleGroup
 {
 	private Context context;
-	private AbstractArt abstractArt;
 	public BattleBackground battleBackground;
 	public Enemy enemy;
 	
@@ -27,11 +29,10 @@ public class BattleGroup
 	public BattleGroup(Context context)
 	{
 		this.context = context;
-		abstractArt = (AbstractArt)context.getApplicationContext();
 		battleBackground = new BattleBackground(context);
 		enemy = new Enemy(context);
-		enemyBattleGroupPointers = abstractArt.loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);;
-		enemyBattleGroupData = abstractArt.loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);;
+		enemyBattleGroupPointers = loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);
+		enemyBattleGroupData = loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);
 	}
 	
 	public int getCurrentEnemyIndex()
@@ -100,5 +101,29 @@ public class BattleGroup
 		enemy.load(enemyIndex);
 		
 		
+	}
+	
+	public ByteBuffer loadData(int rawResource)
+	{
+		// TODO: rewrite data loader
+		ByteBuffer romData;
+		
+		InputStream input = context.getResources().openRawResource(rawResource);
+		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		
+		int bytesRead;
+		byte[] buffer = new byte[16384];
+		
+		try {
+			while((bytesRead = input.read(buffer)) != -1) {
+				output.write(buffer, 0, bytesRead);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		romData = ByteBuffer.wrap(output.toByteArray());
+		
+		return romData;
 	}
 }

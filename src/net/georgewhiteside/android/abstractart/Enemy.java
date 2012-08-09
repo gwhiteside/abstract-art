@@ -1,9 +1,11 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -29,7 +31,6 @@ public class Enemy
 {
 	private static final String TAG = "Enemy";
 	Context context;
-	AbstractArt abstractArt;
 	
 	private static final int GRAPHICS_CHUNK_OFFSET = 0xD0200;
 	private static final int GRAPHICS = 0xD0200;
@@ -72,9 +73,8 @@ public class Enemy
 	public Enemy(Context context)
 	{
 		this.context = context;
-		abstractArt = (AbstractArt)context.getApplicationContext();
-		spriteData = abstractArt.loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
-		attributeData = abstractArt.loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
+		spriteData = loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
+		attributeData = loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
 		currentIndex = -1;
 	}
 	
@@ -325,5 +325,28 @@ public class Enemy
 		}
 	}
 	
+	public ByteBuffer loadData(int rawResource)
+	{
+		// TODO: rewrite data loader
+		ByteBuffer romData;
+		
+		InputStream input = context.getResources().openRawResource(rawResource);
+		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		
+		int bytesRead;
+		byte[] buffer = new byte[16384];
+		
+		try {
+			while((bytesRead = input.read(buffer)) != -1) {
+				output.write(buffer, 0, bytesRead);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		romData = ByteBuffer.wrap(output.toByteArray());
+		
+		return romData;
+	}
 
 }

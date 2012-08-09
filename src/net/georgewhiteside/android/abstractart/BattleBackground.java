@@ -72,7 +72,6 @@ public class BattleBackground
 	private static final int OFFSET = 0xA0200;
 	SharedPreferences sharedPreferences;
 	Context context;
-	AbstractArt abstractArt;
 	
 	private ByteBuffer romData;
 	private int currentIndex;
@@ -106,9 +105,8 @@ public class BattleBackground
 	{
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		abstractArt = (AbstractArt)context.getApplicationContext();
 		
-		romData = abstractArt.loadData(R.raw.bgbank).order(ByteOrder.LITTLE_ENDIAN);
+		romData = loadData(R.raw.bgbank).order(ByteOrder.LITTLE_ENDIAN);
 		
 		processLayerTable();
 
@@ -230,6 +228,30 @@ public class BattleBackground
 	{
 		//return currentRomBackgroundIndex;
 		return layerTable[address][2];
+	}
+	
+	public ByteBuffer loadData(int rawResource)
+	{
+		// TODO: rewrite data loader
+		ByteBuffer romData;
+		
+		InputStream input = context.getResources().openRawResource(rawResource);
+		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		
+		int bytesRead;
+		byte[] buffer = new byte[16384];
+		
+		try {
+			while((bytesRead = input.read(buffer)) != -1) {
+				output.write(buffer, 0, bytesRead);
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		romData = ByteBuffer.wrap(output.toByteArray());
+		
+		return romData;
 	}
 	
 	

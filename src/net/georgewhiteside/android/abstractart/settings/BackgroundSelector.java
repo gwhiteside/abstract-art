@@ -93,7 +93,7 @@ public class BackgroundSelector extends Activity
 
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
-		renderer = new Renderer(this, selectedPosition);
+		renderer = new Renderer(context, selectedPosition);
 		renderer.setPersistBackgroundSelection(true);
 		
 		backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
@@ -147,7 +147,7 @@ public class BackgroundSelector extends Activity
 		// see if we should display help screen automatically
 		//checkHelpPopup(7);
 		
-		Toast.makeText(context, "Press menu for extra functions", Toast.LENGTH_SHORT).show();
+		Toast.makeText(getApplicationContext(), "Press menu for extra functions", Toast.LENGTH_SHORT).show();
 		
 		//ViewServer.get(this).addWindow(this); // TODO REMOVE THIS
 	}
@@ -281,7 +281,7 @@ public class BackgroundSelector extends Activity
 	
 	public void onDestroy() {  
         super.onDestroy();  
-        
+        thumbnailAdapter.cleanup();
         Wallpaper.saveBackgroundList(backgroundList);
         //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
     }  
@@ -297,7 +297,7 @@ public class BackgroundSelector extends Activity
         	if(position == selectedPosition)
         	{
         		toggleItem(view, position);
-        		//Toast.makeText(context, "item " + renderer.getRomBackgroundIndex(position) + " toggled", Toast.LENGTH_SHORT).show();
+        		//Toast.makeText(getApplicationContext(), "item " + renderer.getRomBackgroundIndex(position) + " toggled", Toast.LENGTH_SHORT).show();
         	}
         	else
         	{
@@ -317,7 +317,7 @@ public class BackgroundSelector extends Activity
 	class GridViewOnItemLongClickListener implements OnItemLongClickListener
 	{
 		public boolean onItemLongClick(AdapterView<?> parent, View view, int position, long id) {
-			Toast.makeText(context, "Ouch. You're squishing me.", Toast.LENGTH_SHORT).show();
+			Toast.makeText(getApplicationContext(), "Ouch. You're squishing me.", Toast.LENGTH_SHORT).show();
 			return true; // consume the click
 		}
 	}

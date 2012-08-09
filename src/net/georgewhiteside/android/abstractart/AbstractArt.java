@@ -15,12 +15,13 @@ public class AbstractArt extends Application
 		
 	}
 	
+	/*
 	public ByteBuffer loadData(int rawResource)
 	{
 		// TODO: rewrite data loader
 		ByteBuffer romData;
 		InputStream input = getResources().openRawResource(rawResource);
-		ByteArrayOutputStream output = new ByteArrayOutputStream();
+		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
 		
 		int bytesRead;
 		byte[] buffer = new byte[16384];
@@ -37,4 +38,5 @@ public class AbstractArt extends Application
 		
 		return romData;
 	}
+	*/
 }

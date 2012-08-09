@@ -25,6 +25,7 @@ $ 1.0.0
   % 1.0.0 (Struttin' Evil Mushroom)
   _ August 7, 2012
     * FINALLY. FIXED. COLOR CYCLING. Older phones have full effects now!
+    * Fixed a terrible memory leak in the background selector
 
 $ 0.10.1
   % 0.10.1 (Beautiful UFO)

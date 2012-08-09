@@ -61,6 +61,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         imageLoader.start();
 	}
 	
+	
 	public int getCount()
 	{
 		return renderer.getBackgroundsTotal();
@@ -160,5 +161,10 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 				}
 			}
 		});
+	}
+	
+	public void cleanup() {
+		Log.i("ThumbnailAdapter", "Cleaning up...");
+		imageLoader.stopThread();
 	}
 }
