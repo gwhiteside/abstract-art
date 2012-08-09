@@ -1,13 +1,11 @@
 Abstract Art
 ============
 
-0.7.0 (Criminal Caterpillar)
+1.0.0 (Ramblin' Evil Mushroom)
 
-This live wallpaper recreates the hypnotic tripped-out visuals featured in the cult favorite SNES game Earthbound. Even if you've never heard of it, these animated wallpapers stand all on their own. With the hundreds of backgrounds available in this tiny 200kB package, you almost can't afford not to download it! By leveraging the power of cutting-edge OpenGL shader technology, this app brings sweet visuals with low power consumption. Be the first person on your street with a totally sweet wallpaper that doesn't bust your battery. Makes a great conversation starter. Use it to help meet the man or woman of your dreams! :)
+This live wallpaper recreates the hypnotic tripped-out visuals featured in the cult classic SNES game Earthbound (Mother 2). Even if you've never heard of it, these animated wallpapers stand on their own. With the hundreds of backgrounds available in this tiny package, you practically can't afford not to download it! Equip it now to give your device sweet visuals with low power consumption, and be the first person on your street with a totally boss wallpaper that doesn't bust the battery.
 
-Check out the [Abstract Art page on Google Play][1] for screenshots and the latest "stable" version!
-
-  [1]: https://play.google.com/store/apps/details?id=net.georgewhiteside.android.abstractart
+Flaunt your style while remaining environmentally conscious... Makes a great conversation starter... Use it to help meet the man or woman of your dreams... The possibilities are virtually endless! :)
 
 Instructions
 ------------
@@ -29,34 +27,106 @@ Background Chooser
 
 *  The "Select All" and "Clear All" methods are included (press your menu button or check the action bar) for your convenience. :)
 
-Disclaimer
-----------
-
-This app is available for download and use, free of charge.
-
-This is alpha software! I'm releasing very early in the development cycle because I've basically reached the limit of the testing I can do with my available resources. It might run poorly on your phone, crash randomly and for no reason, or simply not run at all. If you're not willing to deal with potentially flaky software, don't download this application! But if you decide to give it a try, please consider taking a moment to let me know how it runs, any problems you had, and what kind of device you have.
-Thanks! :)
-
-Compatibility
--------------
-
-I don't have access to many Android devices, so it's tricky to know how well this works on various devices. I'll compile a partial list here of tested devices and known problems. For the record, my reference development device is the Samsung Galaxy S II Skyrocket.
-
-*  Motorola Droid X - palette color cycling doesn't work (yet)
-*  Samsung Galaxy S - palette color cycling doesn't work (yet)
-*  Samsung Galaxy S II Skyrocket
-
 Changelog
 =========
 
-0.7.0
+1.0.0 (Struttin' Evil Mushroom)
+-------------------------------
+
+August 7, 2012
+
+* FINALLY. FIXED. COLOR CYCLING. Older phones have full effects now!
+
+* Fixed a terrible memory leak in the background selector
+
+0.10.1 (Beautiful UFO)
+----------------------
+
+July 26, 2012
+
+* landscape orientation fixes: aspect ratio, scaling, and garbage at sides of screen (thank you for the report, Squishie!)
+
+0.10.0 (Beautiful UFO)
+----------------------
+
+July 18, 2012
+
+* reorganized preference menus
+
+* created a <a href="https://play.google.com/store/apps/details?id=net.georgewhiteside.android.abstractartarabicaataraxis">donation version</a>
+
+* added author contact link
+
+* fixed a background scroll bug
+
+* incorporated Karsten Priegnitz's handy <a href="http://code.google.com/p/android-change-log/">ChangeLog</a> class
+
+0.9.3 (Criminal Caterpillar)
+----------------------------
+
+July 10, 2012
+
+* FINALLY squashed the "backgrounds running at super speed" and "enemy sprite crash" bugs
+
+0.9.0 (Criminal Caterpillar)
+----------------------------
+
+May 15, 2012
+
+* can now display enemy sprites
+
+* can now do letterboxing
+
+* fixed rendering aspect ratio
+
+* fixed a large responsiveness bottleneck in the image chooser
+
+* fixed an occasional bug where a thumbnail wouldn't update until scrolled out of and back into view
+
+0.8.1 (Criminal Caterpillar)
+----------------------------
+
+May 2, 2012
+
+* dressed up playlist chooser with a more Earthboundy-looking theme
+
+* now properly cropping background textures to 256x224 (source textures are 256x256)
+
+* minor internal corrections
+
+0.7.0 (Criminal Caterpillar)
+----------------------------
+
+April 24, 2012
+
+* upgraded background viewer into a playlist chooser as per feedback requests
+
+* published <a href="https://github.com/gwhiteside/abstract-art">source code</a> on GitHub
+
+
+0.6.0 (Criminal Caterpillar)
+----------------------------
+
+April 18, 2012
+
+* first public (alpha) release
+
+0.5.0
 -----
 
-A fair deal of changes under the hood, watch out for new bugs!
+February 08 - April 17, 2012
 
-* ability to create and persist background playlists via the background chooser (check your menu or action bar)
+* code evolved, basic background effects were implemented
 
-0.6.0
+* moved from application to service at some point, incorporating Ben Gruver's <a href="https://github.com/JesusFreke/GLWallpaperService">GLWallpaperService</a> class
+
+* preferences added
+
+* background selector GUI took shape
+
+0.1.0
 -----
 
-First public (alpha) release!
+February 08, 2012
+
+* project's humble beginnings as an Android OpenGL ES 2.0 demo exercise
