@@ -106,7 +106,7 @@ public class BattleBackground
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		
-		romData = loadData(R.raw.bgbank).order(ByteOrder.LITTLE_ENDIAN);
+		romData = loadData(R.raw.bgbank, 122922).order(ByteOrder.LITTLE_ENDIAN);
 		
 		processLayerTable();
 
@@ -230,13 +230,13 @@ public class BattleBackground
 		return layerTable[address][2];
 	}
 	
-	public ByteBuffer loadData(int rawResource)
+	public ByteBuffer loadData(int rawResource, int size)
 	{
 		// TODO: rewrite data loader
 		ByteBuffer romData;
 		
 		InputStream input = context.getResources().openRawResource(rawResource);
-		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		ByteArrayOutputStream output = new ByteArrayOutputStream(size); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
 		
 		int bytesRead;
 		byte[] buffer = new byte[16384];

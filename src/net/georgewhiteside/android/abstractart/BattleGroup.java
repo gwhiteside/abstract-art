@@ -31,8 +31,8 @@ public class BattleGroup
 		this.context = context;
 		battleBackground = new BattleBackground(context);
 		enemy = new Enemy(context);
-		enemyBattleGroupPointers = loadData(R.raw.enemy_battle_group_pointers).order(ByteOrder.LITTLE_ENDIAN);
-		enemyBattleGroupData = loadData(R.raw.enemy_battle_group_data).order(ByteOrder.LITTLE_ENDIAN);
+		enemyBattleGroupPointers = loadData(R.raw.enemy_battle_group_pointers, 3872).order(ByteOrder.LITTLE_ENDIAN);
+		enemyBattleGroupData = loadData(R.raw.enemy_battle_group_data, 2695).order(ByteOrder.LITTLE_ENDIAN);
 	}
 	
 	public int getCurrentEnemyIndex()
@@ -103,13 +103,13 @@ public class BattleGroup
 		
 	}
 	
-	public ByteBuffer loadData(int rawResource)
+	public ByteBuffer loadData(int rawResource, int size)
 	{
 		// TODO: rewrite data loader
 		ByteBuffer romData;
 		
 		InputStream input = context.getResources().openRawResource(rawResource);
-		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		ByteArrayOutputStream output = new ByteArrayOutputStream(size); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
 		
 		int bytesRead;
 		byte[] buffer = new byte[16384];

@@ -355,7 +355,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		Log.d("shader", fragmentShader);
+		//Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }

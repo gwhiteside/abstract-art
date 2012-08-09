@@ -73,8 +73,8 @@ public class Enemy
 	public Enemy(Context context)
 	{
 		this.context = context;
-		spriteData = loadData(R.raw.enemy_battle_sprite_data).order(ByteOrder.LITTLE_ENDIAN);;
-		attributeData = loadData(R.raw.enemy_attribute_data).order(ByteOrder.LITTLE_ENDIAN);;
+		spriteData = loadData(R.raw.enemy_battle_sprite_data, 92436).order(ByteOrder.LITTLE_ENDIAN);;
+		attributeData = loadData(R.raw.enemy_attribute_data, 21714).order(ByteOrder.LITTLE_ENDIAN);;
 		currentIndex = -1;
 	}
 	
@@ -325,13 +325,13 @@ public class Enemy
 		}
 	}
 	
-	public ByteBuffer loadData(int rawResource)
+	public ByteBuffer loadData(int rawResource, int size)
 	{
 		// TODO: rewrite data loader
 		ByteBuffer romData;
 		
 		InputStream input = context.getResources().openRawResource(rawResource);
-		ByteArrayOutputStream output = new ByteArrayOutputStream();//131072); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
+		ByteArrayOutputStream output = new ByteArrayOutputStream(size); // currently, largest file is a bit over 120kb... trying to avoid over allocating heap
 		
 		int bytesRead;
 		byte[] buffer = new byte[16384];
