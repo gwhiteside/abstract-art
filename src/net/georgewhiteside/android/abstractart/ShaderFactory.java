@@ -51,7 +51,6 @@ public class ShaderFactory
 		"void main()\n" +
 		"{\n" +
 		"    vec4 color = texture2D(s_texture, v_texCoord);\n" +
-		"    if(color.a < 0.5) { discard; }\n" +
 		"    gl_FragColor = color;\n" +
 		"}\n";
 
@@ -356,7 +355,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		//Log.d("shader", fragmentShader);
+		Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }

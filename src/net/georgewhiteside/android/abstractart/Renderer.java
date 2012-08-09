@@ -365,7 +365,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		Log.i(TAG, "Surface created");
 	}
-	
+
 	private void updateShaderVariables()
 	{
 		// glUniform* calls always act on the current program that is bound with glUseProgram
@@ -611,13 +611,20 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 				enemyTextureVertexBuffer.position(0);
 			}
 			
+			if(mRenderEnemies) {
+				GLES20.glEnable(GLES20.GL_BLEND);
+				GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+			} else {
+				GLES20.glDisable(GLES20.GL_BLEND);
+			}
+			
 		}
 	}
 	
 	private void renderScene()
 	{
 		mRenderWidth = 256.0f;
-		mRenderHeight = 224.0f;
+		mRenderHeight = 256.0f;
 		
 		GLES20.glViewport(0, 0, 256, 224);	// render to native texture size, scale up later
 		
