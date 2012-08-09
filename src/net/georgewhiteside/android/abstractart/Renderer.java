@@ -221,6 +221,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		mFPSCounter.logEndFrame();
 	}
+	
+	boolean enableSmoothScaling = false;
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
@@ -234,28 +236,31 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mSurfaceVerticalOffset = 0;
 		mLetterBoxSize = 0.0f;
 		
-		if(surfaceRatio == textureRatio) // thumbnail hack (won't scale if someone actually uses an 8:7 screen ratio)
-		{
-			
-		}
-		else
-		{
-		    int outputScaler = 1;
-		    
-		    if(surfaceRatio > textureRatio)
-		        outputScaler = (int)(mSurfaceWidth / 256) + 1; // landscape
-		    
-		    if(surfaceRatio < textureRatio)
-		        outputScaler = (int)(mSurfaceHeight / 224) + 1; //portrait
-		    
-		    int bestWidthFit = outputScaler * 256;
-            int bestHeightFit = outputScaler * 224;
-            
-            mSurfaceWidth = bestWidthFit;
-            mSurfaceHeight = bestHeightFit;
-            mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
-            mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
-		}
+	    float outputScaler = 1;
+	    
+	    if(surfaceRatio == textureRatio) { // thumbnail hack (won't scale if someone actually uses an 8:7 screen ratio)
+	    	outputScaler = 1; 
+	    } else if(surfaceRatio > textureRatio) { // landscape
+	    	if(enableSmoothScaling) {
+	    		outputScaler = mSurfaceWidth / 256.0f;
+	    	} else {
+	    		outputScaler = (int)(mSurfaceWidth / 256) + 1;
+	    	}
+	    } else if(surfaceRatio < textureRatio) { // portrait
+	    	if(enableSmoothScaling) {
+	    		outputScaler = mSurfaceHeight / 224.0f;
+	    	} else {
+	    		outputScaler = (int)(mSurfaceHeight / 224) + 1;
+	    	}
+	    }
+	    
+	    int bestWidthFit = (int) (outputScaler * 256);
+        int bestHeightFit = (int) (outputScaler * 224);
+        
+        mSurfaceWidth = bestWidthFit;
+        mSurfaceHeight = bestHeightFit;
+        mSurfaceVerticalOffset = (height - bestHeightFit) / 2;
+        mSurfaceHorizontalOffset = (width - bestWidthFit) / 2;
 		
 		Matrix.orthoM(mProjMatrix, 0, -1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 	}
@@ -311,6 +316,12 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
 		//queryGl(unused);
+		
+		if(enableSmoothScaling) {
+			mFilterOutput = true;
+		} else {
+			mFilterOutput = false;
+		}
 		
 		setupScreenQuad();
 		
