@@ -222,7 +222,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		mFPSCounter.logEndFrame();
 	}
 	
-	boolean enableSmoothScaling = false;
+	boolean enableSmoothScaling = true;
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{

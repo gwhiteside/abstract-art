@@ -159,13 +159,42 @@ public class ShaderFactory
 			
 			for(int i = 0; i < 2; i++)
 			{
-				Layer layer = i == 0 ? bbg.bg3 : bbg.bg4;
+				Layer layer = null;
+				String id = null;
+				String bg_offset = null;
+				String bg_offset_x = null;
+				String bg_offset_y = null;
+				String bg_dist_type = null;
+				String bg_distortion_offset = null;
+				String bg_dist_AMPL = null;
+				String bg_dist_FREQ = null;
+				String bg_dist_SPEED = null;
+				String bg_compression = null;
+				String bg_index = null;
+				
+				if(i == 0) {
+					layer = bbg.bg3;
+					bg_offset = "bg3_offset";
+					bg_offset_x = "bg3_offset.x";
+					bg_offset_y = "bg3_offset.y";
+					bg_dist_type = "bg3_dist_type";
+					bg_distortion_offset = "bg3_distortion_offset";
+					bg_dist_AMPL = "bg3_dist[AMPL]";
+					bg_dist_FREQ = "bg3_dist[FREQ]";
+					bg_dist_SPEED = "bg3_dist[SPEED]";
+					bg_compression = "bg3_compression";
+					bg_index = "bg3_index";
+				}
+				
+				if(i == 1) {
+					layer = bbg.bg4;
+					id = "bg4_";
+				}
 				
 				// we always want the bottom layer, but skip the top layer if it's null
 				if(layer == bbg.bg3 || layer == bbg.bg4 && layer.getIndex() != 0)
 				{
-					String id = bgPrefix[i];
-					fragmentShader += "vec2 " + id + "offset = vec2(0.0);\n";
+					fragmentShader += "vec2 $BG_OFFSET = vec2(0.0);\n";
 					
 					// distortion
 					
@@ -176,7 +205,7 @@ public class ShaderFactory
 					
 					if(numberOfEffects != 0)
 					{
-						fragmentShader += "float " + id + "distortion_offset = (" + id + "dist[AMPL] * sin(" + id + "dist[FREQ] * y + " + id + "dist[SPEED]));\n";
+						fragmentShader += "float $BG_DISTORTION_OFFSET = ($BG_DIST_AMPL * sin($BG_DIST_FREQ * y + $BG_DIST_SPEED));\n";
 						
 						if(numberOfEffects == 1)
 						{
@@ -186,19 +215,19 @@ public class ShaderFactory
 									break;
 									
 								case 1:
-									fragmentShader += id + "offset.x = " + id + "distortion_offset;\n";
+									fragmentShader += id + "offset.x = $BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 2:
-									fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n";
+									fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 3:
-									fragmentShader += id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n";
+									fragmentShader += id + "offset.y = mod($BG_DISTORTION_OFFSET, resolution.y);\n";
 									break;
 									
 								case 4:
-									fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+									fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
 														id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
 									break;
 							}
@@ -206,17 +235,17 @@ public class ShaderFactory
 						else // 2 or more effects are used
 						{
 							fragmentShader +=	"if(" + id + "dist_type == 1) {\n" +
-													id + "offset.x = " + id + "distortion_offset;\n" +
+													id + "offset.x = $BG_DISTORTION_OFFSET;\n" +
 									
 												"} else if(" + id + "dist_type == 2) {\n" +
-													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
 												
 												"} else if(" + id + "dist_type == 3) {\n" +
-													id + "offset.y = mod(" + id + "distortion_offset, resolution.y);\n" +
+													id + "offset.y = mod($BG_DISTORTION_OFFSET, resolution.y);\n" +
 												"}\n" +
 												
 												"if(" + id + "dist_type == 4) {\n" +
-													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? " + id + "distortion_offset : -" + id + "distortion_offset;\n" +
+													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
 													id + "offset.x += (y * (" + id + "compression / resolution.y));\n" +
 												"}\n";
 						}
@@ -227,7 +256,7 @@ public class ShaderFactory
 					
 					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
 					{
-						fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n";
+						fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n".r;
 					}
 					
 					// layer scrolling
@@ -235,12 +264,12 @@ public class ShaderFactory
 					if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
 						layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
 					{
-						fragmentShader += id + "offset += bg3_scroll;\n";
+						fragmentShader += "$BG_OFFSET += bg3_scroll;\n";
 					}
 					
 					// divide offset down to correct range
 					
-					fragmentShader += id + "offset /= resolution;\n";
+					fragmentShader += "$BG_OFFSET /= resolution;\n";
 					
 					if(enablePaletteEffects == true) {
 						
