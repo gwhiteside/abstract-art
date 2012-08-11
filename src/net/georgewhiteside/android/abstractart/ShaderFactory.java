@@ -4,6 +4,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -30,8 +34,6 @@ public class ShaderFactory
 	private SharedPreferences sharedPreferences;
 	
 	private boolean knobMonolithic = false;	// this option is kept for development reasons
-	
-	private static final String[] bgPrefix = {"bg3_", "bg4_"};
 	
 	private String spriteVertexShader =
 		"uniform mat4 uMVPMatrix;\n" +
@@ -97,6 +99,23 @@ public class ShaderFactory
 		"#define BEGIN2 2\n" +
 		"#define END2   3\n";
 	
+	private static final Map<String, String> map = new HashMap<String, String>()
+	{{
+		put("$BG_TEXTURE", "texture");
+		put("$BG_OFFSET", "offset");
+		put("$BG_OFFSET_X", "offset.x");
+		put("$BG_OFFSET_Y", "offset.y");
+		put("$BG_DIST_TYPE", "dist_type");
+		put("$BG_DISTORTION_OFFSET", "distortion_offset");
+		put("$BG_DIST_AMPL", "dist[AMPL]");
+		put("$BG_DIST_FREQ", "dist[FREQ]");
+		put("$BG_DIST_SPEED", "dist[SPEED]");
+		put("$BG_COMPRESSION", "compression");
+		put("$BG_INDEX", "index");
+		put("$BG_SCROLL", "scroll");
+		put("$BG_COLOR", "color");
+	}};
+	
 	public ShaderFactory(Context context)
 	{
 		this.context = context;
@@ -134,6 +153,23 @@ public class ShaderFactory
 		return 0;
 	}
 	
+	/*
+	Map<String, String> map = new HashMap<String, String>();
+	
+	map.put("$BG_OFFSET", prefix + "offset");
+	map.put("$BG_OFFSET_X", prefix + "offset.x");
+	map.put("$BG_OFFSET_Y", prefix + "offset.y");
+	map.put("$BG_DIST_TYPE", prefix + "dist_type");
+	map.put("$BG_DISTORTION_OFFSET", prefix + "distortion_offset");
+	map.put("$BG_DIST_AMPL", prefix + "dist[AMPL]");
+	map.put("$BG_DIST_FREQ", prefix + "dist[FREQ]");
+	map.put("$BG_DIST_SPEED", prefix + "dist[SPEED]");
+	map.put("$BG_COMPRESSION", prefix + "compression");
+	map.put("$BG_INDEX", prefix + "index");
+	map.put("$BG_SCROLL", prefix + "scroll");
+	map.put("$BG_COLOR", prefix + "color");
+	*/
+	
 	public int getShader(BattleBackground bbg, float letterBoxSize)
 	{
 		String fragmentShader = "";
@@ -160,35 +196,15 @@ public class ShaderFactory
 			for(int i = 0; i < 2; i++)
 			{
 				Layer layer = null;
-				String id = null;
-				String bg_offset = null;
-				String bg_offset_x = null;
-				String bg_offset_y = null;
-				String bg_dist_type = null;
-				String bg_distortion_offset = null;
-				String bg_dist_AMPL = null;
-				String bg_dist_FREQ = null;
-				String bg_dist_SPEED = null;
-				String bg_compression = null;
-				String bg_index = null;
+				String prefix = null;
 				
 				if(i == 0) {
 					layer = bbg.bg3;
-					bg_offset = "bg3_offset";
-					bg_offset_x = "bg3_offset.x";
-					bg_offset_y = "bg3_offset.y";
-					bg_dist_type = "bg3_dist_type";
-					bg_distortion_offset = "bg3_distortion_offset";
-					bg_dist_AMPL = "bg3_dist[AMPL]";
-					bg_dist_FREQ = "bg3_dist[FREQ]";
-					bg_dist_SPEED = "bg3_dist[SPEED]";
-					bg_compression = "bg3_compression";
-					bg_index = "bg3_index";
+					prefix = "bg3_";
 				}
-				
-				if(i == 1) {
+				if (i == 1) {
 					layer = bbg.bg4;
-					id = "bg4_";
+					prefix = "bg4_";
 				}
 				
 				// we always want the bottom layer, but skip the top layer if it's null
@@ -215,38 +231,38 @@ public class ShaderFactory
 									break;
 									
 								case 1:
-									fragmentShader += id + "offset.x = $BG_DISTORTION_OFFSET;\n";
+									fragmentShader += "$BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 2:
-									fragmentShader += id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n";
+									fragmentShader += "$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 3:
-									fragmentShader += id + "offset.y = mod($BG_DISTORTION_OFFSET, resolution.y);\n";
+									fragmentShader += "$BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n";
 									break;
 									
 								case 4:
-									fragmentShader +=	id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
-														id + "offset.x += (y * (" + id + "compression / resolution.y));\n";
+									fragmentShader += "$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+													"$BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n";
 									break;
 							}
 						}
 						else // 2 or more effects are used
 						{
-							fragmentShader +=	"if(" + id + "dist_type == 1) {\n" +
-													id + "offset.x = $BG_DISTORTION_OFFSET;\n" +
+							fragmentShader +=	"if($BG_DIST_TYPE == 1) {\n" +
+													"$BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n" +
 									
-												"} else if(" + id + "dist_type == 2) {\n" +
-													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+												"} else if($BG_DIST_TYPE == 2) {\n" +
+													"$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
 												
-												"} else if(" + id + "dist_type == 3) {\n" +
-													id + "offset.y = mod($BG_DISTORTION_OFFSET, resolution.y);\n" +
+												"} else if($BG_DIST_TYPE == 3) {\n" +
+													"$BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n" +
 												"}\n" +
 												
-												"if(" + id + "dist_type == 4) {\n" +
-													id + "offset.x = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
-													id + "offset.x += (y * (" + id + "compression / resolution.y));\n" +
+												"if($BG_DIST_TYPE == 4) {\n" +
+													"$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+													"$BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n" +
 												"}\n";
 						}
 					}
@@ -256,7 +272,7 @@ public class ShaderFactory
 					
 					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
 					{
-						fragmentShader += id + "offset.y += (y * (" + id + "compression / resolution.y));\n".r;
+						fragmentShader += "$BG_OFFSET_Y += (y * ($BG_COMPRESSION / resolution.y));\n";
 					}
 					
 					// layer scrolling
@@ -264,7 +280,7 @@ public class ShaderFactory
 					if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
 						layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
 					{
-						fragmentShader += "$BG_OFFSET += bg3_scroll;\n";
+						fragmentShader += "$BG_OFFSET += $BG_SCROLL;\n";
 					}
 					
 					// divide offset down to correct range
@@ -275,15 +291,15 @@ public class ShaderFactory
 						
 						// get palette index
 						
-						fragmentShader += "float " + id + "index = texture2D(" + id + "texture, " + id + "offset + v_texCoord).r;\n";
-						fragmentShader += id + "index *= 256.0;\n";
+						fragmentShader += "float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
+						fragmentShader += "$BG_INDEX *= 256.0;\n";
 						
 						// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
 						
 						//fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
 						
 						// add palette cycling code if required
-					
+					/*
 						switch(layer.getPaletteCycleType())
 						{
 							default:
@@ -345,19 +361,22 @@ public class ShaderFactory
 									"}\n";
 								break;
 						}
-					
+					*/
 						// divide color index down into texture lookup range
 						
-						fragmentShader += id + "index /= 16.0;\n";
+						fragmentShader += "$BG_INDEX /= 16.0;\n";
 						
 						// actual palette color lookup
 						
 						float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
-						fragmentShader += "vec4 " + id + "color = texture2D(s_palette, vec2(" + id + "index, " + paletteRow + " / 16.0));\n";
+						fragmentShader += "vec4 $BG_COLOR = texture2D(s_palette, vec2($BG_INDEX, " + paletteRow + " / 16.0));\n";
 					} else {
-						fragmentShader += "vec4 " + id + "color = texture2D(" + id + "texture, " + id + "offset + v_texCoord);\n";
+						fragmentShader += "vec4 $BG_COLOR = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord);\n";
 					}
 					
+					// replace placeholder tags with values
+					
+					fragmentShader = interpolate(fragmentShader, map, prefix);
 				}
 			}
 			
@@ -384,7 +403,7 @@ public class ShaderFactory
 		}
 		
 		//Log.d("shader", vertexShader);
-		//Log.d("shader", fragmentShader);
+		Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
 		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
@@ -521,6 +540,25 @@ public class ShaderFactory
 		}
 		
 		return body.toString();
+	}
+	
+	private static Pattern tokenPattern = Pattern.compile("(\\$[\\w]*)");
+
+	public static String interpolate(String tokenizedString, Map<String, String> mapping, String prefix) {
+	    StringBuffer sb = new StringBuffer();
+	    Matcher matcher = tokenPattern.matcher(tokenizedString);
+	    
+	    while(matcher.find())
+	    {
+	    	Log.i(TAG, "matcher find");
+	        String field = matcher.group(1);
+	        matcher.appendReplacement(sb, "");
+	        Log.i(TAG, "match field: " + field);
+	        sb.append(prefix + mapping.get(field));
+	    }
+	    
+	    matcher.appendTail(sb);
+	    return sb.toString();
 	}
 	
 }
