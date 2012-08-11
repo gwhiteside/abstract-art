@@ -114,6 +114,11 @@ public class ShaderFactory
 		put("$BG_INDEX", "index");
 		put("$BG_SCROLL", "scroll");
 		put("$BG_COLOR", "color");
+		put("$BG_PALETTE_BEGIN1", "palette[BEGIN1]");
+		put("$BG_PALETTE_END1", "palette[END1]");
+		put("$BG_PALETTE_BEGIN2", "palette[BEGIN2]");
+		put("$BG_PALETTE_END2", "palette[END2]");
+		put("$BG_ROTATION", "rotation");
 	}};
 	
 	public ShaderFactory(Context context)
@@ -294,12 +299,8 @@ public class ShaderFactory
 						fragmentShader += "float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
 						fragmentShader += "$BG_INDEX *= 256.0;\n";
 						
-						// make sure index is proper (probably not necesary, but I'm paranoid around all this float math)
-						
-						//fragmentShader += id + "index = floor(" + id + "index + 0.5);\n";
-						
 						// add palette cycling code if required
-					/*
+					
 						switch(layer.getPaletteCycleType())
 						{
 							default:
@@ -309,12 +310,12 @@ public class ShaderFactory
 							case 1:
 								// rotate palette subrange left
 								fragmentShader +=
-									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
 									"{\n" +
-									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-									"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-									"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"    if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
+									"        $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
 									"    }\n" +
 									"}\n";
 								break;
@@ -322,20 +323,20 @@ public class ShaderFactory
 							case 2:
 								// rotate two palette subranges left
 								fragmentShader +=
-									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
 									"{\n" +
-									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-									"    if(" + id + "index < " + id + "palette[BEGIN1]) {\n" +
-									"        " + id + "index = " + id + "palette[END1] + 1.0 - abs(" + id + "palette[BEGIN1] - " + id + "index);\n" +
+									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"    if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
+									"        $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
 									"    }\n" +
 									"}\n" +
-									"else if(" + id + "index >= " + id + "palette[BEGIN2] - 0.5 && " + id + "index <= " + id + "palette[END2] + 0.5)\n" +
+									"else if($BG_INDEX >= $BG_PALETTE_BEGIN2 - 0.5 && $BG_INDEX <= $BG_PALETTE_END2 + 0.5)\n" +
 									"{\n" +
-									"    float range = " + id + "palette[END2] - " + id + "palette[BEGIN2];\n" +
-									"    " + id + "index = " + id + "index - " + id + "rotation;\n" +
-									"    if(" + id + "index < " + id + "palette[BEGIN2]) {\n" +
-									"        " + id + "index = " + id + "palette[END2] + 1.0 - abs(" + id + "palette[BEGIN2] - " + id + "index);\n" +
+									"    float range = $BG_PALETTE_END2 - $BG_PALETTE_BEGIN2;\n" +
+									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"    if($BG_INDEX < $BG_PALETTE_BEGIN2) {\n" +
+									"        $BG_INDEX = $BG_PALETTE_END2 + 1.0 - abs($BG_PALETTE_BEGIN2 - $BG_INDEX);\n" +
 									"    }\n" +
 									"}\n";
 								break;
@@ -343,25 +344,25 @@ public class ShaderFactory
 							case 3:
 								// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
 								fragmentShader +=
-									"if(" + id + "index >= " + id + "palette[BEGIN1] - 0.5 && " + id + "index <= " + id + "palette[END1] + 0.5)\n" +
+									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
 									"{\n" +
-									"    float range = " + id + "palette[END1] - " + id + "palette[BEGIN1];\n" +
-									"    " + id + "index = " + id + "index + " + id + "rotation - " + id + "palette[BEGIN1];\n" +
+									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"    $BG_INDEX = $BG_INDEX + $BG_ROTATION - $BG_PALETTE_BEGIN1;\n" +
 									"    range = floor(range + 0.5);\n" +
-									"    " + id + "index = floor(" + id + "index + 0.5);\n" +
-									"    if(" + id + "index > range * 2.0 + 1.0) {\n" +
-									"        " + id + "index = " + id + "palette[BEGIN1] + (" + id + "index - ((range * 2.0) + 2.0));\n" +
+									"    $BG_INDEX = floor($BG_INDEX + 0.5);\n" +
+									"    if($BG_INDEX > range * 2.0 + 1.0) {\n" +
+									"        $BG_INDEX = $BG_PALETTE_BEGIN1 + ($BG_INDEX - ((range * 2.0) + 2.0));\n" +
 									"    }\n" +
-									"    else if(" + id + "index > range) {\n" +
-									"        " + id + "index = " + id + "palette[END1] - (" + id + "index - (range + 1.0));\n" +
+									"    else if($BG_INDEX > range) {\n" +
+									"        $BG_INDEX = $BG_PALETTE_END1 - ($BG_INDEX - (range + 1.0));\n" +
 									"    }\n" +
 									"    else {\n" +
-									"        " + id + "index += " + id + "palette[BEGIN1];\n" +
+									"        $BG_INDEX += $BG_PALETTE_BEGIN1;\n" +
 									"    }\n" +
 									"}\n";
 								break;
 						}
-					*/
+					
 						// divide color index down into texture lookup range
 						
 						fragmentShader += "$BG_INDEX /= 16.0;\n";
