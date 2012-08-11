@@ -240,5 +240,7 @@ public class Translation
 		mVerticalAcceleration = getVerticalAcceleration() / 256.0f;
 		mHorizontalVelocity = getHorizontalVelocity() / 256.0f;
 		mVerticalVelocity = getVerticalVelocity() / 256.0f;
+		
+		dump(0);
 	}
 }

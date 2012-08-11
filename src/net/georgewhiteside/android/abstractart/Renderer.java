@@ -123,6 +123,9 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private Object lock = new Object();
 	
+	private long lastFrameTime = System.nanoTime();
+	private float deltaTime = 0;
+	
 	public int getRomBackgroundIndex(int address)
 	{
 		return battleGroup.battleBackground.getRomBackgroundIndex(address);
@@ -195,6 +198,11 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	public void onDrawFrame(GL10 unused)
 	{
+		long time = System.nanoTime();
+        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        lastFrameTime = time;
+        //mean.addValue(deltaTime);
+		
 		endTime = System.currentTimeMillis();
 		long delta = endTime - startTime;
 		if(delta < frameTime)
@@ -373,6 +381,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		frameTime = 1000 / 60; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
 		
+		lastFrameTime = System.nanoTime();
 		
 		Log.i(TAG, "Surface created");
 	}
