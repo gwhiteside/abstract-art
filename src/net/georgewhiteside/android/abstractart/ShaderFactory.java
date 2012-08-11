@@ -15,10 +15,6 @@ import android.opengl.GLES20;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
-//import com.badlogic.gdx.backends.android.AndroidGL20;
-
-// TODO: cache programs in a hashmap or something
-
 /**
  * Constructs the smallest shader possible for the given <code>BattleBackground</code>. This is a terrible mess, but it's
  * a necessary sacrifice to get the best performance out of the mobile platform. (There are quiet whisperings about the
@@ -35,7 +31,7 @@ public class ShaderFactory
 	
 	private boolean knobMonolithic = false;	// this option is kept for development reasons
 	
-	private String spriteVertexShader =
+	private static String spriteVertexShader =
 		"uniform mat4 uMVPMatrix;\n" +
 		"attribute vec4 a_position;\n" +
 		"attribute vec2 a_texCoord;\n" +
@@ -45,7 +41,7 @@ public class ShaderFactory
 		"    v_texCoord = a_texCoord;\n" +
 		"}\n";
 	
-	private String spriteFragmentShader =
+	private static String spriteFragmentShader =
 		"precision mediump float;\n" +
 		"varying vec2 v_texCoord;\n" +
 		"uniform sampler2D s_texture;\n" +
@@ -56,7 +52,7 @@ public class ShaderFactory
 		"    gl_FragColor = color;\n" +
 		"}\n";
 
-	private String vertexShader =
+	private static String vertexShader =
 			"uniform mat4 uMVPMatrix;\n" +
 			"attribute vec4 a_position;\n" +
 			"attribute vec2 a_texCoord;\n" +
@@ -66,7 +62,7 @@ public class ShaderFactory
 			"    v_texCoord = a_texCoord;\n" +
 			"}\n";
 	
-	private String fragmentHeader =
+	private static String fragmentHeader =
 		"precision highp float;\n" +
 
 		"varying vec2 v_texCoord;\n" +
@@ -99,7 +95,7 @@ public class ShaderFactory
 		"#define BEGIN2 2\n" +
 		"#define END2   3\n";
 	
-	private static final Map<String, String> map = new HashMap<String, String>()
+	private static Map<String, String> map = new HashMap<String, String>()
 	{{
 		put("$BG_TEXTURE", "texture");
 		put("$BG_OFFSET", "offset");
@@ -126,54 +122,6 @@ public class ShaderFactory
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
-	
-	/**
-	 * WARNING: THIS IS MOSTLY HERE AS A REMINDER.
-	 * 
-	 * <p>Inconsistencies between mobile chipsets make this difficult-to-impossible
-	 * to realize, depending on how exactly you try to do it. Saving the compiled
-	 * shader binaries isn't universally supported, so that's out. Simply caching the
-	 * program reference handles *might* work, but I don't know enough about how long
-	 * programs are kept in RAM, or how many are, or if more than one is kept, and knowing
-	 * exactly when a program IS cleared (from basic testing on my phone it seems to be
-	 * when the GL context is destroyed, but that's only a tiny piece of the larger
-	 * puzzle), and whether these behaviors vary across chipsets, and so on. Way too
-	 * many unknowns here.
-	 * 
-	 * <p>Returns a value guaranteed to uniquely identify the shader's functions. This
-	 * should be used to cache linked shader program IDs, preventing unnecessary
-	 * compiling and linking on every background change for a given GL instance.
-	 * 
-	 * @return a collision-free hash value identifying the shader functions
-	 */
-	public int getShaderSignature(BattleBackground bbg)
-	{
-		/*
-		 * The value is determined by checking which effects are used and setting
-		 * corresponding bit fields or subfields in an integer. The exact method doesn't
-		 * matter, so long as every possible combination of shader settings generates
-		 * a unique value. It doesn't even need to generate the same value for a given
-		 * configuration between application updates.
-		 */
-		return 0;
-	}
-	
-	/*
-	Map<String, String> map = new HashMap<String, String>();
-	
-	map.put("$BG_OFFSET", prefix + "offset");
-	map.put("$BG_OFFSET_X", prefix + "offset.x");
-	map.put("$BG_OFFSET_Y", prefix + "offset.y");
-	map.put("$BG_DIST_TYPE", prefix + "dist_type");
-	map.put("$BG_DISTORTION_OFFSET", prefix + "distortion_offset");
-	map.put("$BG_DIST_AMPL", prefix + "dist[AMPL]");
-	map.put("$BG_DIST_FREQ", prefix + "dist[FREQ]");
-	map.put("$BG_DIST_SPEED", prefix + "dist[SPEED]");
-	map.put("$BG_COMPRESSION", prefix + "compression");
-	map.put("$BG_INDEX", prefix + "index");
-	map.put("$BG_SCROLL", prefix + "scroll");
-	map.put("$BG_COLOR", prefix + "color");
-	*/
 	
 	public int getShader(BattleBackground bbg, float letterBoxSize)
 	{
@@ -458,14 +406,6 @@ public class ShaderFactory
 	
 	private int loadShader(int shaderType, String source)
 	{
-		
-//	int loadShader(int type, String code) {
-//		int shader = GLES20.glCreateShader(type);
-//		GLES20.glShaderSource(shader, code);
-//		GLES20.glCompileShader(shader);
-//		return shader;
-//	}
-		
 		int shader = GLES20.glCreateShader(shaderType);
 		if(shader != 0)
 		{
@@ -491,17 +431,6 @@ public class ShaderFactory
 			Log.e(TAG, "glCreateShader() failed; no opengl context");
 		}
 		
-		/*String type = "";
-		switch(shaderType)
-		{
-		case GLES20.GL_FRAGMENT_SHADER:
-			type = "Fragment";
-			break;
-		case GLES20.GL_VERTEX_SHADER:
-			type = "Vertex";
-			break;
-		}
-		Log.i(TAG, type + " shader compile status: " + GLES20.glGetShaderInfoLog(shader));*/
 		return shader;
 	}
 	
@@ -545,7 +474,7 @@ public class ShaderFactory
 	
 	private static Pattern tokenPattern = Pattern.compile("(\\$[\\w]*)");
 
-	public static String interpolate(String tokenizedString, Map<String, String> mapping, String prefix) {
+	public String interpolate(String tokenizedString, Map<String, String> mapping, String prefix) {
 	    StringBuffer sb = new StringBuffer();
 	    Matcher matcher = tokenPattern.matcher(tokenizedString);
 	    
@@ -561,6 +490,5 @@ public class ShaderFactory
 	    matcher.appendTail(sb);
 	    return sb.toString();
 	}
-	
 }
 
