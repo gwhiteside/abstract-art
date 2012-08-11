@@ -480,10 +480,8 @@ public class ShaderFactory
 	    
 	    while(matcher.find())
 	    {
-	    	Log.i(TAG, "matcher find");
 	        String field = matcher.group(1);
 	        matcher.appendReplacement(sb, "");
-	        Log.i(TAG, "match field: " + field);
 	        sb.append(prefix + mapping.get(field));
 	    }
 	    
