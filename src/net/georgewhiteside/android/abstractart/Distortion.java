@@ -54,64 +54,66 @@ public class Distortion
 	private int mEffectDuration;
 	private int mCurrentEffect;
 	
+	// some values that get cached to save non-negligible CPU time
+	
+	private int mAmplitude;
+	private int mAmplitudeDelta;
+	private int mCompression;
+	private int mCompressionDelta;
+	private int mDuration;
+	private int mFrequency;
+	private int mFrequencyDelta;
+	private int mSpeed;
+	private int mType;
+	
 	private int mTick;
 	
-	public Distortion(ByteBuffer distortionData, ByteBuffer distortionIndices)
-	{
+	public Distortion(ByteBuffer distortionData, ByteBuffer distortionIndices) {
 		load(distortionData, distortionIndices);
-		
 	}
 	
-	public float computeShaderAmplitude()
-	{
+	public float computeShaderAmplitude() {
 		// returns C1 * amplitude
 		// where C1 = 1.0 / 512.0
 		// where amplitude = u_ampl + u_ampl_delta * time
-		double amplitude = getAmplitude() + getAmplitudeDelta() * mTick;
+		double amplitude = mAmplitude + mAmplitudeDelta * mTick;
 		amplitude /= 512.0;
 		return (float)amplitude;
 	}
 	
-	public float computeShaderCompression()
-	{
+	public float computeShaderCompression() {
 		// returns compression
 		// where compression = u_comp + u_comp_delta * time
-		double compression = getCompression() + getCompressionDelta() * mTick;
+		double compression = mCompression + mCompressionDelta * mTick;
 		return (float)compression;
 	}
 	
-	public float computeShaderFrequency()
-	{
+	public float computeShaderFrequency() {
 		// returns C2 * frequency
 		// where C2 = 0.000095873799 = 8.0 * PI / (1024.0 * 256.0);
 		// where frequency = u_freq + u_freq_delta * time
 		
-		double frequency = getFrequency() + getFrequencyDelta() * mTick;
+		double frequency = mFrequency + mFrequencyDelta * mTick;
 		frequency *= 8.0 * Math.PI / (1024.0 * 256.0);
 		return (float)frequency;
 	}
 	
-	public float computeShaderSpeed()
-	{
+	public float computeShaderSpeed() {
 		// returns C3 * u_speed * u_tick
 		// where C3 = PI / 120.0
 		
-		return (float)(Math.PI * getSpeed() * mTick) / 120.0f;
+		return (float)(Math.PI * mSpeed * mTick) / 120.0f;
 	}
 	
 	
 	
-	public void doTick()
-	{
-		if(mEffectDuration != 0)
-		{
+	public void doTick() {
+		if(mEffectDuration != 0) {
 			mEffectDuration--;
 			
-			if(mEffectDuration == 0)
-			{
+			if(mEffectDuration == 0) {
 				mCurrentEffect++;
-				if(mCurrentEffect >= mNumberOfEffects)
-				{
+				if(mCurrentEffect >= mNumberOfEffects) {
 					mCurrentEffect = 0;
 				}
 				setIndex(mCurrentEffect); // also loads next mEffectDuration and resets mTick to 0
@@ -124,10 +126,11 @@ public class Distortion
 		mTick++;
 	}
 	
-	public void dump(int index)
-	{
+	public void dump(int index) {
 		//int original = index;
 		//setIndex(index);
+		
+		/*
 		Log.d("Distortion", "duration: " + getDuration());
 		Log.d("Distortion", "type: " + getType());
 		Log.d("Distortion", "frequency: " + getFrequency());
@@ -139,11 +142,12 @@ public class Distortion
 		Log.d("Distortion", "speed: " + getSpeed());
 		Log.d("Distortion", "compression delta: " + getCompressionDelta());
 		Log.d("Distortion", "number of effects: " + getNumberOfEffects());
+		*/
+		
 		//setIndex(original);
 	}
 	
-	public void load(ByteBuffer distortionData, ByteBuffer distortionIndices)
-	{
+	public void load(ByteBuffer distortionData, ByteBuffer distortionIndices) {
 		mNumberOfEffects = 0;
 		for(int i = 0; i < 4; i++) {
 			int index = RomUtil.unsigned(distortionIndices.get(i));
@@ -156,68 +160,47 @@ public class Distortion
 		setIndex(0);
 	}
 	
-	public int getAmplitude()
-	{
-		return RomUtil.unsigned(data[mIndex].getShort(5));
+	public int getCompression() {
+		return mCompression;
 	}
 	
-	public int getAmplitudeDelta()
-	{
-		return data[mIndex].getShort(12);
+	public int getCompressionDelta() {
+		return mCompressionDelta;
 	}
 	
-	public int getCompression()
-	{
-		return data[mIndex].getShort(8);
+	public int getDuration() {
+		return mDuration;
 	}
 	
-	public int getCompressionDelta()
-	{
-		return data[mIndex].getShort(15);
+	public int getFrequency() {
+		return mFrequency;
 	}
 	
-	public int getDuration()
-	{
-		return RomUtil.unsigned(data[mIndex].getShort(0));
-	}
-	
-	public int getFrequency()
-	{
-		return RomUtil.unsigned(data[mIndex].getShort(3));
-	}
-	
-	public int getFrequencyDelta()
-	{
-		return data[mIndex].getShort(10);
+	public int getFrequencyDelta() {
+		return mFrequencyDelta;
 	}
 
-	public int getIndex()
-	{
+	public int getIndex() {
 		return mIndex;
 	}
 	
-	public int getNumberOfEffects()
-	{
+	public int getNumberOfEffects() {
 		return mNumberOfEffects;
 	}
 	
-	public int getSpeed()
-	{
-		return data[mIndex].get(14);
+	public int getSpeed() {
+		return mSpeed;
 	}
 	
-	public int getType()
-	{
-		return data[mIndex].get(2);
+	public int getType() {
+		return mType;
 	}
 	
-	public int getUnknownHH()
-	{
+	public int getUnknownHH() {
 		return data[mIndex].get(7);
 	}
 	
-	public void setIndex(int index)
-	{
+	public void setIndex(int index) {
 		if(index < 0 || index > 3)
 			index = -1; // TODO exception
 		
@@ -225,7 +208,19 @@ public class Distortion
 		
 		mEffectDuration = getDuration();
 		mCurrentEffect = getIndex();
+		
+		mAmplitude = RomUtil.unsigned(data[mIndex].getShort(5));
+		mAmplitudeDelta = data[mIndex].getShort(12);
+		mCompression = data[mIndex].getShort(8);
+		mCompressionDelta = data[mIndex].getShort(15);
+		mDuration = RomUtil.unsigned(data[mIndex].getShort(0));
+		mFrequency = RomUtil.unsigned(data[mIndex].getShort(3));
+		mFrequencyDelta = data[mIndex].getShort(10);
+		mSpeed = data[mIndex].get(14);
+		mType = data[mIndex].get(2);
+		
 		mTick = 0;
+		
 	}
 	
 	

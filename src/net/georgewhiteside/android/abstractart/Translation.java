@@ -43,11 +43,14 @@ public class Translation
 	private float mHorizontalInitial;
 	private float mVerticalInitial;
 	
+
 	private float mTranslationTimer;
 	
 	private boolean mAdvanceEffectNumber;
 	
 	private float mTicker;
+	
+	private boolean calculate = false;
 	
 	public Translation(ByteBuffer translationData, ByteBuffer translationIndices)
 	{
@@ -93,8 +96,8 @@ public class Translation
 		//dx += (x_velocity / 256.0) * time + 0.5 * (x_acceleration / 256.0) * time * time;
 		//dy += (y_velocity / 256.0) * time + 0.5 * (y_acceleration / 256.0) * time * time;
 		
-		// TODO make this a more efficient check, like once per setIndex()
-		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0)
+		
+		if(calculate)
 		{
 			//float time = getDuration() - mTranslationDuration;
 			float time = mTicker * 60;
@@ -135,43 +138,6 @@ public class Translation
 			}
 		}
 
-		/*
-		if(mTranslationDuration != 0)
-		{
-			mTranslationDuration--;
-			
-			float time = getDuration() - mTranslationDuration;
-			
-			//mHorizontalVelocity += (float)getHorizontalAcceleration() / 256.0f;
-			mHorizontalVelocity = 0 + getHorizontalAcceleration() / 256.0f * time;
-			mHorizontalOffset = 0 + getHorizontalVelocity() * time + 0.5f * getHorizontalAcceleration() * time * time;
-			
-			mVerticalVelocity += (float)getVerticalAcceleration() / 256.0f;
-			mVerticalOffset += mVerticalVelocity;
-			
-			if(mTranslationDuration == 0)
-			{
-				float hcarry = mHorizontalOffset;
-				float vcarry = mVerticalOffset;
-				
-				mIndex++;
-				
-				if(mIndex >= mNumberOfTranslations)
-				{
-					mIndex = 0;
-					mHorizontalVelocity = 0;
-					mVerticalVelocity = 0;
-				}
-				
-				setIndex(mIndex);
-				
-				mHorizontalOffset = hcarry;
-				mVerticalOffset = vcarry;
-				
-				
-			}
-			
-		}*/
 	}
 	
 	public void dump(int index)
@@ -249,5 +215,10 @@ public class Translation
 		mVerticalAcceleration = getVerticalAcceleration() / 256.0f;
 		mHorizontalVelocity = getHorizontalVelocity() / 256.0f;
 		mVerticalVelocity = getVerticalVelocity() / 256.0f;
+		
+		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0) {
+			calculate = true;
+		}
+			
 	}
 }
