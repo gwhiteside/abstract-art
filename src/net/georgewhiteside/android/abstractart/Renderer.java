@@ -411,8 +411,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());
 		
 		// old stuff
-		GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
-		GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
+		//GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
+		//GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
 	}
 	
 	public void loadBattleBackground(int index)

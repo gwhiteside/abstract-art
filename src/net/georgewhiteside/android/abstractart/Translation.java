@@ -44,6 +44,8 @@ public class Translation
 	private float mHorizontalInitial;
 	private float mVerticalInitial;
 	
+	private boolean calculate = false;
+	
 	private int mTicker;
 	
 	public Translation(ByteBuffer translationData, ByteBuffer translationIndices)
@@ -88,8 +90,8 @@ public class Translation
 		//dx += (x_velocity / 256.0) * time + 0.5 * (x_acceleration / 256.0) * time * time;
 		//dy += (y_velocity / 256.0) * time + 0.5 * (y_acceleration / 256.0) * time * time;
 		
-		// TODO make this a more efficient check, like once per setIndex()
-		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0)
+		
+		if(calculate)
 		{
 			//float time = getDuration() - mTranslationDuration;
 			float time = mTicker;
@@ -101,68 +103,30 @@ public class Translation
 			mVerticalOffset = mVerticalInitial + mVerticalVelocity * time + 0.5f * mVerticalAcceleration * time * time;
 			
 			mTicker++;
-		}
-		
-		if(mTranslationDuration != 0)
-		{
-			mTranslationDuration--;
-			
-			if(mTranslationDuration == 0)
-			{
-				mIndex++;
-				
-				mHorizontalInitial = mHorizontalOffset;
-				mVerticalInitial = mVerticalOffset;
-				
-				if(mIndex >= mNumberOfTranslations)
-				{
-					mIndex = 0;
-					mTicker = 0;
-				}
-				
-				mTicker = 0; // bug fix?
-				
-				setIndex(mIndex);
-			}
-		}
 
-		/*
-		if(mTranslationDuration != 0)
-		{
-			mTranslationDuration--;
-			
-			float time = getDuration() - mTranslationDuration;
-			
-			//mHorizontalVelocity += (float)getHorizontalAcceleration() / 256.0f;
-			mHorizontalVelocity = 0 + getHorizontalAcceleration() / 256.0f * time;
-			mHorizontalOffset = 0 + getHorizontalVelocity() * time + 0.5f * getHorizontalAcceleration() * time * time;
-			
-			mVerticalVelocity += (float)getVerticalAcceleration() / 256.0f;
-			mVerticalOffset += mVerticalVelocity;
-			
-			if(mTranslationDuration == 0)
+			if(mTranslationDuration != 0)
 			{
-				float hcarry = mHorizontalOffset;
-				float vcarry = mVerticalOffset;
+				mTranslationDuration--;
 				
-				mIndex++;
-				
-				if(mIndex >= mNumberOfTranslations)
+				if(mTranslationDuration == 0)
 				{
-					mIndex = 0;
-					mHorizontalVelocity = 0;
-					mVerticalVelocity = 0;
+					mIndex++;
+					
+					mHorizontalInitial = mHorizontalOffset;
+					mVerticalInitial = mVerticalOffset;
+					
+					if(mIndex >= mNumberOfTranslations)
+					{
+						mIndex = 0;
+						mTicker = 0;
+					}
+					
+					mTicker = 0; // bug fix?
+					
+					setIndex(mIndex);
 				}
-				
-				setIndex(mIndex);
-				
-				mHorizontalOffset = hcarry;
-				mVerticalOffset = vcarry;
-				
-				
 			}
-			
-		}*/
+		}
 	}
 	
 	public void dump(int index)
@@ -240,5 +204,10 @@ public class Translation
 		mVerticalAcceleration = getVerticalAcceleration() / 256.0f;
 		mHorizontalVelocity = getHorizontalVelocity() / 256.0f;
 		mVerticalVelocity = getVerticalVelocity() / 256.0f;
+		
+		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0) {
+			calculate = true;
+		}
+			
 	}
 }

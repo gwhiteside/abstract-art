@@ -85,6 +85,14 @@ public class Layer
  	public int getImageIndex() { return bgData.get(0); }
  	public int getPaletteIndex() { return bgData.get(1); }
  	public int getBPP() { return bgData.get(2); }
+ 	
+ 	private int mPaletteCycle1Begin;
+ 	private int mPaletteCycle1End;
+ 	private int mPaletteCycle2Begin;
+ 	private int mPaletteCycle2End;
+ 	private int mPaletteCycleSpeed;
+ 	private int mPaletteCycleType;
+ 	
 
  	// TODO: wrap these Distortion and Translation objects?
 	public Distortion distortion;
@@ -148,29 +156,24 @@ public class Layer
 		}
 	}
 	
-	public int getPaletteCycle1Begin()
-	{
-		return bgData.get(4);
+	public int getPaletteCycle1Begin() {
+		return mPaletteCycle1Begin;
 	}
 	
-	public int getPaletteCycle1End()
-	{
-		return bgData.get(5);
+	public int getPaletteCycle1End() {
+		return mPaletteCycle1End;
 	}
 	
-	public int getPaletteCycle2Begin()
-	{
-		return bgData.get(6);
+	public int getPaletteCycle2Begin() {
+		return mPaletteCycle2Begin;
 	}
 	
-	public int getPaletteCycle2End()
-	{
-		return bgData.get(7);
+	public int getPaletteCycle2End() {
+		return mPaletteCycle2End;
 	}
 	
-	public int getPaletteCycleSpeed()
-	{
-		return RomUtil.unsigned(bgData.get(8));
+	public int getPaletteCycleSpeed() {
+		return mPaletteCycleSpeed;
 	}
 	
 	/**
@@ -185,7 +188,7 @@ public class Layer
 	 */
 	public int getPaletteCycleType()
 	{
-		return bgData.get(3);
+		return mPaletteCycleType;
 	}
 	
 	public int getPaletteRotation()
@@ -266,6 +269,13 @@ public class Layer
 		mTick = 0;
 		
 		romData.rewind();
+		
+		mPaletteCycle1Begin = bgData.get(4);
+		mPaletteCycle1End = bgData.get(5);
+		mPaletteCycle2Begin = bgData.get(6);
+		mPaletteCycle2End = bgData.get(7);
+		mPaletteCycleSpeed = RomUtil.unsigned(bgData.get(8));
+		mPaletteCycleType = bgData.get(3);
 	}
 	
 	
