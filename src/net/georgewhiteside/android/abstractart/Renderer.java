@@ -28,6 +28,7 @@ import android.view.WindowManager;
 
 import net.georgewhiteside.android.abstractart.Wallpaper;
 import net.georgewhiteside.android.abstractart.Wallpaper.AbstractArtEngine;
+import net.georgewhiteside.utility.MovingAverage;
 
 import org.jf.GLWallpaper.GLWallpaperService;
 
@@ -36,7 +37,7 @@ import org.jf.GLWallpaper.GLWallpaperService;
 // "The PowerVR 530/535 is very slow. Andreno 200 and PowerVR 530/535 are first GPU generation
 // (OpenGL ES 2.x) for hdpi resolution. You can't redraw a full screen at 60FPS with a simple texture."
 
-public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Renderer
+public class Renderer implements GLWallpaperService.Renderer
 {
 	private static final String TAG = "Renderer";
 	private Context context;
@@ -117,7 +118,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	Random rand = new Random();
 	
 	private boolean mHighRes = false;
-	private long frameTime = 60;
+	private float frameTime = 1 / 60.0f;
 	
 	private boolean mirrorVertical = false;
 	
@@ -125,6 +126,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	
 	private long lastFrameTime = System.nanoTime();
 	private float deltaTime = 0;
+	
+	MovingAverage movingAverage;
 	
 	public int getRomBackgroundIndex(int address)
 	{
@@ -196,38 +199,146 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		this.currentBackground = initialBackground;
 	}
 	
+	
+	/*
+
+
+
+public void onDrawFrame(GL10 gl)
+{    
+    endTime = System.currentTimeMillis();
+    dt = endTime - startTime;
+    if (dt < 33)
+        Thread.Sleep(33 - dt);
+    startTime = System.currentTimeMillis();
+
+    UpdateGame(dt);
+    RenderGame(gl);
+}
+
+
+
+
+
+
+	 */
+	
+	int mSmoothingWindowFrames = 10;
+	
+	MovingAverage logicSmoother = new MovingAverage(10);
+	
+	int multiplier = 1000;
+	
 	public void onDrawFrame(GL10 unused)
 	{
 		long time = System.nanoTime();
-        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        //deltaTime += (time - lastFrameTime) / 1000000000.0f;
+		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
+		deltaTime = movingAverage.getAverage();
         lastFrameTime = time;
-        //mean.addValue(deltaTime);
+    
+
+		//endTime = System.currentTimeMillis();
+		//long delta = endTime - startTime;
+        
+        //float sleepTime =
+        
+        
+        
+        
+        
+        
+
+		//lastFrameTime = System.nanoTime();
 		
-		endTime = System.currentTimeMillis();
-		long delta = endTime - startTime;
-		if(delta < frameTime)
+        
+		//lastFrameTime = System.nanoTime();
+		//startTime = System.currentTimeMillis();
+        
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
+		renderScene();
+        
+		if(deltaTime < frameTime)
 		{
 			try {
-				Thread.sleep(frameTime - delta);
+				Thread.sleep((long)((frameTime - deltaTime) * 1000));
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 		}
-		startTime = System.currentTimeMillis();
 		
-		mFPSCounter.logStartFrame();
+		logicSmoother.addSample(deltaTime);
+		float logicDelta = logicSmoother.getAverage();
 		
+		mFPSCounter.logFrame(deltaTime);
+		//movingAverage.addSample(deltaTime);
+		//float smoothDelta = movingAverage.getAverage();
+		battleGroup.battleBackground.doTick(logicDelta);
+		
+		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
+		
+
+		
+		
+		
+		
+		
+		
+		
+		/* aggressive
+		long time = System.nanoTime();
+        //deltaTime += (time - lastFrameTime) / 1000000000.0f;
+		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
+		deltaTime += movingAverage.getAverage();
+        lastFrameTime = time;
+    
+
+		//endTime = System.currentTimeMillis();
+		//long delta = endTime - startTime;
+        
+        //float sleepTime =
+        
+        
+        
+        
+        
+        
+
+		//lastFrameTime = System.nanoTime();
+		
+        
+		//lastFrameTime = System.nanoTime();
+		//startTime = System.currentTimeMillis();
+        
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		//GLES20.glViewport(0, 0, mSurfaceWidth, mSurfaceHeight);
-		//mRenderWidth = mSurfaceWidth;
-		//mRenderHeight = mSurfaceHeight;
-		
 		renderScene();
-			
-		battleGroup.battleBackground.doTick();
+        
+		if(deltaTime < frameTime)
+		{
+			try {
+				Thread.sleep((long)((frameTime - deltaTime) * 1000));
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			return;
 		
-		mFPSCounter.logEndFrame();
+		}
+		
+		logicSmoother.addSample(deltaTime);
+		float logicDelta = logicSmoother.getAverage();
+		
+		mFPSCounter.logFrame(deltaTime);
+		//movingAverage.addSample(deltaTime);
+		//float smoothDelta = movingAverage.getAverage();
+		battleGroup.battleBackground.doTick(logicDelta);
+		
+		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
+		
+		deltaTime = 0;
+		*/
 	}
 	
 	boolean enableSmoothScaling = true;
@@ -325,6 +436,8 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 	{
 		//queryGl(unused);
 		
+		movingAverage = new MovingAverage(mSmoothingWindowFrames);
+		
 		if(enableSmoothScaling) {
 			mFilterOutput = true;
 		} else {
@@ -379,7 +492,7 @@ public class Renderer implements GLWallpaperService.Renderer, GLSurfaceView.Rend
 		
 		// handle the rendering knobs
 		
-		frameTime = 1000 / 60; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
+		frameTime = 1 / 60.0f; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
 		
 		lastFrameTime = System.nanoTime();
 		

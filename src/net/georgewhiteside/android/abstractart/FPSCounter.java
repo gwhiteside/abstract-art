@@ -1,41 +1,25 @@
 package net.georgewhiteside.android.abstractart;
 
+import net.georgewhiteside.utility.MovingAverage;
 import android.util.Log;
 import android.os.SystemClock;
 
 public class FPSCounter {
-	private long startTime = 0;
-	private long startFrame = 0;
-	private long endTime = 0;
-	private int frames = 0;
-	private long avgFrameTime = 0;
-	private int interval = 2000; // output update interval in milliseconds
 	
-	public void logStartFrame()
-	{
-		if(startTime == 0)
-		{
-			startTime = SystemClock.uptimeMillis();
-		}
-		
-		startFrame = SystemClock.uptimeMillis();
-	}
+	float updateTimer = 0;
+	float updateInterval = 2.0f;
+	int frameCount = 0;
+	MovingAverage movingAverage = new MovingAverage((int) (60));
 	
-	public void logEndFrame()
-	{
-		endTime = SystemClock.uptimeMillis();
+	public void logFrame(float deltaTime) {
+		frameCount++;
+		movingAverage.addSample(deltaTime);
+		updateTimer += deltaTime;
 		
-		avgFrameTime += (endTime - startFrame);
-		frames++;
-		
-		if(endTime - startTime >= interval)
-		{
-			Log.d("FPS", "FPS: " + (float)frames / (endTime - startTime) * 1000);
-			Log.d("RenderTime", "Time to render frame: " + ((float)avgFrameTime / frames) + "ms");
-			avgFrameTime = 0;
-			startTime = 0;
-			frames = 0;
+		if(updateTimer >= updateInterval) {
+			Log.d("FPS", "Framerate: " + (1.0f / movingAverage.getAverage()) + "fps (" + frameCount + "frames counted over " + updateInterval + " seconds)");
+			frameCount = 0;
+			updateTimer = 0;
 		}
 	}
-
 }

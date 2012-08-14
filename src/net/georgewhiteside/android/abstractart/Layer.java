@@ -69,7 +69,7 @@ public class Layer
 	private int paletteId; // hack for disabled color effects
 	
 	private int paletteRotation, triangle;
-	private int mTick;
+	private float mTick;
  	
  	public static final int DIST_NONE = 0x00;
  	public static final int DIST_HORIZONTAL = 0x01;
@@ -100,16 +100,16 @@ public class Layer
 		romData.order(ByteOrder.LITTLE_ENDIAN);
 	}
 	
-	public void doTick()
+	public void doTick(float delta)
 	{
 		distortion.doTick();
-		translation.doTick();
+		translation.doTick(delta);
 		
 		// handle palette cycling animation
 		if(getPaletteCycleType() != Layer.CYCLE_NONE)
 		{
-			mTick++;
-			if(mTick == getPaletteCycleSpeed())
+			mTick += delta;
+			if(mTick * 60 >= getPaletteCycleSpeed())
 			{
 				mTick = 0;
 				

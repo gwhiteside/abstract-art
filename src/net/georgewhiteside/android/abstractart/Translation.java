@@ -34,7 +34,6 @@ public class Translation
 	private int mIndex;
 	private int mNumberOfTranslations;
 	
-	private int mTranslationDuration;
 	private float mHorizontalVelocity;
 	private float mVerticalVelocity;
 	private float mHorizontalAcceleration;
@@ -44,7 +43,11 @@ public class Translation
 	private float mHorizontalInitial;
 	private float mVerticalInitial;
 	
-	private int mTicker;
+	private float mTranslationTimer;
+	
+	private boolean mAdvanceEffectNumber;
+	
+	private float mTicker;
 	
 	public Translation(ByteBuffer translationData, ByteBuffer translationIndices)
 	{
@@ -80,8 +83,10 @@ public class Translation
 	/*
 	 * This is based on observation and rough guesswork; be warned when referencing this implementation
 	 */
-	public void doTick()
+	public void doTick(float delta)
 	{
+		mAdvanceEffectNumber = getDuration() == 0 ? false : true;
+		
 		// x(t) = x0 + v0*t + 1/2*a*t^2
 		
 		// translation effect
@@ -92,7 +97,7 @@ public class Translation
 		if(getHorizontalAcceleration() != 0 || getHorizontalVelocity() != 0 || getVerticalAcceleration() != 0 || getVerticalVelocity() != 0)
 		{
 			//float time = getDuration() - mTranslationDuration;
-			float time = mTicker;
+			float time = mTicker * 60;
 			
 			//if(getDuration() != 0) time = mTicker % getDuration();
 			//else time = mTicker;
@@ -100,15 +105,20 @@ public class Translation
 			mHorizontalOffset = mHorizontalInitial + mHorizontalVelocity * time + 0.5f * mHorizontalAcceleration * time * time;
 			mVerticalOffset = mVerticalInitial + mVerticalVelocity * time + 0.5f * mVerticalAcceleration * time * time;
 			
-			mTicker++;
+			mTicker += delta;
+			//mTicker++;
 		}
 		
-		if(mTranslationDuration != 0)
+		if(mAdvanceEffectNumber)
 		{
-			mTranslationDuration--;
+			//mTranslationDuration -= delta;
+			//mTranslationDuration--;
 			
-			if(mTranslationDuration == 0)
+			mTranslationTimer += delta;
+			
+			if(mTranslationTimer * 60 >= getDuration())
 			{
+				//Log.d("translation", "timer carry: " + (mTranslationTimer * 60 - getDuration()));
 				mIndex++;
 				
 				mHorizontalInitial = mHorizontalOffset;
@@ -117,7 +127,6 @@ public class Translation
 				if(mIndex >= mNumberOfTranslations)
 				{
 					mIndex = 0;
-					mTicker = 0;
 				}
 				
 				mTicker = 0; // bug fix?
@@ -235,12 +244,10 @@ public class Translation
 		
 		mIndex = index;
 		
-		mTranslationDuration = getDuration();
+		mTranslationTimer = 0;
 		mHorizontalAcceleration = getHorizontalAcceleration() / 256.0f;
 		mVerticalAcceleration = getVerticalAcceleration() / 256.0f;
 		mHorizontalVelocity = getHorizontalVelocity() / 256.0f;
 		mVerticalVelocity = getVerticalVelocity() / 256.0f;
-		
-		dump(0);
 	}
 }

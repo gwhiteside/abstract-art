@@ -119,10 +119,10 @@ public class BattleBackground
 		//loadBackgroundSet();
 	}
 	
-	public void doTick()
+	public void doTick(float delta)
 	{
-		bg3.doTick();
-		bg4.doTick();
+		bg3.doTick(delta);
+		bg4.doTick(delta);
 	}
 	
 	public Layer getBg3()
