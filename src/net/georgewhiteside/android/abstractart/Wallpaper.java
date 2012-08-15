@@ -116,6 +116,25 @@ public class Wallpaper extends GLWallpaperService
 			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 	    }
 		
+		@Override
+        public void onVisibilityChanged(final boolean visible) {
+			super.onVisibilityChanged(visible);
+			
+			if(renderer != null) {
+				if(visible) {
+					// the renderer starts its rendering thread when it's ready
+				} else {
+					renderer.stopRendering(); // ...but this is the only mechanism we have to explicitly stop it when necessary
+				}
+			}
+		}
+		
+		@Override
+        public void onSurfaceDestroyed(SurfaceHolder holder) {
+			super.onSurfaceDestroyed(holder);
+			renderer.stopRendering();
+		}
+		
 		/*
 		 * Expect this method to only grow messier, and messier, and messier as time goes on... ;)
 		 */

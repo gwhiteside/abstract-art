@@ -118,7 +118,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	Random rand = new Random();
 	
 	private boolean mHighRes = false;
-	private float frameTime = 1 / 60.0f;
 	
 	private boolean mirrorVertical = false;
 	
@@ -127,7 +126,11 @@ public class Renderer implements GLWallpaperService.Renderer
 	private long lastFrameTime = System.nanoTime();
 	private float deltaTime = 0;
 	
-	MovingAverage movingAverage;
+	float logicUpdatePeriod = 1 / 60.0f;
+	float renderUpdatePeriod = 1 / 60.0f;
+	
+	private Thread logicThread;
+	private LogicRunnable logicRunnable;
 	
 	public int getRomBackgroundIndex(int address)
 	{
@@ -199,38 +202,104 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
+	public void startRendering() {
+		if(logicRunnable == null) {
+			logicRunnable = new LogicRunnable();
+		}
+		if(logicThread == null) {
+			logicThread = new Thread(logicRunnable, "Render Logic Thread");
+			logicThread.start();
+		}
+	}
 	
-	/*
+	public void stopRendering() {
+		// !!! DO NOT FORGET TO CALL THIS WHEN DONE WITH A RENDERER !!!
+		if(logicRunnable != null) {
+			logicRunnable.kill();
+			logicRunnable = null;
+		}
+		logicThread = null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	private class LogicRunnable implements Runnable {
+		private boolean running;
+		
+		public void run() {
+			long previousTime = System.nanoTime();
+			float deltaTime = 0;
+			long currentTime;
+			running = true;
+			
+			while(running) {
+				currentTime = System.nanoTime();
+				deltaTime += (currentTime - previousTime) / 1000000000.0f;
+				previousTime = currentTime;
+				
+				if(deltaTime < logicUpdatePeriod)
+				{
+					try {
+						Thread.sleep((long)((logicUpdatePeriod - deltaTime) * 1000));
+					} catch (InterruptedException e) {
+						e.printStackTrace();
+					}
+				} else {
+					battleGroup.battleBackground.doTick(deltaTime);
+					//Log.d(TAG, "logic delta update: " + (deltaTime * 1000) + "ms; correction: " + (deltaTime - logicUpdateTime) * 1000 + "ms");
+					deltaTime -= logicUpdatePeriod;
+				}
+			}
+		}
 
+		public synchronized void kill() {
+			Log.i(TAG, "killing logic thread");
+			running = false;
+		}
+	}
+	
+	
 
+	
+	
+	
+	
+	
+	
+	
 
-public void onDrawFrame(GL10 gl)
-{    
-    endTime = System.currentTimeMillis();
-    dt = endTime - startTime;
-    if (dt < 33)
-        Thread.Sleep(33 - dt);
-    startTime = System.currentTimeMillis();
+	
+	
+	
+	
+	
+	
+	
+	
 
-    UpdateGame(dt);
-    RenderGame(gl);
-}
-
-
-
-
-
-
-	 */
 	
 	int mSmoothingWindowFrames = 10;
-	
-	MovingAverage logicSmoother = new MovingAverage(10);
-	
+	MovingAverage movingAverage = new MovingAverage(50);
 	int multiplier = 1000;
 	
 	public void onDrawFrame(GL10 unused)
 	{
+		
+		
+/*
 		long time = System.nanoTime();
         //deltaTime += (time - lastFrameTime) / 1000000000.0f;
 		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
@@ -277,7 +346,7 @@ public void onDrawFrame(GL10 gl)
 		battleGroup.battleBackground.doTick(logicDelta);
 		
 		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
-		
+*/
 
 		
 		
@@ -286,7 +355,7 @@ public void onDrawFrame(GL10 gl)
 		
 		
 		
-		/* aggressive
+/*
 		long time = System.nanoTime();
         //deltaTime += (time - lastFrameTime) / 1000000000.0f;
 		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
@@ -333,12 +402,72 @@ public void onDrawFrame(GL10 gl)
 		mFPSCounter.logFrame(deltaTime);
 		//movingAverage.addSample(deltaTime);
 		//float smoothDelta = movingAverage.getAverage();
-		battleGroup.battleBackground.doTick(logicDelta);
+		
+		//battleGroup.battleBackground.doTick(logicDelta);
 		
 		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
 		
 		deltaTime = 0;
-		*/
+*/
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		long time = System.nanoTime();
+
+		//movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
+		//deltaTime = movingAverage.getAverage();
+        //lastFrameTime = time;
+        
+        deltaTime = (time - lastFrameTime) / 1000000000.0f;
+        movingAverage.addSample(deltaTime);
+        lastFrameTime = time;
+
+		//endTime = System.currentTimeMillis();
+		//long delta = endTime - startTime;
+        
+        //float sleepTime =
+        
+		//lastFrameTime = System.nanoTime();
+		
+        
+		//lastFrameTime = System.nanoTime();
+		//startTime = System.currentTimeMillis();
+        
+        //float smoothDeltaTime = movingAverage.getAverage();
+        
+        mFPSCounter.logFrame(deltaTime);
+        
+		if(deltaTime < renderUpdatePeriod)
+		{
+			try {
+				Thread.sleep((long)((renderUpdatePeriod - deltaTime) * 1000));
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+		
+		
+		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
+		renderScene();
+		
+		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; smoothed: " + movingAverage.getAverage() * 1000 + "ms");
+		
 	}
 	
 	boolean enableSmoothScaling = true;
@@ -436,8 +565,6 @@ public void onDrawFrame(GL10 gl)
 	{
 		//queryGl(unused);
 		
-		movingAverage = new MovingAverage(mSmoothingWindowFrames);
-		
 		if(enableSmoothScaling) {
 			mFilterOutput = true;
 		} else {
@@ -492,11 +619,12 @@ public void onDrawFrame(GL10 gl)
 		
 		// handle the rendering knobs
 		
-		frameTime = 1 / 60.0f; //frameTime = 1000 / Integer.valueOf(sharedPreferences.getString("intFramerate", null));
-		
 		lastFrameTime = System.nanoTime();
 		
 		Log.i(TAG, "Surface created");
+		
+		
+		startRendering();
 	}
 
 	private void updateShaderVariables()
