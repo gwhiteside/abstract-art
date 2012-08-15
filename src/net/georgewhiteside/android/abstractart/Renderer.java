@@ -126,7 +126,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	private long lastFrameTime = System.nanoTime();
 	private float deltaTime = 0;
 	
-	float logicUpdatePeriod = 1 / 60.0f;
+	float logicUpdatePeriod = 1 / 10.0f;
 	float renderUpdatePeriod = 1 / 60.0f;
 	
 	private Thread logicThread;

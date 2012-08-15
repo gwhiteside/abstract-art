@@ -137,10 +137,6 @@ public class GLOffscreenSurface {
         return workingConvertToBitmap();
     }
     
-    
-    
-    
-    
     public void setEGLContextClientVersion(int version) {
         mEGLContextClientVersion = version;
     }
@@ -315,11 +311,6 @@ public class GLOffscreenSurface {
         }
     }
     
-    
-    
-    
-    
-    
     private Bitmap workingConvertToBitmap() {
     	Bitmap bitmap;
     	IntBuffer ib = IntBuffer.allocate(mWidth*mHeight);
@@ -338,24 +329,4 @@ public class GLOffscreenSurface {
         
         return bitmap;
     }
-    
-        
-    private Bitmap convertToBitmap() {
-    	Bitmap bitmap;
-        IntBuffer ib = IntBuffer.allocate(mWidth*mHeight);
-        IntBuffer ibt = IntBuffer.allocate(mWidth*mHeight);
-        mGL.glReadPixels(0, 0, mWidth, mHeight, GL10.GL_RGBA, GL10.GL_UNSIGNED_BYTE, ib);
-
-        /*
-        for(int y = 0; y < mHeight; y++) {     
-            for(int x = 0; x < mWidth; x++) {
-                ibt.put((mHeight-y-1)*mWidth + x, ib.get(y*mWidth + x));
-            }
-        }         
-        */         
-
-        bitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
-        bitmap.copyPixelsFromBuffer(ib);
-        return Bitmap.createBitmap(ib.array(), mWidth, mHeight, Bitmap.Config.ARGB_8888);
-    } 
 }
