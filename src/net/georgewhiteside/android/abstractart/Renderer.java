@@ -253,18 +253,40 @@ public class Renderer implements GLWallpaperService.Renderer
 	long previousTime;
 	float deltaTime;
 	
+	public MovingAverage frameSmoother = new MovingAverage(20);
+	public boolean requestFramerateAdjustment = false;
+	int lag = 0;
+	
 	public synchronized void onDrawFrame(GL10 unused)
 	{
 		
-		//if(previousTime == 0) previousTime = (long) (System.nanoTime() - renderUpdatePeriod * 1000);
+		if(previousTime == 0) previousTime = (long) (System.nanoTime() - Wallpaper.renderUpdatePeriodMs * 1000000);
 		
 		currentTime = System.nanoTime();
 		deltaTime = (currentTime - previousTime) / 1000000000.0f;
 		previousTime = currentTime;
 		
-		battleGroup.battleBackground.doTick(deltaTime);
 		
-		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
+		frameSmoother.addSample(deltaTime);
+		
+		// as long as it's within 2ms, just let it go
+		if(deltaTime * 1000 + 2 < Wallpaper.renderUpdatePeriodMs) {
+			try {
+				Thread.sleep((long)((Wallpaper.renderUpdatePeriodMs - deltaTime * 1000)));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			Log.d(TAG, "had to frameskip: " + (Wallpaper.renderUpdatePeriodMs - deltaTime * 1000) + "ms");
+			deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime;
+			
+			
+		} 
+		
+		
+		
+		battleGroup.battleBackground.doTick(deltaTime);
+
+		Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms; average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
 
 		
 		

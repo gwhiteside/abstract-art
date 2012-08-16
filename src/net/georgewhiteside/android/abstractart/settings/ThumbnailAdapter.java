@@ -166,6 +166,6 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	public void cleanup() {
 		Log.i("ThumbnailAdapter", "Cleaning up...");
 		imageLoader.stopThread();
-		renderer.stopRendering();
+		//renderer.stopRendering();
 	}
 }

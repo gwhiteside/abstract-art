@@ -51,12 +51,15 @@ public class Wallpaper extends GLWallpaperService
 	static String backgroundListFileName = "playlist.json";
 	static File backgroundListFile;
 	
-	float renderUpdatePeriodMs = 1 / 30.0f * 1000;
+	private static float renderUpdatePeriodMsTarget = 1 / 60.0f * 1000;
+	public static float renderUpdatePeriodMs = renderUpdatePeriodMsTarget;
 	
 	public Wallpaper()
 	{
 		super();
 		context = this;
+		
+		Log.i(TAG, "current thread priority: " + Thread.currentThread().getPriority());
 	}
 	
 	@Override
@@ -96,6 +99,7 @@ public class Wallpaper extends GLWallpaperService
 				float deltaTimeMs = 0;
 				long currentTime;
 				running = true;
+				int fpsSamples = 0;
 				
 				while(running) {
 					currentTime = System.nanoTime();
@@ -115,6 +119,15 @@ public class Wallpaper extends GLWallpaperService
 						requestRender();
 						//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
 						deltaTimeMs -= renderUpdatePeriodMs;
+						fpsSamples++;
+						
+						if(renderer.frameSmoother.isWindowFull() && fpsSamples >= 1000 / renderUpdatePeriodMs) {
+							renderUpdatePeriodMs = renderer.frameSmoother.getAverage() * 1000;
+							fpsSamples = 0;
+							Log.i(TAG, "sampling update frequency: " + renderUpdatePeriodMs);
+						}
+						
+						//Log.i(TAG, "smoother value: " + renderer.frameSmoother.getAverage());
 					}
 					
 					
@@ -286,6 +299,8 @@ public class Wallpaper extends GLWallpaperService
 	            				setNewBackground(renderer);
 	            			}
 	            		});
+            			renderer.frameSmoother.clear();
+            			renderUpdatePeriodMs = renderUpdatePeriodMsTarget;
             		}
             		else if(behavior.equals("chooser"))
             		{

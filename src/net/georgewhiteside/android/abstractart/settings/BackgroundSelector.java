@@ -283,7 +283,7 @@ public class BackgroundSelector extends Activity
         super.onDestroy();  
         thumbnailAdapter.cleanup();
         Wallpaper.saveBackgroundList(backgroundList);
-        renderer.stopRendering();
+        //renderer.stopRendering();
         System.gc();
         //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
     }  
