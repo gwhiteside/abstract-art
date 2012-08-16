@@ -329,4 +329,14 @@ public class GLOffscreenSurface {
         
         return bitmap;
     }
+    
+    /* alternate vertical flip
+    mBitmap = Bitmap.createBitmap(mWidth, mHeight, Bitmap.Config.ARGB_8888);
+    mBitmap.copyPixelsFromBuffer(ib); // create bitmap with upside down image
+     
+    Matrix matrix = new Matrix();
+    matrix.preScale(1.0f, -1.0f); // scaling: x = x, y = -y, i.e. vertically flip
+     
+    mBitmap = Bitmap.createBitmap(mBitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true); // new bitmap, using the matrix to flip it
+    */
 }

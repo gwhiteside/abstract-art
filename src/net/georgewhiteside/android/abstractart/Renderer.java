@@ -47,8 +47,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	public BattleGroup battleGroup;
 	private ShaderFactory shader;
 	
-	private FPSCounter mFPSCounter = new FPSCounter();
-	
 	private FloatBuffer quadVertexBuffer;
 	private FloatBuffer textureVertexBuffer;
 	private FloatBuffer textureOutputBuffer;
@@ -123,11 +121,12 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private Object lock = new Object();
 	
+	boolean enableSmoothScaling = true;
+	
 	private long lastFrameTime = System.nanoTime();
 	private float deltaTime = 0;
 	
-	float logicUpdatePeriod = 1 / 10.0f;
-	float renderUpdatePeriod = 1 / 60.0f;
+	float logicUpdatePeriod = 1 / 30.0f;
 	
 	private Thread logicThread;
 	private LogicRunnable logicRunnable;
@@ -207,7 +206,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			logicRunnable = new LogicRunnable();
 		}
 		if(logicThread == null) {
-			logicThread = new Thread(logicRunnable, "Render Logic Thread");
+			logicThread = new Thread(logicRunnable, "Render Logic Thread " + Thread.currentThread().getId());
 			logicThread.start();
 		}
 	}
@@ -233,8 +232,10 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	
 	
-	
-	
+	public void updateLogic() {
+		battleGroup.battleBackground.doTick(deltaTime);
+	}
+
 	
 	private class LogicRunnable implements Runnable {
 		private boolean running;
@@ -260,7 +261,7 @@ public class Renderer implements GLWallpaperService.Renderer
 				} else {
 					battleGroup.battleBackground.doTick(deltaTime);
 					//Log.d(TAG, "logic delta update: " + (deltaTime * 1000) + "ms; correction: " + (deltaTime - logicUpdateTime) * 1000 + "ms");
-					deltaTime -= logicUpdatePeriod;
+					deltaTime -= logicUpdatePeriod; // carry the remainder over to next wait period; logic updates should be very consistent
 				}
 			}
 		}
@@ -271,206 +272,12 @@ public class Renderer implements GLWallpaperService.Renderer
 		}
 	}
 	
-	
-
-	
-	
-	
-	
-	
-	
-	
-
-	
-	
-	
-	
-	
-	
-	
-	
-
-	
-	int mSmoothingWindowFrames = 10;
-	MovingAverage movingAverage = new MovingAverage(50);
-	int multiplier = 1000;
-	
 	public void onDrawFrame(GL10 unused)
 	{
-		
-		
-/*
-		long time = System.nanoTime();
-        //deltaTime += (time - lastFrameTime) / 1000000000.0f;
-		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
-		deltaTime = movingAverage.getAverage();
-        lastFrameTime = time;
-    
-
-		//endTime = System.currentTimeMillis();
-		//long delta = endTime - startTime;
-        
-        //float sleepTime =
-        
-        
-        
-        
-        
-        
-
-		//lastFrameTime = System.nanoTime();
-		
-        
-		//lastFrameTime = System.nanoTime();
-		//startTime = System.currentTimeMillis();
-        
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		renderScene();
-        
-		if(deltaTime < frameTime)
-		{
-			try {
-				Thread.sleep((long)((frameTime - deltaTime) * 1000));
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		logicSmoother.addSample(deltaTime);
-		float logicDelta = logicSmoother.getAverage();
-		
-		mFPSCounter.logFrame(deltaTime);
-		//movingAverage.addSample(deltaTime);
-		//float smoothDelta = movingAverage.getAverage();
-		battleGroup.battleBackground.doTick(logicDelta);
-		
-		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
-*/
-
-		
-		
-		
-		
-		
-		
-		
-/*
-		long time = System.nanoTime();
-        //deltaTime += (time - lastFrameTime) / 1000000000.0f;
-		movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
-		deltaTime += movingAverage.getAverage();
-        lastFrameTime = time;
-    
-
-		//endTime = System.currentTimeMillis();
-		//long delta = endTime - startTime;
-        
-        //float sleepTime =
-        
-        
-        
-        
-        
-        
-
-		//lastFrameTime = System.nanoTime();
-		
-        
-		//lastFrameTime = System.nanoTime();
-		//startTime = System.currentTimeMillis();
-        
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		renderScene();
-        
-		if(deltaTime < frameTime)
-		{
-			try {
-				Thread.sleep((long)((frameTime - deltaTime) * 1000));
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-
-			return;
-		
-		}
-		
-		logicSmoother.addSample(deltaTime);
-		float logicDelta = logicSmoother.getAverage();
-		
-		mFPSCounter.logFrame(deltaTime);
-		//movingAverage.addSample(deltaTime);
-		//float smoothDelta = movingAverage.getAverage();
-		
-		//battleGroup.battleBackground.doTick(logicDelta);
-		
-		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; logic delta update: " + (logicDelta * 1000) + "ms");
-		
-		deltaTime = 0;
-*/
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		long time = System.nanoTime();
-
-		//movingAverage.addSample((time - lastFrameTime) / 1000000000.0f);
-		//deltaTime = movingAverage.getAverage();
-        //lastFrameTime = time;
-        
-        deltaTime = (time - lastFrameTime) / 1000000000.0f;
-        movingAverage.addSample(deltaTime);
-        lastFrameTime = time;
-
-		//endTime = System.currentTimeMillis();
-		//long delta = endTime - startTime;
-        
-        //float sleepTime =
-        
-		//lastFrameTime = System.nanoTime();
-		
-        
-		//lastFrameTime = System.nanoTime();
-		//startTime = System.currentTimeMillis();
-        
-        //float smoothDeltaTime = movingAverage.getAverage();
-        
-        mFPSCounter.logFrame(deltaTime);
-        
-		if(deltaTime < renderUpdatePeriod)
-		{
-			try {
-				Thread.sleep((long)((renderUpdatePeriod - deltaTime) * 1000));
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
-		
-		
-		
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		renderScene();
-		
-		//Log.d(TAG, "render delta update: " + (deltaTime * 1000) + "ms; smoothed: " + movingAverage.getAverage() * 1000 + "ms");
 		
 	}
-	
-	boolean enableSmoothScaling = true;
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
 	{
@@ -635,6 +442,8 @@ public class Renderer implements GLWallpaperService.Renderer
 		Layer bg3 = battleGroup.battleBackground.getBg3();
 		Layer bg4 = battleGroup.battleBackground.getBg4();
 		
+		boolean updateBg4 = bg4.getIndex() != 0 ? true : false;
+		
 		// update shader resolution
 		
 		GLES20.glUniform2f(mResolutionLoc, mRenderWidth, mRenderHeight);
@@ -642,23 +451,27 @@ public class Renderer implements GLWallpaperService.Renderer
 		// update distortion effect variables for the shader program
 		
 		GLES20.glUniform1i(mBg3DistTypeLoc, bg3.distortion.getType());
-		GLES20.glUniform1i(mBg4DistTypeLoc, bg4.distortion.getType());
 		GLES20.glUniform3f(mBg3DistLoc, bg3.distortion.computeShaderAmplitude(), bg3.distortion.computeShaderFrequency(), bg3.distortion.computeShaderSpeed());
-		GLES20.glUniform3f(mBg4DistLoc, bg4.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderFrequency(), bg4.distortion.computeShaderSpeed());
 		GLES20.glUniform1f(mBg3CompressionLoc, bg3.distortion.computeShaderCompression());
-		GLES20.glUniform1f(mBg4CompressionLoc, bg4.distortion.computeShaderCompression());
 		
 		// update translation effect variables for the shader program
 		
 		GLES20.glUniform2f(mBg3Scroll, bg3.translation.getHorizontalOffset(), bg3.translation.getVerticalOffset());
-		GLES20.glUniform2f(mBg4Scroll, bg4.translation.getHorizontalOffset(), bg4.translation.getVerticalOffset());
 		
 		// update palette
 		
 		GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3.getPaletteCycle1Begin(), (float)bg3.getPaletteCycle1End(), (float)bg3.getPaletteCycle2Begin(), (float)bg3.getPaletteCycle2End());
-		GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
+		
 		GLES20.glUniform1f(mBg3RotationLoc, (float)bg3.getPaletteRotation());
-		GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());
+		
+		if(updateBg4) {
+			GLES20.glUniform1i(mBg4DistTypeLoc, bg4.distortion.getType());
+			GLES20.glUniform3f(mBg4DistLoc, bg4.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderFrequency(), bg4.distortion.computeShaderSpeed());
+			GLES20.glUniform1f(mBg4CompressionLoc, bg4.distortion.computeShaderCompression());
+			GLES20.glUniform2f(mBg4Scroll, bg4.translation.getHorizontalOffset(), bg4.translation.getVerticalOffset());
+			GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
+			GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());
+		}
 		
 		// old stuff
 		//GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());

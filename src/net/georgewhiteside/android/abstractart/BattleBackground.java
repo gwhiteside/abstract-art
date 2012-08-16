@@ -83,6 +83,8 @@ public class BattleBackground
 	public Layer bg3;
 	public Layer bg4;
 	
+	private boolean bg4Active = false;
+	
 	// backgrounds we don't want showing up in the background viewer for one reason or another
 	private static final List<Integer> blacklist = Arrays.asList(
 		// things I just don't want to include for the moment
@@ -122,7 +124,9 @@ public class BattleBackground
 	public void doTick(float delta)
 	{
 		bg3.doTick(delta);
-		bg4.doTick(delta);
+		if(bg4Active) {
+			bg4.doTick(delta);
+		}
 	}
 	
 	public Layer getBg3()
@@ -215,6 +219,14 @@ public class BattleBackground
 		bg3.loadLayer(A);
 		bg4.loadLayer(B);
 		Log.d(TAG, "loaded layers: " + A + ", " + B);
+		
+		// small optimization: the bg4 layer isn't active for most backgrounds, so we don't waste time
+		// updating its render logic when it's unused
+		if(bg4.getIndex() == 0) {
+			bg4Active = false;
+		} else {
+			bg4Active = true;
+		}
 	}
 	
 	public int getCacheableImagesTotal()

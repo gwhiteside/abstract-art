@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import net.georgewhiteside.utility.MovingAverage;
+
 import org.jf.GLWallpaper.GLWallpaperService;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -49,6 +51,8 @@ public class Wallpaper extends GLWallpaperService
 	static String backgroundListFileName = "playlist.json";
 	static File backgroundListFile;
 	
+	float renderUpdatePeriodMs = 1 / 30.0f * 1000;
+	
 	public Wallpaper()
 	{
 		super();
@@ -72,19 +76,80 @@ public class Wallpaper extends GLWallpaperService
 		
 		private long lastTap = 0; 
         private static final long TAP_THRESHOLD = 500;
+        
+        private Thread renderThread;
+    	private RenderRunnable renderRunnable;
+    	
+    	private FPSCounter mFPSCounter = new FPSCounter();
+    	MovingAverage movingAverage = new MovingAverage(5);
 		
-		AbstractArtEngine(GLWallpaperService glws)
-		{
+		AbstractArtEngine(GLWallpaperService glws) {
 			super();
 			this.glws = glws;
 		}
 		
+		private class RenderRunnable implements Runnable {
+			private boolean running;
+			
+			public void run() {
+				long previousTime = System.nanoTime();
+				float deltaTimeMs = 0;
+				long currentTime;
+				running = true;
+				
+				while(running) {
+					currentTime = System.nanoTime();
+					deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
+					//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
+					previousTime = currentTime;
+					
+					if(deltaTimeMs < renderUpdatePeriodMs)
+					{
+						try {
+							Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+						} catch (InterruptedException e) {
+							e.printStackTrace();
+						}
+					} else {
+				        //mFPSCounter.logFrame(deltaTimeMs);
+						requestRender();
+						Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+						deltaTimeMs = 0;
+					}
+					
+					
+				}
+			}
+
+			public synchronized void kill() {
+				Log.i(TAG, "killing logic thread");
+				running = false;
+			}
+		}
+		
+		public void startRendering() {
+			if(renderRunnable == null) {
+				renderRunnable = new RenderRunnable();
+			}
+			if(renderThread == null) {
+				renderThread = new Thread(renderRunnable, "Render Draw Thread " + Thread.currentThread().getId());
+				renderThread.start();
+			}
+		}
+		
+		public void stopRendering() {
+			// !!! DO NOT FORGET TO CALL THIS WHEN DONE WITH A RENDERER !!!
+			if(renderRunnable != null) {
+				renderRunnable.kill();
+				renderRunnable = null;
+			}
+			renderThread = null;
+		}
+		
 		@Override
-	    public void onCreate(SurfaceHolder surfaceHolder)
-	    {
+	    public void onCreate(SurfaceHolder surfaceHolder) {
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
-	        
 	        
 	        
 	        // snag some display information
@@ -113,7 +178,9 @@ public class Wallpaper extends GLWallpaperService
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
-			setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+			
+			startRendering();
 	    }
 		
 		@Override
@@ -122,9 +189,11 @@ public class Wallpaper extends GLWallpaperService
 			
 			if(renderer != null) {
 				if(visible) {
-					// the renderer starts its rendering thread when it's ready
+					// the renderer starts its logic update thread when it's ready
+					startRendering(); // we have to start our render update thread here explicitly though
 				} else {
-					renderer.stopRendering(); // ...but this is the only mechanism we have to explicitly stop it when necessary
+					renderer.stopRendering(); // and we have to stop the logic rendering thread because there's no notification inside the renderer itself
+					stopRendering();
 				}
 			}
 		}
@@ -133,19 +202,14 @@ public class Wallpaper extends GLWallpaperService
         public void onSurfaceDestroyed(SurfaceHolder holder) {
 			super.onSurfaceDestroyed(holder);
 			renderer.stopRendering();
+			stopRendering();
 		}
 		
 		/*
 		 * Expect this method to only grow messier, and messier, and messier as time goes on... ;)
 		 */
-		private void handleUpgrades()
-		{
-			
-			
-			//boolean dpb = detectPaletteBug();
-			//Log.i(TAG, "detectPaletteBug: " + dpb);
-			
-			
+		private void handleUpgrades() {
+
 			try
 			{
 				// This part is slick at least. We need only bump the app version in AndroidManifest.xml, and this code will

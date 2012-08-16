@@ -110,7 +110,7 @@ public class Layer
 	
 	public void doTick(float delta)
 	{
-		distortion.doTick();
+		distortion.doTick(delta);
 		translation.doTick(delta);
 		
 		// handle palette cycling animation
@@ -198,7 +198,14 @@ public class Layer
 	
 	public void loadLayer(int index)
 	{
+		loadedIndex = index;
+		
 		if( index < 0 || index > 326 ) {
+			return;
+		}
+		
+		if(index == 0) {
+			// save some time by not loading the data for layer index 0 (it's blank/unused data)
 			return;
 		}
 
@@ -264,7 +271,6 @@ public class Layer
 		
 		loadImage(getImageIndex());
 		
-		loadedIndex = index;
 		paletteRotation = 0;
 		mTick = 0;
 		

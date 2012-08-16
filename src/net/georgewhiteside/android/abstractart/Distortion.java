@@ -66,7 +66,10 @@ public class Distortion
 	private int mSpeed;
 	private int mType;
 	
-	private int mTick;
+	private float mTick;
+	private float mTick60;
+	
+	private float mEffectTimer;
 	
 	public Distortion(ByteBuffer distortionData, ByteBuffer distortionIndices) {
 		load(distortionData, distortionIndices);
@@ -76,7 +79,7 @@ public class Distortion
 		// returns C1 * amplitude
 		// where C1 = 1.0 / 512.0
 		// where amplitude = u_ampl + u_ampl_delta * time
-		double amplitude = mAmplitude + mAmplitudeDelta * mTick;
+		double amplitude = mAmplitude + mAmplitudeDelta * mTick60;
 		amplitude /= 512.0;
 		return (float)amplitude;
 	}
@@ -84,7 +87,7 @@ public class Distortion
 	public float computeShaderCompression() {
 		// returns compression
 		// where compression = u_comp + u_comp_delta * time
-		double compression = mCompression + mCompressionDelta * mTick;
+		double compression = mCompression + mCompressionDelta * mTick60;
 		return (float)compression;
 	}
 	
@@ -93,7 +96,7 @@ public class Distortion
 		// where C2 = 0.000095873799 = 8.0 * PI / (1024.0 * 256.0);
 		// where frequency = u_freq + u_freq_delta * time
 		
-		double frequency = mFrequency + mFrequencyDelta * mTick;
+		double frequency = mFrequency + mFrequencyDelta * mTick60;
 		frequency *= 8.0 * Math.PI / (1024.0 * 256.0);
 		return (float)frequency;
 	}
@@ -102,16 +105,16 @@ public class Distortion
 		// returns C3 * u_speed * u_tick
 		// where C3 = PI / 120.0
 		
-		return (float)(Math.PI * mSpeed * mTick) / 120.0f;
+		return (float)(Math.PI * mSpeed * mTick60) / 120.0f;
 	}
 	
 	
 	
-	public void doTick() {
+	public void doTick(float delta) {
 		if(mEffectDuration != 0) {
-			mEffectDuration--;
+			mEffectTimer += delta;
 			
-			if(mEffectDuration == 0) {
+			if(mEffectTimer * 60 >= mEffectDuration) {
 				mCurrentEffect++;
 				if(mCurrentEffect >= mNumberOfEffects) {
 					mCurrentEffect = 0;
@@ -123,7 +126,8 @@ public class Distortion
 			}
 		}
 		
-		mTick++;
+		mTick += delta;
+		mTick60 = mTick * 60;
 	}
 	
 	public void dump(int index) {
@@ -220,7 +224,7 @@ public class Distortion
 		mType = data[mIndex].get(2);
 		
 		mTick = 0;
-		
+		mEffectTimer = 0;
 	}
 	
 	
