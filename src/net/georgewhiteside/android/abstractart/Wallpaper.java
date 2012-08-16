@@ -113,8 +113,8 @@ public class Wallpaper extends GLWallpaperService
 					} else {
 				        //mFPSCounter.logFrame(deltaTimeMs);
 						requestRender();
-						Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-						deltaTimeMs = 0;
+						//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+						deltaTimeMs -= renderUpdatePeriodMs;
 					}
 					
 					
@@ -192,7 +192,7 @@ public class Wallpaper extends GLWallpaperService
 					// the renderer starts its logic update thread when it's ready
 					startRendering(); // we have to start our render update thread here explicitly though
 				} else {
-					renderer.stopRendering(); // and we have to stop the logic rendering thread because there's no notification inside the renderer itself
+					//renderer.stopRendering(); // and we have to stop the logic rendering thread because there's no notification inside the renderer itself
 					stopRendering();
 				}
 			}
@@ -201,7 +201,7 @@ public class Wallpaper extends GLWallpaperService
 		@Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
 			super.onSurfaceDestroyed(holder);
-			renderer.stopRendering();
+			//renderer.stopRendering();
 			stopRendering();
 		}
 		

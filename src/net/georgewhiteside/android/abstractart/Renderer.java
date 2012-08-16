@@ -111,25 +111,13 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	public boolean isPreview;
 	
-	private long startTime, endTime;
-	
 	Random rand = new Random();
-	
-	private boolean mHighRes = false;
 	
 	private boolean mirrorVertical = false;
 	
 	private Object lock = new Object();
 	
 	boolean enableSmoothScaling = true;
-	
-	private long lastFrameTime = System.nanoTime();
-	private float deltaTime = 0;
-	
-	float logicUpdatePeriod = 1 / 30.0f;
-	
-	private Thread logicThread;
-	private LogicRunnable logicRunnable;
 	
 	public int getRomBackgroundIndex(int address)
 	{
@@ -179,8 +167,6 @@ public class Renderer implements GLWallpaperService.Renderer
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 		
-		startTime = endTime = 0;
-		
 		isPreview = false;
 		
 		currentBackground = -1;
@@ -201,6 +187,13 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
+	
+	/*
+
+	private Thread logicThread;
+	private LogicRunnable logicRunnable;
+	float logicUpdatePeriod = 1 / 40.0f;
+
 	public void startRendering() {
 		if(logicRunnable == null) {
 			logicRunnable = new LogicRunnable();
@@ -219,24 +212,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		}
 		logicThread = null;
 	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	public void updateLogic() {
-		battleGroup.battleBackground.doTick(deltaTime);
-	}
 
-	
 	private class LogicRunnable implements Runnable {
 		private boolean running;
 		
@@ -271,12 +247,86 @@ public class Renderer implements GLWallpaperService.Renderer
 			running = false;
 		}
 	}
+	*/
 	
-	public void onDrawFrame(GL10 unused)
+	long currentTime;
+	long previousTime;
+	float deltaTime;
+	
+	public synchronized void onDrawFrame(GL10 unused)
 	{
+		
+		//if(previousTime == 0) previousTime = (long) (System.nanoTime() - renderUpdatePeriod * 1000);
+		
+		currentTime = System.nanoTime();
+		deltaTime = (currentTime - previousTime) / 1000000000.0f;
+		previousTime = currentTime;
+		
+		battleGroup.battleBackground.doTick(deltaTime);
+		
+		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
+
+		
+		
+		
+		
+		/*
+		currentTime = System.nanoTime();
+		deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
+		//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
+		previousTime = currentTime;
+		
+		if(deltaTimeMs < renderUpdatePeriodMs)
+		{
+			try {
+				Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		} else {
+	        //mFPSCounter.logFrame(deltaTimeMs);
+			GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
+			renderScene();
+			
+			Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+			
+			deltaTimeMs -= renderUpdatePeriodMs;
+		}
+		*/
+		
+		
+		
+		
+		
+		/*
+		
+		while(deltaTimeMs < renderUpdatePeriodMs) {
+			try {
+				Log.d(TAG, "render sleep time: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
+				Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			
+			currentTime = System.nanoTime();
+			deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
+			//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
+			previousTime = currentTime;
+		}
+		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
 		renderScene();
 		
+		Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+		
+		deltaTimeMs -= renderUpdatePeriodMs;
+		
+		*/
+		
+		
+		
+		
+		renderScene();
 	}
 
 	public void onSurfaceChanged(GL10 unused, int width, int height)
@@ -424,14 +474,9 @@ public class Renderer implements GLWallpaperService.Renderer
 			Matrix.scaleM(mProjMatrix, 0, 1, -1, 1);
 		}
 		
-		// handle the rendering knobs
-		
-		lastFrameTime = System.nanoTime();
-		
 		Log.i(TAG, "Surface created");
 		
-		
-		startRendering();
+		//startRendering();
 	}
 
 	private void updateShaderVariables()
