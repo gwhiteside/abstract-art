@@ -113,45 +113,48 @@ public class Layer
 		distortion.doTick(delta);
 		translation.doTick(delta);
 		
+		if(getPaletteCycleType() == Layer.CYCLE_NONE || getPaletteCycleSpeed() == 0) {
+			// nothing to do if the cycle type is 0x00
+			// also, there are a few layers with no cycling denoted by a cycle speed (update rate) of 0
+			return;
+		}
+		
 		// handle palette cycling animation
-		if(getPaletteCycleType() != Layer.CYCLE_NONE)
+		mTick += delta;
+		if(mTick * 60 >= getPaletteCycleSpeed())
 		{
-			mTick += delta;
-			if(mTick * 60 >= getPaletteCycleSpeed())
+			mTick = 0;
+			
+			switch(getPaletteCycleType())
 			{
-				mTick = 0;
-				
-				switch(getPaletteCycleType())
-				{
-					case Layer.CYCLE_ROTATE1:
-					case Layer.CYCLE_ROTATE2:
-						// TODO: for cycle type 0x02, if the lengths of both cycle ranges is not equal, this will give incorrect output...
-						// I may need to figure something else out, but for now it's tricky because there's no integer modulus in the GLSL and I can't get it
-						// to work consistently with floats. Sending the modified palette indices over isn't an attractive option either because that could take
-						// up to 32 varyings, or one 16x2 texture upload every frame... maybe look into the palette texture re-ups, it might be feasible
-						// OTHERWISE, I may want to consider adding an extra varying for each layer to track cycle rotation independently for type 0x02
-						if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin() + 1))
-						{
-							paletteRotation = 1;
-						}
-						else
-						{
-							paletteRotation++;
-						}
-						
-						break;
-						
-					case Layer.CYCLE_TRIANGLE:
-						if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin() + 1) * 2)
-						{
-							paletteRotation = 1;
-						}
-						else
-						{
-							paletteRotation++;
-						}
-						break;
-				}
+				case Layer.CYCLE_ROTATE1:
+				case Layer.CYCLE_ROTATE2:
+					// TODO: for cycle type 0x02, if the lengths of both cycle ranges is not equal, this will give incorrect output...
+					// I may need to figure something else out, but for now it's tricky because there's no integer modulus in the GLSL and I can't get it
+					// to work consistently with floats. Sending the modified palette indices over isn't an attractive option either because that could take
+					// up to 32 varyings, or one 16x2 texture upload every frame... maybe look into the palette texture re-ups, it might be feasible
+					// OTHERWISE, I may want to consider adding an extra varying for each layer to track cycle rotation independently for type 0x02
+					if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin() + 1))
+					{
+						paletteRotation = 1;
+					}
+					else
+					{
+						paletteRotation++;
+					}
+					
+					break;
+					
+				case Layer.CYCLE_TRIANGLE:
+					if(paletteRotation >= (getPaletteCycle1End() - getPaletteCycle1Begin() + 1) * 2)
+					{
+						paletteRotation = 1;
+					}
+					else
+					{
+						paletteRotation++;
+					}
+					break;
 			}
 		}
 	}
