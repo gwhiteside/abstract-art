@@ -260,14 +260,6 @@ public class Wallpaper extends GLWallpaperService
 		            	
 		            	editor.putBoolean("enablePaletteEffects", false);
 		            	editor.putBoolean("infoPaletteBugDetected", true);
-		            	
-		            	// hack to display a dialog from my wallpaper service... I know dialogs aren't meant to be run from services,
-		            	// but I promise this is actually helpful and desirable in this case.
-		            	/*Intent myIntent = new Intent();
-		        		myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		        		myIntent.putExtra("message", getResources().getText(R.string.message_palette_bug));
-		        		myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.ServiceDialog"));
-		        		startActivity(myIntent);*/
 					} else {
 						editor.putBoolean("enablePaletteEffects", true);
 						editor.putBoolean("infoPaletteBugDetected", false);
@@ -379,7 +371,6 @@ public class Wallpaper extends GLWallpaperService
 			
 			return true;
 		}
-
 	}
 	
 	public static void clearCache()
