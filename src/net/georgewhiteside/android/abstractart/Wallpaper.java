@@ -51,8 +51,7 @@ public class Wallpaper extends GLWallpaperService
 	static String backgroundListFileName = "playlist.json";
 	static File backgroundListFile;
 	
-	private static float renderUpdatePeriodMsTarget = 1 / 60.0f * 1000;
-	public static float renderUpdatePeriodMs = renderUpdatePeriodMsTarget;
+	public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
 	
 	public Wallpaper()
 	{
@@ -138,7 +137,7 @@ public class Wallpaper extends GLWallpaperService
 							failSafe = 0;
 					        
 							requestRender();
-							//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+							Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
 							
 							deltaTimeMs -= renderUpdatePeriodMs;
 							
@@ -153,8 +152,6 @@ public class Wallpaper extends GLWallpaperService
 							//Log.i(TAG, "smoother value: " + renderer.frameSmoother.getAverage());
 						}
 					}
-					
-					
 				}
 			}
 
@@ -225,10 +222,8 @@ public class Wallpaper extends GLWallpaperService
 			
 			if(renderer != null) {
 				if(visible) {
-					// the renderer starts its logic update thread when it's ready
-					startRendering(); // we have to start our render update thread here explicitly though
+					startRendering();
 				} else {
-					//renderer.stopRendering(); // and we have to stop the logic rendering thread because there's no notification inside the renderer itself
 					stopRendering();
 				}
 			}
@@ -237,7 +232,6 @@ public class Wallpaper extends GLWallpaperService
 		@Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
 			super.onSurfaceDestroyed(holder);
-			//renderer.stopRendering();
 			stopRendering();
 		}
 		
@@ -322,8 +316,6 @@ public class Wallpaper extends GLWallpaperService
 	            				setNewBackground(renderer);
 	            			}
 	            		});
-            			renderer.frameSmoother.clear();
-            			renderUpdatePeriodMs = renderUpdatePeriodMsTarget;
             		}
             		else if(behavior.equals("chooser"))
             		{
@@ -377,12 +369,9 @@ public class Wallpaper extends GLWallpaperService
  			
  			int firstPixel = thumbnail.getPixel(0, 0);
  			
- 			for(int y = 0; y < height; y++)
- 			{
- 				for(int x = 0; x < width; x++)
- 				{
- 					if(thumbnail.getPixel(x, y) != firstPixel)
- 					{
+ 			for(int y = 0; y < height; y++) {
+ 				for(int x = 0; x < width; x++) {
+ 					if(thumbnail.getPixel(x, y) != firstPixel) {
  						return false;
  					}
  				}

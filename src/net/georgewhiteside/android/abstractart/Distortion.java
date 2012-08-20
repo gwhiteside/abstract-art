@@ -106,8 +106,6 @@ public class Distortion
 		return (float)(Math.PI * mSpeed * mTick60) / 120.0f;
 	}
 	
-	
-	
 	public void doTick(float delta) {
 		if(mDuration != 0) {
 			mEffectTimer += delta;
@@ -223,6 +221,4 @@ public class Distortion
 		mTick = 0;
 		mEffectTimer = 0;
 	}
-	
-	
 }

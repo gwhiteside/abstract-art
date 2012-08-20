@@ -119,6 +119,12 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	boolean enableSmoothScaling = true;
 	
+	private long currentTime;
+	private long previousTime;
+	private float deltaTime;
+	
+	private static final float MAX_TIMESKIP = 0.125f; // maximum allowed delta time between two frame logic updates
+	
 	public int getRomBackgroundIndex(int address)
 	{
 		return battleGroup.battleBackground.getRomBackgroundIndex(address);
@@ -187,25 +193,20 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
-
-	
-	long currentTime;
-	long previousTime;
-	float deltaTime;
-	
-	public MovingAverage frameSmoother = new MovingAverage((int) (1000 / Wallpaper.renderUpdatePeriodMs));
-	
-	int frameCounter = 0;
-	public synchronized void onDrawFrame(GL10 unused)
+	public void onDrawFrame(GL10 unused)
 	{
-		if(previousTime == 0) previousTime = (long) (System.nanoTime() - Wallpaper.renderUpdatePeriodMs * 1000000);
-		
 		currentTime = System.nanoTime();
 		deltaTime = (currentTime - previousTime) / 1000000000.0f;
 		previousTime = currentTime;
 		
+		if(deltaTime > MAX_TIMESKIP) {
+			// if the time between two frames drops too low (99.999% of the time because of the screen
+			// being off or the wallpaper being hidden) set it to some defined maximum value so the output
+			// doesn't appear all wonky for certain backgrounds with changing effect patterns
+			deltaTime = MAX_TIMESKIP;
+		}
+		
 		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
-		frameSmoother.addSample(deltaTime);
 		
 		// as long as it's within 2ms, just let it go
 		if(deltaTime * 1000 + 2 < Wallpaper.renderUpdatePeriodMs) {
@@ -215,17 +216,10 @@ public class Renderer implements GLWallpaperService.Renderer
 				e.printStackTrace();
 			}
 			//Log.d(TAG, "frameskip: " + (Wallpaper.renderUpdatePeriodMs - deltaTime * 1000) + "ms");
-			//deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime; // if the renderer fell behind, skip the frame
+			//deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime;
 		} 
 		
 		battleGroup.battleBackground.doTick(deltaTime);
-
-		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms; average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
-		
-		if(frameCounter++ >= 1000 / Wallpaper.renderUpdatePeriodMs) {
-			frameCounter = 0;
-			Log.d(TAG, "average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
-		}
 		
 		renderScene();
 	}
