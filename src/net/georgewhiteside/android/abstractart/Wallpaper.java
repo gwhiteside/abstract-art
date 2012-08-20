@@ -58,8 +58,6 @@ public class Wallpaper extends GLWallpaperService
 	{
 		super();
 		context = this;
-		
-		Log.i(TAG, "current thread priority: " + Thread.currentThread().getPriority());
 	}
 	
 	@Override
@@ -99,35 +97,61 @@ public class Wallpaper extends GLWallpaperService
 				float deltaTimeMs = 0;
 				long currentTime;
 				running = true;
-				int fpsSamples = 0;
+				int failSafe = 0;
+				boolean failSafeTripped = false;
+				//int fpsSamples = 0;
 				
 				while(running) {
 					currentTime = System.nanoTime();
 					deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
-					//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
 					previousTime = currentTime;
 					
-					if(deltaTimeMs < renderUpdatePeriodMs)
-					{
+					if(failSafe > 10) {
+						// I haven't witnessed it happening, but it's possible that
+						// some system out there might waste crazy CPU cycles spinning
+						// on very small Thread.sleep() values... so this detects such
+						// a condition and disables the looping-delay-carry-sleep
+						failSafeTripped = true;
+					}
+					
+					if(failSafeTripped) {
 						try {
 							Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
 						} catch (InterruptedException e) {
 							e.printStackTrace();
 						}
-					} else {
-				        //mFPSCounter.logFrame(deltaTimeMs);
+						deltaTimeMs = 0;
 						requestRender();
-						//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-						deltaTimeMs -= renderUpdatePeriodMs;
-						fpsSamples++;
-						
-						if(renderer.frameSmoother.isWindowFull() && fpsSamples >= 1000 / renderUpdatePeriodMs) {
-							renderUpdatePeriodMs = renderer.frameSmoother.getAverage() * 1000;
-							fpsSamples = 0;
-							Log.i(TAG, "sampling update frequency: " + renderUpdatePeriodMs);
+					} else {
+						if(deltaTimeMs < renderUpdatePeriodMs - 2)
+						{
+							failSafe++;
+							
+							try {
+								Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+							} catch (InterruptedException e) {
+								e.printStackTrace();
+							}
+							
+							//Log.d(TAG, "    ---- slept for: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
+						} else {
+							failSafe = 0;
+					        
+							requestRender();
+							//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+							
+							deltaTimeMs -= renderUpdatePeriodMs;
+							
+							/* crappy experimental automatic framerate throttling code (messy and incomplete)
+							fpsSamples++;
+							if(renderer.frameSmoother.isWindowFull() && fpsSamples >= 1000 / renderUpdatePeriodMs) {
+								renderUpdatePeriodMs = renderer.frameSmoother.getAverage() * 1000;
+								fpsSamples = 0;
+								Log.i(TAG, "sampling update frequency: " + renderUpdatePeriodMs);
+							}*/
+							
+							//Log.i(TAG, "smoother value: " + renderer.frameSmoother.getAverage());
 						}
-						
-						//Log.i(TAG, "smoother value: " + renderer.frameSmoother.getAverage());
 					}
 					
 					
@@ -163,7 +187,6 @@ public class Wallpaper extends GLWallpaperService
 	    public void onCreate(SurfaceHolder surfaceHolder) {
 	        super.onCreate(surfaceHolder);
 	        setTouchEventsEnabled(true);
-	        
 	        
 	        // snag some display information
 	        Display display = ((WindowManager) context.getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();

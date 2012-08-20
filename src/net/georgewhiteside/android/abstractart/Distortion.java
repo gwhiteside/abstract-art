@@ -50,8 +50,6 @@ public class Distortion
 	private int mIndex;
 	private int mNumberOfEffects;
 	
-	// variables to track distortion sequence cycling
-	private int mEffectDuration;
 	private int mCurrentEffect;
 	
 	// some values that get cached to save non-negligible CPU time
@@ -111,10 +109,10 @@ public class Distortion
 	
 	
 	public void doTick(float delta) {
-		if(mEffectDuration != 0) {
+		if(mDuration != 0) {
 			mEffectTimer += delta;
 			
-			if(mEffectTimer * 60 >= mEffectDuration) {
+			if(mEffectTimer * 60 >= mDuration) {
 				mCurrentEffect++;
 				if(mCurrentEffect >= mNumberOfEffects) {
 					mCurrentEffect = 0;
@@ -122,7 +120,7 @@ public class Distortion
 				setIndex(mCurrentEffect); // also loads next mEffectDuration and resets mTick to 0
 				
 				//Log.d("Distortion", "effect change: " + mCurrentEffect);
-				return;
+				//return;
 			}
 		}
 		
@@ -210,7 +208,6 @@ public class Distortion
 		
 		mIndex = index;
 		
-		mEffectDuration = getDuration();
 		mCurrentEffect = getIndex();
 		
 		mAmplitude = RomUtil.unsigned(data[mIndex].getShort(5));

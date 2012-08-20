@@ -187,86 +187,24 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
-	
-	/*
 
-	private Thread logicThread;
-	private LogicRunnable logicRunnable;
-	float logicUpdatePeriod = 1 / 40.0f;
-
-	public void startRendering() {
-		if(logicRunnable == null) {
-			logicRunnable = new LogicRunnable();
-		}
-		if(logicThread == null) {
-			logicThread = new Thread(logicRunnable, "Render Logic Thread " + Thread.currentThread().getId());
-			logicThread.start();
-		}
-	}
-	
-	public void stopRendering() {
-		// !!! DO NOT FORGET TO CALL THIS WHEN DONE WITH A RENDERER !!!
-		if(logicRunnable != null) {
-			logicRunnable.kill();
-			logicRunnable = null;
-		}
-		logicThread = null;
-	}
-
-	private class LogicRunnable implements Runnable {
-		private boolean running;
-		
-		public void run() {
-			long previousTime = System.nanoTime();
-			float deltaTime = 0;
-			long currentTime;
-			running = true;
-			
-			while(running) {
-				currentTime = System.nanoTime();
-				deltaTime += (currentTime - previousTime) / 1000000000.0f;
-				previousTime = currentTime;
-				
-				if(deltaTime < logicUpdatePeriod)
-				{
-					try {
-						Thread.sleep((long)((logicUpdatePeriod - deltaTime) * 1000));
-					} catch (InterruptedException e) {
-						e.printStackTrace();
-					}
-				} else {
-					battleGroup.battleBackground.doTick(deltaTime);
-					//Log.d(TAG, "logic delta update: " + (deltaTime * 1000) + "ms; correction: " + (deltaTime - logicUpdateTime) * 1000 + "ms");
-					deltaTime -= logicUpdatePeriod; // carry the remainder over to next wait period; logic updates should be very consistent
-				}
-			}
-		}
-
-		public synchronized void kill() {
-			Log.i(TAG, "killing logic thread");
-			running = false;
-		}
-	}
-	*/
 	
 	long currentTime;
 	long previousTime;
 	float deltaTime;
 	
-	public MovingAverage frameSmoother = new MovingAverage(20);
-	public boolean requestFramerateAdjustment = false;
-	int lag = 0;
+	public MovingAverage frameSmoother = new MovingAverage((int) (1000 / Wallpaper.renderUpdatePeriodMs));
 	
+	int frameCounter = 0;
 	public synchronized void onDrawFrame(GL10 unused)
 	{
-		
 		if(previousTime == 0) previousTime = (long) (System.nanoTime() - Wallpaper.renderUpdatePeriodMs * 1000000);
 		
 		currentTime = System.nanoTime();
 		deltaTime = (currentTime - previousTime) / 1000000000.0f;
 		previousTime = currentTime;
 		
-		
+		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
 		frameSmoother.addSample(deltaTime);
 		
 		// as long as it's within 2ms, just let it go
@@ -276,77 +214,18 @@ public class Renderer implements GLWallpaperService.Renderer
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			Log.d(TAG, "had to frameskip: " + (Wallpaper.renderUpdatePeriodMs - deltaTime * 1000) + "ms");
-			deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime;
-			
-			
+			//Log.d(TAG, "frameskip: " + (Wallpaper.renderUpdatePeriodMs - deltaTime * 1000) + "ms");
+			//deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime; // if the renderer fell behind, skip the frame
 		} 
-		
-		
 		
 		battleGroup.battleBackground.doTick(deltaTime);
 
-		Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms; average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
-
+		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms; average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
 		
-		
-		
-		
-		/*
-		currentTime = System.nanoTime();
-		deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
-		//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
-		previousTime = currentTime;
-		
-		if(deltaTimeMs < renderUpdatePeriodMs)
-		{
-			try {
-				Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-		} else {
-	        //mFPSCounter.logFrame(deltaTimeMs);
-			GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-			renderScene();
-			
-			Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-			
-			deltaTimeMs -= renderUpdatePeriodMs;
+		if(frameCounter++ >= 1000 / Wallpaper.renderUpdatePeriodMs) {
+			frameCounter = 0;
+			Log.d(TAG, "average delta update: " + frameSmoother.getAverage() * 1000 + "ms");
 		}
-		*/
-		
-		
-		
-		
-		
-		/*
-		
-		while(deltaTimeMs < renderUpdatePeriodMs) {
-			try {
-				Log.d(TAG, "render sleep time: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
-				Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
-			} catch (InterruptedException e) {
-				e.printStackTrace();
-			}
-			
-			currentTime = System.nanoTime();
-			deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
-			//deltaTimeMs = (currentTime - previousTime) / 1000000.0f;
-			previousTime = currentTime;
-		}
-		
-		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, 0); // target screen
-		renderScene();
-		
-		Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-		
-		deltaTimeMs -= renderUpdatePeriodMs;
-		
-		*/
-		
-		
-		
 		
 		renderScene();
 	}
