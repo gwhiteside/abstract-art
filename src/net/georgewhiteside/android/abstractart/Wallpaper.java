@@ -92,13 +92,15 @@ public class Wallpaper extends GLWallpaperService
 			private boolean running;
 			
 			public void run() {
+				int fps = Integer.parseInt(sharedPreferences.getString("stringFramerateCap", null));
 				long previousTime = System.nanoTime();
 				float deltaTimeMs = 0;
 				long currentTime;
 				running = true;
 				int failSafe = 0;
 				boolean failSafeTripped = false;
-				//int fpsSamples = 0;
+				
+				renderUpdatePeriodMs = 1.0f / fps * 1000;
 				
 				while(running) {
 					currentTime = System.nanoTime();
@@ -137,19 +139,9 @@ public class Wallpaper extends GLWallpaperService
 							failSafe = 0;
 					        
 							requestRender();
-							Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+							//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
 							
 							deltaTimeMs -= renderUpdatePeriodMs;
-							
-							/* crappy experimental automatic framerate throttling code (messy and incomplete)
-							fpsSamples++;
-							if(renderer.frameSmoother.isWindowFull() && fpsSamples >= 1000 / renderUpdatePeriodMs) {
-								renderUpdatePeriodMs = renderer.frameSmoother.getAverage() * 1000;
-								fpsSamples = 0;
-								Log.i(TAG, "sampling update frequency: " + renderUpdatePeriodMs);
-							}*/
-							
-							//Log.i(TAG, "smoother value: " + renderer.frameSmoother.getAverage());
 						}
 					}
 				}

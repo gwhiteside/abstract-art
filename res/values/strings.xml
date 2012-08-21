@@ -31,6 +31,8 @@
     <string name="clear_cache_summary">Clear internal data + thumbnails</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>
     <string name="double_tap_behavior_summary">What happens when you double tap the wallpaper screen</string>
+    <string name="framerate_cap_title">Framerate cap</string>
+    <string name="framerate_cap_summary">Lower values may improve battery life and UI response at the cost of fluidity</string>
     
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
@@ -49,5 +51,26 @@
     <string name="changelog_ok_button">OK</string>
     <string name="changelog_show_full">More&#8230;</string>
     
+    <string-array name="double_tap_behavior_entries">        
+        <item>Do nothing</item>
+        <item>Next background</item>
+        <item>Open chooser</item>
+        <item>Open settings</item>
+    </string-array>
+    
+    <string-array name="letterbox_size_entries">        
+        <item>Default (varies)</item>
+        <item>Absolute minimum</item>
+        <item>Small</item>
+        <item>Medium</item>
+        <item>Large</item>
+    </string-array>
+    
+    <string-array name="framerate_cap_entries">        
+        <item>15 fps</item>
+        <item>30 fps</item>
+        <item>45 fps</item>
+        <item>60 fps</item>
+    </string-array>
     
 </resources>
