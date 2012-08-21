@@ -10,11 +10,12 @@
     <string name="wallpaper_settings">Abstract Art Settings</string>
     
     <string name="settings_background_selection_title">Background selection</string>
-    <string name="settings.background_chooser">Background viewer</string>
-    <string name="settings.appearance_title">Appearance</string>
-    <string name="settings.rendering_title">Rendering</string>
-    <string name="settings.cache_title">Cache</string>
-    <string name="settings.options_title">Options</string>
+    <string name="settings_background_chooser">Background viewer</string>
+    <string name="settings_appearance_title">Appearance</string>
+    <string name="settings_appearance_summary">Scaling, framerate, effects, etc.</string>
+    <string name="settings_rendering_title">Rendering</string>
+    <string name="settings_cache_title">Cache</string>
+    <string name="settings_options_title">Options</string>
     <string name="settings_misc_title">Miscellaneous</string>
     
     <string name="selection_mode_title">Selection mode</string>
@@ -35,6 +36,8 @@
     <string name="framerate_cap_summary">Lower values may improve battery life and UI response at the cost of fluidity</string>
     <string name="output_scaling_title">Output scaling mode</string>
     <string name="output_scaling_summary">How to scale the low-res background up to cover the display</string>
+    <string name="auto_cycle_title">Auto background cycle</string>
+    <string name="auto_cycle_summary">If and when to automatically skip to the next background</string>
     
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
@@ -58,6 +61,12 @@
         <item>Next background</item>
         <item>Open chooser</item>
         <item>Open settings</item>
+    </string-array>
+    
+    <string-array name="auto_cycle_entries">
+        <item>When background is hidden</item>
+        <item>At a custom interval</item>
+        <item>Never</item>
     </string-array>
     
     <string-array name="output_scaling_entries">

@@ -14,7 +14,7 @@
     
     </PreferenceScreen>
     
-    <PreferenceCategory android:title="@string/settings.options_title">
+    <PreferenceCategory android:title="@string/settings_options_title">
         
         <ListPreference android:key="stringDoubleTapBehavior"
             android:defaultValue="next"
@@ -23,23 +23,32 @@
             android:entries="@array/double_tap_behavior_entries"
             android:entryValues="@array/double_tap_behavior_values" />
         
-        <ListPreference android:key="stringFramerateCap"
-            android:defaultValue="60"
-            android:title="@string/framerate_cap_title"
-            android:summary="@string/framerate_cap_summary"
-            android:entries="@array/framerate_cap_entries"
-            android:entryValues="@array/framerate_cap_values" />
+        <ListPreference android:key="minAutoCycleDelay"
+            android:defaultValue="0s"
+            android:title="@string/auto_cycle_title"
+            android:summary="@string/auto_cycle_summary"
+            android:entries="@array/auto_cycle_entries"
+            android:entryValues="@array/auto_cycle_values" />
+        
+        
         
         <PreferenceScreen
             android:key="appearance_screen"
-            android:title="Appearance"
-            android:summary="Configure display options">
+            android:title="@string/settings_appearance_title"
+            android:summary="@string/settings_appearance_summary">
             
             <ListPreference android:key="outputScaling"
 	            android:defaultValue="smooth"
 	            android:title="@string/output_scaling_title"
 	            android:entries="@array/output_scaling_entries"
 	            android:entryValues="@array/output_scaling_values" />
+            
+            <ListPreference android:key="stringFramerateCap"
+	            android:defaultValue="60"
+	            android:title="@string/framerate_cap_title"
+	            android:summary="@string/framerate_cap_summary"
+	            android:entries="@array/framerate_cap_entries"
+	            android:entryValues="@array/framerate_cap_values" />
         
 	        <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"

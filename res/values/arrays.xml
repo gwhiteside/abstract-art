@@ -8,6 +8,12 @@
         <item>settings</item>
     </string-array>
     
+    <string-array name="auto_cycle_values">
+        <item>on_hide</item>
+        <item>interval</item>
+        <item>never</item>
+    </string-array>
+    
     <string-array name="output_scaling_values">        
         <item>smooth</item>
         <item>sharp</item>
