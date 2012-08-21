@@ -33,6 +33,8 @@
     <string name="double_tap_behavior_summary">What happens when you double tap the wallpaper screen</string>
     <string name="framerate_cap_title">Framerate cap</string>
     <string name="framerate_cap_summary">Lower values may improve battery life and UI response at the cost of fluidity</string>
+    <string name="output_scaling_title">Output scaling mode</string>
+    <string name="output_scaling_summary">How to scale the low-res background up to cover the display</string>
     
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
@@ -56,6 +58,11 @@
         <item>Next background</item>
         <item>Open chooser</item>
         <item>Open settings</item>
+    </string-array>
+    
+    <string-array name="output_scaling_entries">
+        <item>Exact fit (smooth)</item>
+        <item>Nearest integer multiple (sharp)</item>
     </string-array>
     
     <string-array name="letterbox_size_entries">        

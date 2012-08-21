@@ -119,6 +119,9 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	boolean enableSmoothScaling = true;
 	
+	private boolean refreshOutput = false;
+	private boolean forceReload = false;
+	
 	private long currentTime;
 	private long previousTime;
 	private float deltaTime;
@@ -144,7 +147,9 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	public void cacheImage(int index)
 	{
-		battleGroup.load(index);
+		// this is, like, deprecated and junk
+		// battleGroup.load(index);
+		Log.e(TAG, "cacheImage() is deprecated! Pay attention to me!");
 	}
 	
 	public void setRandomBackground()
@@ -193,8 +198,18 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
+	public void refreshOutput() {
+		refreshOutput = true;
+	}
+	
 	public void onDrawFrame(GL10 unused)
 	{
+		if(refreshOutput == true) {
+			forceReload = true;
+			onSurfaceCreated(null, null);
+			refreshOutput = false;
+		}
+		
 		currentTime = System.nanoTime();
 		deltaTime = (currentTime - previousTime) / 1000000000.0f;
 		previousTime = currentTime;
@@ -315,7 +330,13 @@ public class Renderer implements GLWallpaperService.Renderer
 
 	public void onSurfaceCreated( GL10 unused, EGLConfig config )
 	{
-		//queryGl(unused);
+		String outputScaling = sharedPreferences.getString("outputScaling", null);
+		
+		if(outputScaling.equals("smooth")) {
+			enableSmoothScaling = true;
+		} else if(outputScaling.equals("sharp")) {
+			enableSmoothScaling = false;
+		}
 		
 		if(enableSmoothScaling) {
 			mFilterOutput = true;
@@ -423,7 +444,8 @@ public class Renderer implements GLWallpaperService.Renderer
 		synchronized(lock) {
 			currentBackground = index;
 			Log.i(Wallpaper.TAG, "Loading battle group " + index);
-			battleGroup.load(index);
+			battleGroup.load(index, forceReload);
+			forceReload = false;
 			
 			byte[] dataA = battleGroup.battleBackground.getBg3().getImage();
 			byte[] dataB = battleGroup.battleBackground.getBg4().getImage();

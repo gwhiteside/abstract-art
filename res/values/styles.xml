@@ -16,4 +16,5 @@
         <item name="android:windowAnimationStyle">@android:style/Animation.Translucent</item> 
         <item name="android:windowBackground">@drawable/notification_panel</item>
     </style-->
+	
 </resources>

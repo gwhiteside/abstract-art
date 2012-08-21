@@ -109,6 +109,8 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    		Toast.makeText(this, "Warning: palette effects don't seem to work on your phone (yet).", Toast.LENGTH_LONG).show();
 	    	}
 	    }
+	    
+	    Wallpaper.refreshOutput(); // bit of a hack to ensure output settings appear ASAP
 	}
 	
 	/**

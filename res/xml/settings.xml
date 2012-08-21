@@ -34,6 +34,12 @@
             android:key="appearance_screen"
             android:title="Appearance"
             android:summary="Configure display options">
+            
+            <ListPreference android:key="outputScaling"
+	            android:defaultValue="smooth"
+	            android:title="@string/output_scaling_title"
+	            android:entries="@array/output_scaling_entries"
+	            android:entryValues="@array/output_scaling_values" />
         
 	        <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"

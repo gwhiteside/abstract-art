@@ -199,9 +199,10 @@ public class BattleBackground
 		System.arraycopy(buffer, 0, layerTable, 0, uniqueCount);
 	}
 	
-	public void setIndex(int index)
+	public void setIndex(int index, boolean forceReload)
 	{
-		if(currentIndex != index)
+		// allowing a reload here so that enabling/disabling palette effects (or whatever else) can be seen immediately
+		if(currentIndex != index || forceReload == true)
 		{
 			Log.d(TAG, "background group index: " + index);
 			

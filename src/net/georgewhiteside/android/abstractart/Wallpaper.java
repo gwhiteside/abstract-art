@@ -53,6 +53,8 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
 	
+	private static boolean refreshOutput = false;
+	
 	public Wallpaper()
 	{
 		super();
@@ -69,6 +71,10 @@ public class Wallpaper extends GLWallpaperService
 		return new AbstractArtEngine(this);
 	}
 	
+	public static void refreshOutput() {
+		refreshOutput = true;
+	}
+	
 	public class AbstractArtEngine extends GLEngine
 	{
 		public net.georgewhiteside.android.abstractart.Renderer renderer;
@@ -82,6 +88,8 @@ public class Wallpaper extends GLWallpaperService
     	
     	private FPSCounter mFPSCounter = new FPSCounter();
     	MovingAverage movingAverage = new MovingAverage(5);
+    	
+    	
 		
 		AbstractArtEngine(GLWallpaperService glws) {
 			super();
@@ -103,6 +111,12 @@ public class Wallpaper extends GLWallpaperService
 				renderUpdatePeriodMs = 1.0f / fps * 1000;
 				
 				while(running) {
+					if(refreshOutput == true && renderer != null) {
+						// make setting changes immediate
+						renderer.refreshOutput();
+						refreshOutput = false;
+					}
+					
 					currentTime = System.nanoTime();
 					deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
 					previousTime = currentTime;

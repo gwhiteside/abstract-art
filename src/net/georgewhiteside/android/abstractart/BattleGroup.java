@@ -73,9 +73,9 @@ public class BattleGroup
 		}
 	}
 	
-	public void load(int index)
+	public void load(int index, boolean forceReload)
 	{
-		battleBackground.setIndex(index);
+		battleBackground.setIndex(index, forceReload);
 		
 		int trueIndex = battleBackground.getRomBackgroundIndex(index); // necessary so long as we prune the background list of "duplicates"
 		

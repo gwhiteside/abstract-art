@@ -8,6 +8,11 @@
         <item>settings</item>
     </string-array>
     
+    <string-array name="output_scaling_values">        
+        <item>smooth</item>
+        <item>sharp</item>
+    </string-array>
+    
     <string-array name="letterbox_size_values">        
         <item>variable</item>
         <item>none</item>
