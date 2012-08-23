@@ -16,21 +16,31 @@
     
     <PreferenceCategory android:title="@string/settings_options_title">
         
-        <ListPreference android:key="stringDoubleTapBehavior"
-            android:defaultValue="next"
-            android:title="@string/double_tap_behavior_title"
-            android:summary="@string/double_tap_behavior_summary"
-            android:entries="@array/double_tap_behavior_entries"
-            android:entryValues="@array/double_tap_behavior_values" />
+        <PreferenceScreen
+            android:key="behavior_screen"
+            android:title="@string/settings_behavior_title"
+            android:summary="@string/settings_behavior_summary">
         
-        <ListPreference android:key="minAutoCycleDelay"
-            android:defaultValue="0s"
-            android:title="@string/auto_cycle_title"
-            android:summary="@string/auto_cycle_summary"
-            android:entries="@array/auto_cycle_entries"
-            android:entryValues="@array/auto_cycle_values" />
-        
-        
+	        <ListPreference android:key="stringDoubleTapBehavior"
+	            android:defaultValue="next"
+	            android:title="@string/double_tap_behavior_title"
+	            android:summary="@string/double_tap_behavior_summary"
+	            android:entries="@array/double_tap_behavior_entries"
+	            android:entryValues="@array/double_tap_behavior_values" />
+	        
+	        <ListPreference android:key="minAutoCycleDelay"
+	            android:defaultValue="0s"
+	            android:title="@string/auto_cycle_title"
+	            android:summary="@string/auto_cycle_summary"
+	            android:entries="@array/auto_cycle_entries"
+	            android:entryValues="@array/auto_cycle_values" />
+	        
+	        <net.georgewhiteside.android.abstractart.settings.TimerPicker android:key="autoBackgroundCycleTime"
+                android:defaultValue="180000"
+                android:title="Auto cycle time"
+                android:summary="delay time" />
+	        
+	    </PreferenceScreen>
         
         <PreferenceScreen
             android:key="appearance_screen"

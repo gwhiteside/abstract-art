@@ -1,5 +1,6 @@
 package net.georgewhiteside.android.abstractart;
 
+import net.georgewhiteside.android.abstractart.settings.TimerPicker;
 import sheetrock.panda.changelog.ChangeLog;
 
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
+import android.util.Log;
 import android.widget.Toast;
 
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
@@ -27,7 +29,8 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 	    addPreferencesFromResource(R.xml.settings);
 	    
-	    initSummaries(getPreferenceScreen());
+	    // update: I decided these were kind of silly and presented an inconsistent user interface experience
+	    // initSummaries(getPreferenceScreen());
 	    
 	    changelog = new ChangeLog(this);
 	    
@@ -98,8 +101,9 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		// automatically set listpreference summaries to reflect their current values
-	    Preference preference = findPreference(key);
-	    setSummary(preference);
+		// update: I decided these were kind of silly and presented an inconsistent user interface experience
+	    // Preference preference = findPreference(key);
+	    // setSummary(preference);
 	    
 	    // check if palette cycling was just checked; if the bug is present, give the user a warning:
 	    if(key.equals("enablePaletteEffects")) {
@@ -130,10 +134,31 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	}
 	
 	private void setSummary(Preference preference) {
+		/*
 		if(preference instanceof ListPreference) {
 			ListPreference listPreference = (ListPreference)preference;
 			preference.setSummary(listPreference.getEntry());
 		}
+		*/
+		
+		/*
+		if(preference instanceof TimerPicker) {
+			TimerPicker timerPicker = (TimerPicker)preference;
+			String value = sharedPreferences.getString(timerPicker.getKey(), null);
+			long millis = Integer.valueOf(value);
+			int hours, minutes, seconds;
+			hours = timerPicker.toHours(millis);
+			minutes = timerPicker.toMinutes(millis);
+			seconds = timerPicker.toSeconds(millis);
+			
+			// this is slightly totally English-centric
+			String h = String.valueOf(hours);
+			String m = String.valueOf(minutes);
+			String s = String.valueOf(seconds);
+			
+			preference.setSummary(h + ":" + m + ":" + s);
+		}
+		*/
 	}
 }
 

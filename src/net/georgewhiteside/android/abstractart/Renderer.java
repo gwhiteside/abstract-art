@@ -121,6 +121,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private boolean refreshOutput = false;
 	private boolean forceReload = false;
+	private boolean queueNewBackground = false;
 	
 	private long currentTime;
 	private long previousTime;
@@ -198,6 +199,10 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
+	public void queueNewBackground() {
+		queueNewBackground = true;
+	}
+	
 	public void refreshOutput() {
 		refreshOutput = true;
 	}
@@ -208,6 +213,11 @@ public class Renderer implements GLWallpaperService.Renderer
 			forceReload = true;
 			onSurfaceCreated(null, null);
 			refreshOutput = false;
+		}
+		
+		if(queueNewBackground == true) {
+			queueNewBackground = false;
+			Wallpaper.setNewBackground(this);
 		}
 		
 		currentTime = System.nanoTime();

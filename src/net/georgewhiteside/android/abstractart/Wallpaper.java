@@ -29,6 +29,8 @@ import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
@@ -52,8 +54,10 @@ public class Wallpaper extends GLWallpaperService
 	static File backgroundListFile;
 	
 	public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
+	private static Long autoCycleTime = (long) (3 * 60 * 1000);
 	
 	private static boolean refreshOutput = false;
+	private static boolean refreshCycler = false;
 	
 	public Wallpaper()
 	{
@@ -72,6 +76,13 @@ public class Wallpaper extends GLWallpaperService
 	}
 	
 	public static void refreshOutput() {
+		long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoBackgroundCycleTime", null));
+		
+		if(newAutoCycleTime != autoCycleTime) {
+			autoCycleTime = newAutoCycleTime;
+			refreshCycler = true;
+		}
+		
 		refreshOutput = true;
 	}
 	
@@ -89,11 +100,22 @@ public class Wallpaper extends GLWallpaperService
     	private FPSCounter mFPSCounter = new FPSCounter();
     	MovingAverage movingAverage = new MovingAverage(5);
     	
+    	private Handler backgroundCyclerHandler = new Handler();
     	
+    	private Runnable backgroundCyclerRunnable = new Runnable() {
+    		public void run() {
+    			if(renderer != null) {
+    				renderer.queueNewBackground();
+    			}
+    			backgroundCyclerHandler.postDelayed(this, autoCycleTime);
+    		}
+    	};
 		
 		AbstractArtEngine(GLWallpaperService glws) {
 			super();
 			this.glws = glws;
+			
+			backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
 		}
 		
 		private class RenderRunnable implements Runnable {
@@ -113,6 +135,13 @@ public class Wallpaper extends GLWallpaperService
 				while(running) {
 					if(refreshOutput == true && renderer != null) {
 						// make setting changes immediate
+						
+						if(refreshCycler == true) {
+							backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+							backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
+							refreshCycler = false;
+						}
+						
 						renderer.refreshOutput();
 						refreshOutput = false;
 					}
@@ -171,6 +200,7 @@ public class Wallpaper extends GLWallpaperService
 			if(renderRunnable == null) {
 				renderRunnable = new RenderRunnable();
 			}
+			
 			if(renderThread == null) {
 				renderThread = new Thread(renderRunnable, "Render Draw Thread " + Thread.currentThread().getId());
 				renderThread.start();

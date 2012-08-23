@@ -34,7 +34,7 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 	}
 	
 	@Override
-	protected void onBindDialogView(final View view) {
+	protected void onBindDialogView(View view) {
 		super.onBindDialogView(view);
 		
 		framerateTextViewValue = (TextView)view.findViewById(R.id.framerate_textview_value);
@@ -46,7 +46,7 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 	}
 
 	@Override
-	protected void onDialogClosed(final boolean positiveResult)
+	protected void onDialogClosed(boolean positiveResult)
 	{
 		super.onDialogClosed(positiveResult);
 
@@ -67,7 +67,7 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 	}
 	
 	@Override
-	protected Object onGetDefaultValue(final TypedArray typedArray, final int index)
+	protected Object onGetDefaultValue(TypedArray typedArray, int index)
 	{
 		final Integer value = Integer.valueOf(typedArray.getString(index));
 		currentFramerate = value;
@@ -76,7 +76,7 @@ public class FrameRatePreference extends DialogPreference implements OnSeekBarCh
 	}
 	
 	@Override
-	protected void onSetInitialValue(final boolean restorePersistedValue, final Object defaultValue) {
+	protected void onSetInitialValue(boolean restorePersistedValue, Object defaultValue) {
 		String initialValue = restorePersistedValue ? getPersistedString(null) : defaultValue.toString();
 		currentFramerate = Integer.valueOf(initialValue);
 		persistedFramerate = currentFramerate;
