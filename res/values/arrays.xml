@@ -14,20 +14,6 @@
         <item>never</item>
     </string-array>
     
-    <string-array name="auto_cycle_duration_values">
-        <item>10</item>
-        <item>30</item>
-        <item>1</item>
-        <item>2</item>
-        <item>5</item>
-        <item>10</item>
-        <item>30</item>
-        <item>1</item>
-        <item>2</item>
-        <item>12</item>
-        <item>24</item>
-    </string-array>
-    
     <string-array name="output_scaling_values">        
         <item>smooth</item>
         <item>sharp</item>

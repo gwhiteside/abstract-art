@@ -121,11 +121,15 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private boolean refreshOutput = false;
 	private boolean forceReload = false;
-	private boolean queueNewBackground = false;
+	private boolean requestNewBackground = false;
 	
 	private long currentTime;
 	private long previousTime;
 	private float deltaTime;
+	
+	public boolean ready = false;
+	
+	private boolean renderWhenDirty = false;
 	
 	private static final float MAX_TIMESKIP = 0.125f; // maximum allowed delta time between two frame logic updates
 	
@@ -169,6 +173,10 @@ public class Renderer implements GLWallpaperService.Renderer
 		isPreview = value;
 	}
 	
+	public void setRenderWhenDirty(boolean value) {
+		renderWhenDirty = value;
+	}
+	
 	public Renderer(Context context)
 	{
 		this.context = context;
@@ -199,13 +207,19 @@ public class Renderer implements GLWallpaperService.Renderer
 		this.currentBackground = initialBackground;
 	}
 	
-	public void queueNewBackground() {
-		queueNewBackground = true;
+	public void setBackground(int index) {
+		currentBackground = index;
+	}
+	
+	public void requestNewBackground() {
+		requestNewBackground = true;
 	}
 	
 	public void refreshOutput() {
 		refreshOutput = true;
 	}
+	
+	
 	
 	public void onDrawFrame(GL10 unused)
 	{
@@ -215,8 +229,8 @@ public class Renderer implements GLWallpaperService.Renderer
 			refreshOutput = false;
 		}
 		
-		if(queueNewBackground == true) {
-			queueNewBackground = false;
+		if(requestNewBackground == true) {
+			requestNewBackground = false;
 			Wallpaper.setNewBackground(this);
 		}
 		
@@ -233,18 +247,27 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
 		
+		/*
 		// as long as it's within 2ms, just let it go
 		if(deltaTime * 1000 + 2 < Wallpaper.renderUpdatePeriodMs) {
+			long beginAdjust = System.nanoTime();
 			try {
 				Thread.sleep((long)((Wallpaper.renderUpdatePeriodMs - deltaTime * 1000)));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			//Log.d(TAG, "frameskip: " + (Wallpaper.renderUpdatePeriodMs - deltaTime * 1000) + "ms");
-			//deltaTime += Wallpaper.renderUpdatePeriodMs / 1000 - deltaTime;
+			float totalAdjust = (System.nanoTime() - beginAdjust) / 1000000000.0f;
+			//Log.i(TAG, "deltaTime less than update period - " + deltaTime * 1000 + "ms; post-adjustment: " + (deltaTime + totalAdjust) * 1000 + "ms");
+			
+			deltaTime += totalAdjust;
 		} 
+		*/
 		
-		battleGroup.battleBackground.doTick(deltaTime);
+		//Log.i(TAG, "deltaTime: " + deltaTime * 1000 + "ms");
+		
+		if(!renderWhenDirty) {
+			battleGroup.battleBackground.doTick(deltaTime);
+		}
 		
 		renderScene();
 	}
@@ -377,11 +400,14 @@ public class Renderer implements GLWallpaperService.Renderer
 		}
 		else if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
 		{
-			loadBattleBackground(currentBackground);
+			if(Wallpaper.backgroundListIsDirty) {
+				Wallpaper.setNewBackground(this);
+			} else {
+				loadBattleBackground(currentBackground);
+			}
 		}
 		else
 		{
-			//setRandomBackground();
 			Wallpaper.setNewBackground(this);
 		}
 		
@@ -664,6 +690,7 @@ public class Renderer implements GLWallpaperService.Renderer
 				GLES20.glDisable(GLES20.GL_BLEND);
 			}
 			
+			ready = true;
 		}
 	}
 	

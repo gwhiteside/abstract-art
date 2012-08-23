@@ -54,10 +54,12 @@ public class Wallpaper extends GLWallpaperService
 	static File backgroundListFile;
 	
 	public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
-	private static Long autoCycleTime = (long) (3 * 60 * 1000);
+	private static Long autoCycleTime;
 	
 	private static boolean refreshOutput = false;
 	private static boolean refreshCycler = false;
+	
+	private static int currentBackground;
 	
 	public Wallpaper()
 	{
@@ -72,11 +74,17 @@ public class Wallpaper extends GLWallpaperService
         PreferenceManager.setDefaultValues(context, R.xml.settings, true); // fill out the default preference values if they're not yet set
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
 		
+		int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
+		autoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
+		
+		renderUpdatePeriodMs = 1.0f / fps * 1000;
+		Log.i(TAG, "onCreateEngine() called ... autoCycleTime = " + autoCycleTime);
+		
 		return new AbstractArtEngine(this);
 	}
 	
 	public static void refreshOutput() {
-		long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoBackgroundCycleTime", null));
+		long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
 		
 		if(newAutoCycleTime != autoCycleTime) {
 			autoCycleTime = newAutoCycleTime;
@@ -105,7 +113,7 @@ public class Wallpaper extends GLWallpaperService
     	private Runnable backgroundCyclerRunnable = new Runnable() {
     		public void run() {
     			if(renderer != null) {
-    				renderer.queueNewBackground();
+    				renderer.requestNewBackground();
     			}
     			backgroundCyclerHandler.postDelayed(this, autoCycleTime);
     		}
@@ -122,7 +130,7 @@ public class Wallpaper extends GLWallpaperService
 			private boolean running;
 			
 			public void run() {
-				int fps = Integer.parseInt(sharedPreferences.getString("stringFramerateCap", null));
+				int fps = Integer.parseInt(sharedPreferences.getString("framerateCap", null));
 				long previousTime = System.nanoTime();
 				float deltaTimeMs = 0;
 				long currentTime;
@@ -133,6 +141,7 @@ public class Wallpaper extends GLWallpaperService
 				renderUpdatePeriodMs = 1.0f / fps * 1000;
 				
 				while(running) {
+					
 					if(refreshOutput == true && renderer != null) {
 						// make setting changes immediate
 						
@@ -158,40 +167,45 @@ public class Wallpaper extends GLWallpaperService
 						failSafeTripped = true;
 					}
 					
-					if(failSafeTripped) {
-						try {
-							Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
-						} catch (InterruptedException e) {
-							e.printStackTrace();
-						}
-						deltaTimeMs = 0;
-						requestRender();
-					} else {
-						if(deltaTimeMs < renderUpdatePeriodMs - 2)
-						{
-							failSafe++;
-							
+					if(renderer.ready) {
+						if(failSafeTripped) {
 							try {
 								Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-							
-							//Log.d(TAG, "    ---- slept for: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
-						} else {
-							failSafe = 0;
-					        
+							renderer.battleGroup.battleBackground.doTick(deltaTimeMs / 1000.0f);
+							deltaTimeMs = 0;
 							requestRender();
-							//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-							
-							deltaTimeMs -= renderUpdatePeriodMs;
+						} else {
+							if(deltaTimeMs < renderUpdatePeriodMs - 2)
+							{
+								failSafe++;
+								
+								try {
+									Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+								} catch (InterruptedException e) {
+									e.printStackTrace();
+								}
+								
+								//Log.d(TAG, "    ---- slept for: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
+							} else {
+								failSafe = 0;
+						        
+								renderer.battleGroup.battleBackground.doTick(deltaTimeMs / 1000.0f);
+								requestRender();
+								//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
+								
+								deltaTimeMs -= renderUpdatePeriodMs;
+							}
 						}
 					}
 				}
 			}
 
 			public synchronized void kill() {
-				Log.i(TAG, "killing logic thread");
+				Log.i(TAG, "killing render update thread");
+				renderer.ready = false;
 				running = false;
 			}
 		}
@@ -242,12 +256,17 @@ public class Wallpaper extends GLWallpaperService
 	        
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
 			renderer.isPreview = isPreview();
+			renderer.setPersistBackgroundSelection(true);
 			
 			handleUpgrades(); // just as it sounds
+			
+			renderer.requestNewBackground(); // load up a background from the playlist (when ready)... the handleUpgrades() loads in background 1
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+			//setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
+			renderer.setRenderWhenDirty(true);
 			
 			startRendering();
 	    }
@@ -268,7 +287,7 @@ public class Wallpaper extends GLWallpaperService
 		@Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
 			super.onSurfaceDestroyed(holder);
-			stopRendering();
+			//stopRendering();
 		}
 		
 		/*
@@ -454,20 +473,23 @@ public class Wallpaper extends GLWallpaperService
 	 		backgroundListIsDirty = false;
 		}
 		
+		int selection;
+		
 		// if a playlist exists and has elements in it
 		if(backgroundList.size() > 0)
 		{
 			// pull up a random background from the playlist
 			int location = random.nextInt(backgroundList.size());
-			int selection = backgroundList.get(location);
+			selection = backgroundList.get(location);
 			backgroundList.remove(location);
-			
-			renderer.loadBattleBackground(selection);
 		}
 		else // it's possible to create a blank playlist; this accounts for it by loading randomly
 		{
-			renderer.setRandomBackground();
+			selection = random.nextInt(renderer.battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		}
+		
+		currentBackground = selection;
+		renderer.loadBattleBackground(selection);
 	}
 	
 	/**

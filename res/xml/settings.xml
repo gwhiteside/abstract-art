@@ -28,15 +28,15 @@
 	            android:entries="@array/double_tap_behavior_entries"
 	            android:entryValues="@array/double_tap_behavior_values" />
 	        
-	        <ListPreference android:key="minAutoCycleDelay"
-	            android:defaultValue="0s"
+	        <ListPreference android:key="autoCycleBehavior"
+	            android:defaultValue="hidden"
 	            android:title="@string/auto_cycle_title"
 	            android:summary="@string/auto_cycle_summary"
 	            android:entries="@array/auto_cycle_entries"
 	            android:entryValues="@array/auto_cycle_values" />
 	        
-	        <net.georgewhiteside.android.abstractart.settings.TimerPicker android:key="autoBackgroundCycleTime"
-                android:defaultValue="180000"
+	        <net.georgewhiteside.android.abstractart.settings.TimerPicker android:key="autoCycleTime"
+                android:defaultValue="@string/default_auto_cycle_time"
                 android:title="Auto cycle time"
                 android:summary="delay time" />
 	        
@@ -53,8 +53,8 @@
 	            android:entries="@array/output_scaling_entries"
 	            android:entryValues="@array/output_scaling_values" />
             
-            <ListPreference android:key="stringFramerateCap"
-	            android:defaultValue="60"
+            <ListPreference android:key="framerateCap"
+	            android:defaultValue="@string/default_framerate_cap"
 	            android:title="@string/framerate_cap_title"
 	            android:summary="@string/framerate_cap_summary"
 	            android:entries="@array/framerate_cap_entries"
@@ -66,6 +66,7 @@
 	            android:summary="@string/enable_enemies_summary" />
 	        
 	        <CheckBoxPreference android:key="enableLetterboxing"
+	            android:disableDependentsState="false"
 	            android:defaultValue="false"
 	            android:title="@string/enable_letterboxing_title"
 	            android:summary="@string/enable_letterboxing_summary" />

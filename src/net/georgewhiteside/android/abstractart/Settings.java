@@ -32,6 +32,8 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    // update: I decided these were kind of silly and presented an inconsistent user interface experience
 	    // initSummaries(getPreferenceScreen());
 	    
+	    setAutoCycleTimeState();
+	    
 	    changelog = new ChangeLog(this);
 	    
 	    // set up changelog preference 
@@ -99,16 +101,34 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 		getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
 	}
 	
+	private void setAutoCycleTimeState() {
+		final Preference dependentPref = (Preference) getPreferenceManager().findPreference("autoCycleTime");
+		
+		String dependency = sharedPreferences.getString("autoCycleBehavior", null);
+		
+		if(dependency.equals("interval")) {
+			dependentPref.setEnabled(true);
+		} else {
+			dependentPref.setEnabled(false);
+		}
+	}
+	
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String key) {
 		// automatically set listpreference summaries to reflect their current values
 		// update: I decided these were kind of silly and presented an inconsistent user interface experience
 	    // Preference preference = findPreference(key);
 	    // setSummary(preference);
+		
+		
+		if(key.equals("autoCycleBehavior")); {
+			setAutoCycleTimeState();
+		}
+		
 	    
 	    // check if palette cycling was just checked; if the bug is present, give the user a warning:
 	    if(key.equals("enablePaletteEffects")) {
 	    	boolean infoPaletteBugDetected = sharedPreferences.getBoolean("infoPaletteBugDetected", false); // only initialized (to true) in Wallpaper.java
-	    	boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false);
+	    	boolean enablePaletteEffects = sharedPreferences.getBoolean(key, false);
 	    	if(infoPaletteBugDetected && enablePaletteEffects) {
 	    		Toast.makeText(this, "Warning: palette effects don't seem to work on your phone (yet).", Toast.LENGTH_LONG).show();
 	    	}
