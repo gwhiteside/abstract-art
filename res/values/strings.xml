@@ -32,23 +32,20 @@
     <string name="clear_cache_title">Clear cache</string>
     <string name="clear_cache_summary">Clear internal data + thumbnails</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>
-    <string name="double_tap_behavior_summary">What happens when you double tap the wallpaper screen</string>
+    <string name="double_tap_behavior_summary">What happens when you double tap</string>
     <string name="framerate_cap_title">Framerate cap</string>
     <string name="framerate_cap_summary">Lower values reduce battery drain and can improve Android UI responsiveness, but look choppier</string>
     <string name="output_scaling_title">Output scaling mode</string>
-    <string name="output_scaling_summary">How to upscale the low-res backgrounds</string>
+    <string name="output_scaling_summary">Neither method is inherently better; try both</string>
     <string name="auto_cycle_behavior_title">Auto background cycle</string>
     <string name="auto_cycle_behavior_summary">When/if backgrounds automatically change</string>
     <string name="auto_cycle_interval_title">Auto cycle interval</string>
     <string name="auto_cycle_interval_summary">Time to wait before changing (if enabled)</string>
     
-    <string name="processing">Processing&#8230;</string>
-    <string name="processed_all_backgrounds">Processed all backgrounds.</string>
-    <string name="processed_n_of_n_backgrounds">Processed %1$d of %2$d backgrounds.</string>
     <string name="enable_letterboxing_title">Enable letterboxing</string>
     <string name="enable_letterboxing_summary">Black borders above and below</string>
     <string name="letterbox_size_title">Letterbox size</string>
-    <string name="enable_enemies_summary">Show enemy game sprites</string>
+    <string name="enable_enemies_summary">Draw little videogame enemy guys</string>
     <string name="enable_enemies_title">Enable enemies</string>
     <string name="listpref_title_changelog">Changelog</string>
     <string name="listpref_title_contact">Contact the author</string>
