@@ -1,8 +1,9 @@
 <html>
 <head>
   <style type='text/css'>
-    ahb            { color:#e0d020 }
-    a            { color:#e09818 }
+    ahb			{ color:#e0d020 }
+    a			{ color:#e09818 }
+    body		{ background-color:#101010; }
     div.title    { 
         color:#00b080; 
         font-size:1.2em; 
