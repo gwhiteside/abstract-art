@@ -211,8 +211,8 @@ public class Renderer implements GLWallpaperService.Renderer
 		currentBackground = index;
 	}
 	
-	public void requestNewBackground() {
-		requestNewBackground = true;
+	public void requestNewBackground(boolean value) {
+		requestNewBackground = value;
 	}
 	
 	public void refreshOutput() {
@@ -247,7 +247,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
 		
-		/*
+		
 		// as long as it's within 2ms, just let it go
 		if(deltaTime * 1000 + 2 < Wallpaper.renderUpdatePeriodMs) {
 			long beginAdjust = System.nanoTime();
@@ -261,7 +261,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			
 			deltaTime += totalAdjust;
 		} 
-		*/
+		
 		
 		//Log.i(TAG, "deltaTime: " + deltaTime * 1000 + "ms");
 		

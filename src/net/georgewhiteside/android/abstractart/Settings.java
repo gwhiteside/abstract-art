@@ -102,11 +102,13 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	}
 	
 	private void setAutoCycleTimeState() {
-		final Preference dependentPref = (Preference) getPreferenceManager().findPreference("autoCycleTime");
+		String autoCycleBehavior = sharedPreferences.getString("autoCycleBehavior", null);
 		
-		String dependency = sharedPreferences.getString("autoCycleBehavior", null);
+		// update dependent preference enabled state
 		
-		if(dependency.equals("interval")) {
+		Preference dependentPref = (Preference) getPreferenceManager().findPreference("autoCycleTime");
+		
+		if(autoCycleBehavior.equals("interval")) {
 			dependentPref.setEnabled(true);
 		} else {
 			dependentPref.setEnabled(false);
@@ -122,6 +124,12 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 		
 		if(key.equals("autoCycleBehavior")); {
 			setAutoCycleTimeState();
+			
+			// update Wallpaper behavior
+			
+			
+			
+			Log.i("test", "autoCycleBehavior changed");
 		}
 		
 	    

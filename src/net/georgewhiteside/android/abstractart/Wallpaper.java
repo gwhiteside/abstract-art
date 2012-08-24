@@ -57,9 +57,14 @@ public class Wallpaper extends GLWallpaperService
 	private static Long autoCycleTime;
 	
 	private static boolean refreshOutput = false;
-	private static boolean refreshCycler = false;
 	
 	private static int currentBackground;
+	
+	public static final int CYCLE_HIDDEN = 1;
+	public static final int CYCLE_INTERVAL = 2;
+	public static final int CYCLE_NEVER = 3;
+	
+	private static int cycleBehavior;
 	
 	public Wallpaper()
 	{
@@ -84,14 +89,11 @@ public class Wallpaper extends GLWallpaperService
 	}
 	
 	public static void refreshOutput() {
-		long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
-		
-		if(newAutoCycleTime != autoCycleTime) {
-			autoCycleTime = newAutoCycleTime;
-			refreshCycler = true;
-		}
-		
 		refreshOutput = true;
+	}
+	
+	private void setCycleBehavior(int behavior) {
+		cycleBehavior = behavior;
 	}
 	
 	public class AbstractArtEngine extends GLEngine
@@ -113,7 +115,10 @@ public class Wallpaper extends GLWallpaperService
     	private Runnable backgroundCyclerRunnable = new Runnable() {
     		public void run() {
     			if(renderer != null) {
-    				renderer.requestNewBackground();
+    				String autoCycleBehavior = sharedPreferences.getString("autoCycleBehavior", null);
+    				if(autoCycleBehavior.equals("interval")) {
+    					renderer.requestNewBackground(true);
+    				}
     			}
     			backgroundCyclerHandler.postDelayed(this, autoCycleTime);
     		}
@@ -142,16 +147,50 @@ public class Wallpaper extends GLWallpaperService
 				
 				while(running) {
 					
+					// make setting changes immediate
 					if(refreshOutput == true && renderer != null) {
-						// make setting changes immediate
 						
-						if(refreshCycler == true) {
-							backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
-							backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
-							refreshCycler = false;
+						// update background auto cycle behavior and interval
+						
+						String autoCycleBehavior = sharedPreferences.getString("autoCycleBehavior", null);
+						int previousCycleBehavior = cycleBehavior;
+						
+						if(autoCycleBehavior.equals("hidden")) {
+							cycleBehavior = CYCLE_HIDDEN;
+						} else if(autoCycleBehavior.equals("interval")) {
+							cycleBehavior = CYCLE_INTERVAL;
+						} else if(autoCycleBehavior.equals("never")) {
+							cycleBehavior = CYCLE_NEVER;
 						}
 						
+						switch(cycleBehavior) {
+							case CYCLE_HIDDEN:
+								renderer.setPersistBackgroundSelection(false);
+								backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+								break;
+								
+							case CYCLE_INTERVAL:
+								long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
+								if(newAutoCycleTime != autoCycleTime || previousCycleBehavior != CYCLE_INTERVAL) {
+									autoCycleTime = newAutoCycleTime;
+									renderer.setPersistBackgroundSelection(true);
+									backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+									backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
+								}
+								
+								break;
+								
+							case CYCLE_NEVER:
+								renderer.setPersistBackgroundSelection(true);
+								renderer.requestNewBackground(false); // cancel any pending background change
+								backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+								break;
+						}
+							
+						// update renderer options
+						
 						renderer.refreshOutput();
+						
 						refreshOutput = false;
 					}
 					
@@ -260,7 +299,7 @@ public class Wallpaper extends GLWallpaperService
 			
 			handleUpgrades(); // just as it sounds
 			
-			renderer.requestNewBackground(); // load up a background from the playlist (when ready)... the handleUpgrades() loads in background 1
+			renderer.requestNewBackground(true); // load up a background from the playlist (when ready)... the handleUpgrades() loads in background 1
 			
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
