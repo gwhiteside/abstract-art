@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="default_auto_cycle_time">180000</string>
+    <string name="default_framerate_cap">60</string>
+</resources>
