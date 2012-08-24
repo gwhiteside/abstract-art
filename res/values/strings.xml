@@ -9,13 +9,12 @@
     
     <string name="wallpaper_settings">Abstract Art Settings</string>
     
-    <string name="settings_background_selection_title">Background selection</string>
-    <string name="settings_background_chooser">Background viewer</string>
-    <string name="settings_appearance_title">Appearance</string>
-    <string name="settings_appearance_summary">Scaling, framerate, effects, etc.</string>
+    <string name="settings_background_selector_title">Background viewer</string>
+    <string name="settings_background_selector_summary">View backgrounds and pick your favorite(s)</string>
+    <string name="settings_rendering_title">Rendering</string>
+    <string name="settings_rendering_summary">Scaling, framerate, effects, etc.</string>
     <string name="settings_behavior_title">Behavior</string>
     <string name="settings_behavior_summary">Background cycling and control options</string>
-    <string name="settings_rendering_title">Rendering</string>
     <string name="settings_cache_title">Cache</string>
     <string name="settings_options_title">Options</string>
     <string name="settings_misc_title">Miscellaneous</string>
@@ -23,7 +22,7 @@
     <string name="selection_mode_title">Selection mode</string>
     <string name="selection_mode_summary">How background changes are decided</string>
     <string name="enable_palette_effects_title">Enable palette effects</string>
-    <string name="enable_palette_effects_summary">May not work on all devices</string>
+    <string name="enable_palette_effects_summary">Colors change and swirl in realtime</string>
     <string name="frame_rate_title">Frame rate</string>
     <string name="frame_rate_summary">%s frames per second</string>
     <string name="native_resolution_title">Device-native resolution</string>
@@ -35,11 +34,13 @@
     <string name="double_tap_behavior_title">Double tap behavior</string>
     <string name="double_tap_behavior_summary">What happens when you double tap the wallpaper screen</string>
     <string name="framerate_cap_title">Framerate cap</string>
-    <string name="framerate_cap_summary">Lower values may improve battery life and UI response at the cost of fluidity</string>
+    <string name="framerate_cap_summary">Lower values reduce battery drain and can improve Android UI responsiveness, but look choppier</string>
     <string name="output_scaling_title">Output scaling mode</string>
-    <string name="output_scaling_summary">How to scale the low-res background up to cover the display</string>
-    <string name="auto_cycle_title">Auto background cycle</string>
-    <string name="auto_cycle_summary">When should the background automatically change</string>
+    <string name="output_scaling_summary">How to upscale the low-res backgrounds</string>
+    <string name="auto_cycle_behavior_title">Auto background cycle</string>
+    <string name="auto_cycle_behavior_summary">When/if backgrounds automatically change</string>
+    <string name="auto_cycle_interval_title">Auto cycle interval</string>
+    <string name="auto_cycle_interval_summary">Time to wait before changing (if enabled)</string>
     
     <string name="processing">Processing&#8230;</string>
     <string name="processed_all_backgrounds">Processed all backgrounds.</string>
@@ -65,7 +66,7 @@
         <item>Open settings</item>
     </string-array>
     
-    <string-array name="auto_cycle_entries">
+    <string-array name="auto_cycle_behavior_entries">
         <item>When hidden</item>
         <item>Custom interval</item>
         <item>Never</item>
@@ -73,7 +74,7 @@
     
     <string-array name="output_scaling_entries">
         <item>Exact fit (smooth)</item>
-        <item>Nearest integer multiple (sharp)</item>
+        <item>Nearest integer (sharp)</item>
     </string-array>
     
     <string-array name="letterbox_size_entries">        

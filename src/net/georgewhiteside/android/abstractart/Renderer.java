@@ -131,7 +131,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private boolean renderWhenDirty = false;
 	
-	private static final float MAX_TIMESKIP = 0.125f; // maximum allowed delta time between two frame logic updates
+	private static final float MAX_TIMESKIP = 1.0f; // maximum allowed delta time between two frame logic updates
 	
 	public int getRomBackgroundIndex(int address)
 	{

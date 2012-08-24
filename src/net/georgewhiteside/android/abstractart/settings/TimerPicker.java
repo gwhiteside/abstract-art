@@ -120,8 +120,10 @@ public class TimerPicker extends DialogPreference {
 				delayMillis = MAX_VALUE;
 			}
 			
-			setValue(String.valueOf(delayMillis));
-			//notifyChanged(); // let the settings activity know so the summary line reflects the current value
+			String outValue = String.valueOf(delayMillis);
+			if(callChangeListener(outValue)) {
+				setValue(outValue);
+			}
 		}
 	}
 	
@@ -132,7 +134,7 @@ public class TimerPicker extends DialogPreference {
 	
 	@Override
 	protected void onSetInitialValue(boolean restoreValue, Object defaultValue) {
-		String initialValue = restoreValue ? getPersistedString("0") : (String)defaultValue;
+		String initialValue = restoreValue ? getPersistedString(null) : (String)defaultValue;
 		setValue(initialValue);
 	}
 	

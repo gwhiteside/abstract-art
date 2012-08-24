@@ -4,8 +4,8 @@
                   
     <PreferenceScreen
         android:key="background_selector"
-        android:title="Background selector"
-        android:summary="View 'em all, and pick your favorite(s)!">
+        android:title="@string/settings_background_selector_title"
+        android:summary="@string/settings_background_selector_summary">
     
         <intent 
             android:action="android.intent.action.VIEW"
@@ -30,35 +30,34 @@
 	        
 	        <ListPreference android:key="autoCycleBehavior"
 	            android:defaultValue="hidden"
-	            android:title="@string/auto_cycle_title"
-	            android:summary="@string/auto_cycle_summary"
-	            android:entries="@array/auto_cycle_entries"
-	            android:entryValues="@array/auto_cycle_values" />
+	            android:title="@string/auto_cycle_behavior_title"
+	            android:summary="@string/auto_cycle_behavior_summary"
+	            android:entries="@array/auto_cycle_behavior_entries"
+	            android:entryValues="@array/auto_cycle_behavior_values" />
 	        
 	        <net.georgewhiteside.android.abstractart.settings.TimerPicker android:key="autoCycleTime"
                 android:defaultValue="@string/default_auto_cycle_time"
-                android:title="Auto cycle time"
-                android:summary="delay time" />
+                android:title="@string/auto_cycle_interval_title"
+                android:summary="@string/auto_cycle_interval_summary" />
 	        
 	    </PreferenceScreen>
         
         <PreferenceScreen
-            android:key="appearance_screen"
-            android:title="@string/settings_appearance_title"
-            android:summary="@string/settings_appearance_summary">
+            android:key="rendering_screen"
+            android:title="@string/settings_rendering_title"
+            android:summary="@string/settings_rendering_summary">
             
             <ListPreference android:key="outputScaling"
 	            android:defaultValue="smooth"
 	            android:title="@string/output_scaling_title"
+	            android:summary="@string/output_scaling_summary"
 	            android:entries="@array/output_scaling_entries"
 	            android:entryValues="@array/output_scaling_values" />
             
-            <ListPreference android:key="framerateCap"
-	            android:defaultValue="@string/default_framerate_cap"
-	            android:title="@string/framerate_cap_title"
-	            android:summary="@string/framerate_cap_summary"
-	            android:entries="@array/framerate_cap_entries"
-	            android:entryValues="@array/framerate_cap_values" />
+            <net.georgewhiteside.android.abstractart.settings.FrameratePreference android:key="framerateCap"
+		        android:defaultValue="@string/default_framerate_cap"
+		        android:title="@string/framerate_cap_title" 
+		        android:summary="@string/framerate_cap_summary" />
         
 	        <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"
