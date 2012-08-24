@@ -121,18 +121,10 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    // Preference preference = findPreference(key);
 	    // setSummary(preference);
 		
-		
 		if(key.equals("autoCycleBehavior")); {
 			setAutoCycleTimeState();
-			
-			// update Wallpaper behavior
-			
-			
-			
-			Log.i("test", "autoCycleBehavior changed");
 		}
 		
-	    
 	    // check if palette cycling was just checked; if the bug is present, give the user a warning:
 	    if(key.equals("enablePaletteEffects")) {
 	    	boolean infoPaletteBugDetected = sharedPreferences.getBoolean("infoPaletteBugDetected", false); // only initialized (to true) in Wallpaper.java
