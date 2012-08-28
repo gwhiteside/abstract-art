@@ -23,12 +23,8 @@
     <string name="selection_mode_summary">How background changes are decided</string>
     <string name="enable_palette_effects_title">Enable palette effects</string>
     <string name="enable_palette_effects_summary">Colors change and swirl in realtime</string>
-    <string name="frame_rate_title">Frame rate</string>
-    <string name="frame_rate_summary">%s frames per second</string>
-    <string name="native_resolution_title">Device-native resolution</string>
-    <string name="native_resolution_summary">Experimental; don\'t use this</string>
-    <string name="precalculate_cache_title">Precalculate cache</string>
-    <string name="precalculate_cache_summary">Precalculate internal data</string>
+    <string name="enable_frameskipping_title">Enable frameskipping</string>
+    <string name="enable_frameskipping_summary">If framerate is capped (or drops) below 60fps, prevent slow-motion</string>
     <string name="clear_cache_title">Clear cache</string>
     <string name="clear_cache_summary">Clear internal data + thumbnails</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>

@@ -1,6 +1,5 @@
 package net.georgewhiteside.android.abstractart;
 
-import net.georgewhiteside.android.abstractart.settings.TimerPicker;
 import sheetrock.panda.changelog.ChangeLog;
 
 import android.content.Intent;
@@ -8,12 +7,9 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.net.Uri;
 import android.os.Bundle;
-import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
-import android.preference.PreferenceGroup;
 import android.preference.PreferenceManager;
-import android.util.Log;
 import android.widget.Toast;
 
 public class Settings extends PreferenceActivity implements OnSharedPreferenceChangeListener
@@ -28,9 +24,6 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 	    sharedPreferences.registerOnSharedPreferenceChangeListener(this);
 	    addPreferencesFromResource(R.xml.settings);
-	    
-	    // update: I decided these were kind of silly and presented an inconsistent user interface experience
-	    // initSummaries(getPreferenceScreen());
 	    
 	    setAutoCycleTimeState();
 	    
@@ -134,55 +127,6 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
 	    	}
 	    }
 	    
-	    Wallpaper.refreshOutput(); // bit of a hack to ensure output settings appear ASAP
-	}
-	
-	/**
-	 * Recursively initializes preference item summaries to their current preference values
-	 * 
-	 * @param preferenceGroup the top level PreferenceGroup
-	 */
-	private void initSummaries(PreferenceGroup preferenceGroup) {
-		for(int i = 0; i < preferenceGroup.getPreferenceCount(); i++) {
-	    	Preference preference = preferenceGroup.getPreference(i);
-	    	if(preference instanceof PreferenceGroup) {
-	    		initSummaries((PreferenceGroup)preference);
-	    	} else {
-	    		setSummary(preference);
-	    	}
-	    }
-	}
-	
-	private void setSummary(Preference preference) {
-		/*
-		if(preference instanceof ListPreference) {
-			ListPreference listPreference = (ListPreference)preference;
-			preference.setSummary(listPreference.getEntry());
-		}
-		*/
-		
-		/*
-		if(preference instanceof TimerPicker) {
-			TimerPicker timerPicker = (TimerPicker)preference;
-			String value = sharedPreferences.getString(timerPicker.getKey(), null);
-			long millis = Integer.valueOf(value);
-			int hours, minutes, seconds;
-			hours = timerPicker.toHours(millis);
-			minutes = timerPicker.toMinutes(millis);
-			seconds = timerPicker.toSeconds(millis);
-			
-			// this is slightly totally English-centric
-			String h = String.valueOf(hours);
-			String m = String.valueOf(minutes);
-			String s = String.valueOf(seconds);
-			
-			preference.setSummary(h + ":" + m + ":" + s);
-		}
-		*/
+	    Wallpaper.refresh(); // bit of a hack to ensure output settings appear ASAP
 	}
 }
-
-
-
-
-

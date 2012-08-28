@@ -109,8 +109,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	private int currentBackground;
 	private boolean persistBackgroundSelection;
 	
-	public boolean isPreview;
-	
 	Random rand = new Random();
 	
 	private boolean mirrorVertical = false;
@@ -168,11 +166,6 @@ public class Renderer implements GLWallpaperService.Renderer
 		persistBackgroundSelection = value;
 	}
 	
-	public void setIsPreview(boolean value)
-	{
-		isPreview = value;
-	}
-	
 	public void setRenderWhenDirty(boolean value) {
 		renderWhenDirty = value;
 	}
@@ -187,10 +180,10 @@ public class Renderer implements GLWallpaperService.Renderer
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mPalette = ByteBuffer.allocateDirect(16 * 16 * 4);
 		
-		isPreview = false;
-		
 		currentBackground = -1;
 		persistBackgroundSelection = false;
+		
+		refreshOutput();
 		
 		Log.i(TAG, "Renderer created");
 	}
@@ -219,11 +212,18 @@ public class Renderer implements GLWallpaperService.Renderer
 		refreshOutput = true;
 	}
 	
+	//int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
+	//float renderUpdatePeriodMs = 1.0f / fps * 1000;
 	
+	int fps;
+	float renderUpdatePeriod;
 	
 	public void onDrawFrame(GL10 unused)
 	{
 		if(refreshOutput == true) {
+			int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
+			renderUpdatePeriod = 1.0f / fps;
+			
 			forceReload = true;
 			onSurfaceCreated(null, null);
 			refreshOutput = false;
@@ -245,14 +245,12 @@ public class Renderer implements GLWallpaperService.Renderer
 			deltaTime = MAX_TIMESKIP;
 		}
 		
-		//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
-		
-		
+		/*
 		// as long as it's within 2ms, just let it go
-		if(deltaTime * 1000 + 2 < Wallpaper.renderUpdatePeriodMs) {
+		if(deltaTime + 0.002 < renderUpdatePeriod) {
 			long beginAdjust = System.nanoTime();
 			try {
-				Thread.sleep((long)((Wallpaper.renderUpdatePeriodMs - deltaTime * 1000)));
+				Thread.sleep((long)((renderUpdatePeriod - deltaTime) * 1000));
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
@@ -261,7 +259,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			
 			deltaTime += totalAdjust;
 		} 
-		
+		*/
 		
 		//Log.i(TAG, "deltaTime: " + deltaTime * 1000 + "ms");
 		
@@ -394,11 +392,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
-		if(isPreview)
-		{
-			setRandomBackground();
-		}
-		else if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
+		if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
 		{
 			if(Wallpaper.backgroundListIsDirty) {
 				Wallpaper.setNewBackground(this);

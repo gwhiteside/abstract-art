@@ -58,6 +58,11 @@
 		        android:defaultValue="@string/default_framerate_cap"
 		        android:title="@string/framerate_cap_title" 
 		        android:summary="@string/framerate_cap_summary" />
+            
+            <CheckBoxPreference android:key="enableFrameskipping"
+                android:defaultValue="true"
+                android:title="@string/enable_frameskipping_title"
+                android:summary="@string/enable_frameskipping_summary" />
         
 	        <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"

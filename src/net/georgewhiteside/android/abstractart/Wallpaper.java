@@ -53,10 +53,11 @@ public class Wallpaper extends GLWallpaperService
 	static String backgroundListFileName = "playlist.json";
 	static File backgroundListFile;
 	
-	public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
-	private static Long autoCycleTime;
+	//public static float renderUpdatePeriodMs = 1 / 60.0f * 1000;
+	//private static Long autoCycleTime;
 	
-	private static boolean refreshOutput = false;
+	//private static boolean refreshOutput = false;
+	//private static boolean refreshPreview = false; // refreshOutput, but for LWP preview
 	
 	private static int currentBackground;
 	
@@ -65,6 +66,8 @@ public class Wallpaper extends GLWallpaperService
 	public static final int CYCLE_NEVER = 3;
 	
 	private static int cycleBehavior;
+	
+	private static List<AbstractArtEngine> engineInstances = new ArrayList<AbstractArtEngine>();
 	
 	public Wallpaper()
 	{
@@ -79,17 +82,16 @@ public class Wallpaper extends GLWallpaperService
         PreferenceManager.setDefaultValues(context, R.xml.settings, true); // fill out the default preference values if they're not yet set
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
 		
-		int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
-		autoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
+		AbstractArtEngine engine = new AbstractArtEngine(this);
+		engineInstances.add(engine);
 		
-		renderUpdatePeriodMs = 1.0f / fps * 1000;
-		Log.i(TAG, "onCreateEngine() called ... autoCycleTime = " + autoCycleTime);
-		
-		return new AbstractArtEngine(this);
+		return engine;
 	}
 	
-	public static void refreshOutput() {
-		refreshOutput = true;
+	public static void refresh() {
+		for(AbstractArtEngine engine : engineInstances) {
+			engine.refresh();
+		}
 	}
 	
 	private void setCycleBehavior(int behavior) {
@@ -101,11 +103,13 @@ public class Wallpaper extends GLWallpaperService
 		public net.georgewhiteside.android.abstractart.Renderer renderer;
 		private GLWallpaperService glws;
 		
+		private long autoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
+		
 		private long lastTap = 0; 
         private static final long TAP_THRESHOLD = 500;
         
         private Thread renderThread;
-    	private RenderRunnable renderRunnable;
+    	private RenderRunnable renderRunnable = new RenderRunnable();
     	
     	private FPSCounter mFPSCounter = new FPSCounter();
     	MovingAverage movingAverage = new MovingAverage(5);
@@ -131,129 +135,125 @@ public class Wallpaper extends GLWallpaperService
 			backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
 		}
 		
+		public void refresh() {
+			renderRunnable.refresh();
+		}
+		
 		private class RenderRunnable implements Runnable {
 			private boolean running;
+			private float renderUpdatePeriod = 0;
+			private boolean enableFrameskipping = false;
+			
+			public synchronized void refresh() {
+
+				// update frame refresh rate
+				
+				int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
+				renderUpdatePeriod = 1.0f / fps;
+				
+				// update frameskipping option
+				
+				enableFrameskipping = sharedPreferences.getBoolean("enableFrameskipping", false);
+				
+				// update background auto cycle behavior and interval
+				
+				String autoCycleBehavior = sharedPreferences.getString("autoCycleBehavior", null);
+				int previousCycleBehavior = cycleBehavior;
+				
+				if(autoCycleBehavior.equals("hidden")) {
+					cycleBehavior = CYCLE_HIDDEN;
+				} else if(autoCycleBehavior.equals("interval")) {
+					cycleBehavior = CYCLE_INTERVAL;
+				} else if(autoCycleBehavior.equals("never")) {
+					cycleBehavior = CYCLE_NEVER;
+				}
+				
+				switch(cycleBehavior) {
+					case CYCLE_HIDDEN:
+						renderer.setPersistBackgroundSelection(false);
+						backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+						break;
+						
+					case CYCLE_INTERVAL:
+						long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
+						Log.i(TAG, "newAutoCycleTime: " + newAutoCycleTime + " previous cycle time: " + autoCycleTime);
+						if(newAutoCycleTime != autoCycleTime || previousCycleBehavior != CYCLE_INTERVAL) {
+							autoCycleTime = newAutoCycleTime;
+							renderer.setPersistBackgroundSelection(true);
+							backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+							backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
+						}
+						
+						break;
+						
+					case CYCLE_NEVER:
+						renderer.setPersistBackgroundSelection(true);
+						renderer.requestNewBackground(false); // cancel any pending background change
+						backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
+						break;
+				}
+					
+				// update renderer options
+				
+				renderer.refreshOutput();
+			}
 			
 			public void run() {
-				int fps = Integer.parseInt(sharedPreferences.getString("framerateCap", null));
 				long previousTime = System.nanoTime();
-				float deltaTimeMs = 0;
+				float deltaTime = 0;
 				long currentTime;
+				int sleepyGuard = 0;
 				running = true;
-				int failSafe = 0;
-				boolean failSafeTripped = false;
 				
-				renderUpdatePeriodMs = 1.0f / fps * 1000;
+				refresh();
 				
 				while(running) {
-					
-					// make setting changes immediate
-					if(refreshOutput == true && renderer != null) {
-						
-						// update background auto cycle behavior and interval
-						
-						String autoCycleBehavior = sharedPreferences.getString("autoCycleBehavior", null);
-						int previousCycleBehavior = cycleBehavior;
-						
-						if(autoCycleBehavior.equals("hidden")) {
-							cycleBehavior = CYCLE_HIDDEN;
-						} else if(autoCycleBehavior.equals("interval")) {
-							cycleBehavior = CYCLE_INTERVAL;
-						} else if(autoCycleBehavior.equals("never")) {
-							cycleBehavior = CYCLE_NEVER;
-						}
-						
-						switch(cycleBehavior) {
-							case CYCLE_HIDDEN:
-								renderer.setPersistBackgroundSelection(false);
-								backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
-								break;
-								
-							case CYCLE_INTERVAL:
-								long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
-								if(newAutoCycleTime != autoCycleTime || previousCycleBehavior != CYCLE_INTERVAL) {
-									autoCycleTime = newAutoCycleTime;
-									renderer.setPersistBackgroundSelection(true);
-									backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
-									backgroundCyclerHandler.postDelayed(backgroundCyclerRunnable, autoCycleTime);
-								}
-								
-								break;
-								
-							case CYCLE_NEVER:
-								renderer.setPersistBackgroundSelection(true);
-								renderer.requestNewBackground(false); // cancel any pending background change
-								backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
-								break;
-						}
-							
-						// update renderer options
-						
-						renderer.refreshOutput();
-						
-						refreshOutput = false;
-					}
-					
-					currentTime = System.nanoTime();
-					deltaTimeMs += (currentTime - previousTime) / 1000000.0f;
-					previousTime = currentTime;
-					
-					if(failSafe > 10) {
-						// I haven't witnessed it happening, but it's possible that
-						// some system out there might waste crazy CPU cycles spinning
-						// on very small Thread.sleep() values... so this detects such
-						// a condition and disables the looping-delay-carry-sleep
-						failSafeTripped = true;
-					}
-					
 					if(renderer.ready) {
-						if(failSafeTripped) {
+						
+						currentTime = System.nanoTime();
+						deltaTime += (currentTime - previousTime) / 1000000000.0f;
+						previousTime = currentTime;
+						
+						if(deltaTime < renderUpdatePeriod - 0.002 && sleepyGuard < 4)
+						{
+							sleepyGuard++;
+							
 							try {
-								Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
+								Thread.sleep((long)((renderUpdatePeriod - deltaTime) * 1000));
 							} catch (InterruptedException e) {
 								e.printStackTrace();
 							}
-							renderer.battleGroup.battleBackground.doTick(deltaTimeMs / 1000.0f);
-							deltaTimeMs = 0;
-							requestRender();
+							
+							//Log.d(TAG, "    ---- slept for: " + (renderUpdatePeriod - deltaTime) * 1000 + "ms");
 						} else {
-							if(deltaTimeMs < renderUpdatePeriodMs - 2)
-							{
-								failSafe++;
-								
-								try {
-									Thread.sleep((long)((renderUpdatePeriodMs - deltaTimeMs)));
-								} catch (InterruptedException e) {
-									e.printStackTrace();
-								}
-								
-								//Log.d(TAG, "    ---- slept for: " + (renderUpdatePeriodMs - deltaTimeMs) + "ms");
+							sleepyGuard = 0;
+							
+							if(enableFrameskipping) {
+								renderer.battleGroup.battleBackground.doTick(deltaTime);
 							} else {
-								failSafe = 0;
-						        
-								renderer.battleGroup.battleBackground.doTick(deltaTimeMs / 1000.0f);
-								requestRender();
-								//Log.d(TAG, "render delta update: " + deltaTimeMs + "ms");
-								
-								deltaTimeMs -= renderUpdatePeriodMs;
+								renderer.battleGroup.battleBackground.doTick(Math.min(deltaTime, 1 / 60.0f));
 							}
+							
+							requestRender();
+							//Log.d(TAG, "render delta update: " + deltaTime * 1000 + "ms");
+							
+							deltaTime -= renderUpdatePeriod;
+							
+							if(deltaTime < 0)
+								deltaTime = 0;
 						}
 					}
 				}
 			}
 
-			public synchronized void kill() {
-				Log.i(TAG, "killing render update thread");
+			public synchronized void stop() {
+				Log.i(TAG, "stopping render update thread");
 				renderer.ready = false;
 				running = false;
 			}
 		}
 		
 		public void startRendering() {
-			if(renderRunnable == null) {
-				renderRunnable = new RenderRunnable();
-			}
-			
 			if(renderThread == null) {
 				renderThread = new Thread(renderRunnable, "Render Draw Thread " + Thread.currentThread().getId());
 				renderThread.start();
@@ -262,10 +262,7 @@ public class Wallpaper extends GLWallpaperService
 		
 		public void stopRendering() {
 			// !!! DO NOT FORGET TO CALL THIS WHEN DONE WITH A RENDERER !!!
-			if(renderRunnable != null) {
-				renderRunnable.kill();
-				renderRunnable = null;
-			}
+			renderRunnable.stop();
 			renderThread = null;
 		}
 		
@@ -294,7 +291,6 @@ public class Wallpaper extends GLWallpaperService
 	        Log.i(TAG, String.format("PixelFormat.bitsPerPixel: %d PixelFormat.bytesPerPixel %d", pixelFormat.bitsPerPixel, pixelFormat.bytesPerPixel));
 	        
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
-			renderer.isPreview = isPreview();
 			renderer.setPersistBackgroundSelection(true);
 			
 			handleUpgrades(); // just as it sounds
@@ -309,6 +305,12 @@ public class Wallpaper extends GLWallpaperService
 			
 			startRendering();
 	    }
+		
+		@Override
+		public void onDestroy() {
+			super.onDestroy();
+			engineInstances.remove(this);
+		}
 		
 		@Override
         public void onVisibilityChanged(final boolean visible) {
@@ -599,6 +601,7 @@ public class Wallpaper extends GLWallpaperService
 			fos.write(jsonString.getBytes());
 			fos.close();
 			backgroundListIsDirty = true;
+			refresh();
 		}
 	    catch (FileNotFoundException e)
 	    {
