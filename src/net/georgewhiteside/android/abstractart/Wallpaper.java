@@ -320,8 +320,7 @@ public class Wallpaper extends GLWallpaperService
 		
 		@Override
 		public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
-			movingAverage.addSample(xOffset);
-			renderer.setOffsets(movingAverage.getAverage(), yOffset);
+			renderer.setOffsets(xOffset, yOffset);
 		}
 		
 		@Override

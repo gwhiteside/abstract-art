@@ -27,7 +27,7 @@ $ 1.1.0
   _ August 24, 2012
     ! A lot of new features in this update (be sure to check out the settings!):
     * Auto background cycling option (when hidden, intervals, and never)
-    * Background pan when swiping between homescreens (on supported launchers)
+    * Background pan when swiping between home screens (on supported launchers)
     * Render framerate cap option (5-60 FPS in 5 step increments)
     * Frameskipping option (disabling this causes anything below 60fps to go slow-mo)
     * Output scaling options (exact fit with smoothing and best fit with cropping)
