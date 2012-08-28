@@ -28,6 +28,11 @@
 	            android:entries="@array/double_tap_behavior_entries"
 	            android:entryValues="@array/double_tap_behavior_values" />
 	        
+	        <CheckBoxPreference android:key="enablePanning"
+                android:defaultValue="true"
+                android:title="@string/enable_panning_title"
+                android:summary="@string/enable_panning_summary" />
+	        
 	        <ListPreference android:key="autoCycleBehavior"
 	            android:defaultValue="hidden"
 	            android:title="@string/auto_cycle_behavior_title"
@@ -63,13 +68,15 @@
                 android:defaultValue="true"
                 android:title="@string/enable_frameskipping_title"
                 android:summary="@string/enable_frameskipping_summary" />
+              
+		</PreferenceScreen>
+		
+        <PreferenceScreen
+            android:key="visuals_screen"
+            android:title="Visuals"
+            android:summary="Style and effect options">
             
-            <CheckBoxPreference android:key="enablePanning"
-                android:defaultValue="true"
-                android:title="@string/enable_panning_title"
-                android:summary="@string/enable_panning_summary" />
-        
-	        <CheckBoxPreference android:key="enableEnemies"
+            <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"
 	            android:title="@string/enable_enemies_title"
 	            android:summary="@string/enable_enemies_summary" />
@@ -91,8 +98,8 @@
 	            android:defaultValue="true"
 	            android:title="@string/enable_palette_effects_title"
 	            android:summary="@string/enable_palette_effects_summary" />
-		        
-		</PreferenceScreen>
+	        
+        </PreferenceScreen>
         
     </PreferenceCategory>
     

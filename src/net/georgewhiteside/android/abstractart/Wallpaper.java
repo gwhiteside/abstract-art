@@ -177,7 +177,6 @@ public class Wallpaper extends GLWallpaperService
 						
 					case CYCLE_INTERVAL:
 						long newAutoCycleTime = Long.valueOf(sharedPreferences.getString("autoCycleTime", null));
-						Log.i(TAG, "newAutoCycleTime: " + newAutoCycleTime + " previous cycle time: " + autoCycleTime);
 						if(newAutoCycleTime != autoCycleTime || previousCycleBehavior != CYCLE_INTERVAL) {
 							autoCycleTime = newAutoCycleTime;
 							renderer.setPersistBackgroundSelection(true);

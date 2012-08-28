@@ -12,7 +12,7 @@
     <string name="settings_background_selector_title">Background viewer</string>
     <string name="settings_background_selector_summary">View backgrounds and pick your favorite(s)</string>
     <string name="settings_rendering_title">Rendering</string>
-    <string name="settings_rendering_summary">Scaling, framerate, effects, etc.</string>
+    <string name="settings_rendering_summary">Scaling, framerate, etc.</string>
     <string name="settings_behavior_title">Behavior</string>
     <string name="settings_behavior_summary">Background cycling and control options</string>
     <string name="settings_cache_title">Cache</string>
@@ -25,7 +25,7 @@
     <string name="enable_palette_effects_summary">Colors change and swirl in realtime</string>
     <string name="enable_frameskipping_title">Enable frameskipping</string>
     <string name="enable_frameskipping_summary">If framerate is capped (or drops) below 60fps, prevent slow-motion</string>
-    <string name="enable_panning_title">Enable wallpaper panning</string>
+    <string name="enable_panning_title">Wallpaper panning</string>
     <string name="enable_panning_summary">Allow wallpaper to slide when swiping between home screens (on supported launchers)</string>
     <string name="clear_cache_title">Clear cache</string>
     <string name="clear_cache_summary">Clear internal data + thumbnails</string>
@@ -34,7 +34,7 @@
     <string name="framerate_cap_title">Framerate cap</string>
     <string name="framerate_cap_summary">Lower values reduce battery drain and can improve Android UI responsiveness, but look choppier</string>
     <string name="output_scaling_title">Output scaling mode</string>
-    <string name="output_scaling_summary">Neither method is inherently better; try both</string>
+    <string name="output_scaling_summary">Select the option that looks best to you</string>
     <string name="auto_cycle_behavior_title">Auto background cycle</string>
     <string name="auto_cycle_behavior_summary">When/if backgrounds automatically change</string>
     <string name="auto_cycle_interval_title">Auto cycle interval</string>

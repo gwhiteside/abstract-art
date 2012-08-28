@@ -434,10 +434,6 @@ public class Renderer implements GLWallpaperService.Renderer
 		if(mirrorVertical) {
 			Matrix.scaleM(mProjMatrix, 0, 1, -1, 1);
 		}
-		
-		Log.i(TAG, "Surface created");
-		
-		//startRendering();
 	}
 
 	private void updateShaderVariables()
