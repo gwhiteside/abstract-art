@@ -127,6 +127,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	private float deltaTime;
 	
 	private boolean isPreview = false;
+	private boolean isChooserPreviewRenderer = false;
 	
 	int fps;
 	float renderUpdatePeriod;
@@ -172,6 +173,10 @@ public class Renderer implements GLWallpaperService.Renderer
 		persistBackgroundSelection = value;
 	}
 	
+	public void setIsChooserPreviewRenderer(boolean value) {
+		isChooserPreviewRenderer = value;
+	}
+	
 	public void setRenderWhenDirty(boolean value) {
 		renderWhenDirty = value;
 	}
@@ -198,12 +203,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	{
 		this(context);
 		this.mirrorVertical = mirrorVertical;
-	}
-	
-	public Renderer(Context context, int initialBackground)
-	{
-		this(context);
-		this.currentBackground = initialBackground;
 	}
 	
 	public void setBackground(int index) {
@@ -410,10 +409,10 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
 		{
-			if(Wallpaper.backgroundListIsDirty) {
-				Wallpaper.setNewBackground(this);
-			} else {
+			if(!Wallpaper.backgroundListIsDirty || isChooserPreviewRenderer) {
 				loadBattleBackground(currentBackground);
+			} else {
+				Wallpaper.setNewBackground(this);
 			}
 		}
 		else

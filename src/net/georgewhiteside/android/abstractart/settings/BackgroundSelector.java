@@ -93,7 +93,9 @@ public class BackgroundSelector extends Activity
 
 		glSurfaceView = (GLSurfaceView)findViewById(R.id.thumbnailGLSurfaceView);
 		
-		renderer = new Renderer(context, selectedPosition);
+		renderer = new Renderer(context);
+		renderer.setBackground(selectedPosition);
+		renderer.setIsChooserPreviewRenderer(true);
 		renderer.setPersistBackgroundSelection(true);
 		
 		backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
@@ -279,6 +281,7 @@ public class BackgroundSelector extends Activity
     	dialog.show();
 	}
 	
+	@Override
 	public void onDestroy() {  
         super.onDestroy();  
         thumbnailAdapter.cleanup();
@@ -286,8 +289,14 @@ public class BackgroundSelector extends Activity
         //renderer.stopRendering();
         System.gc();
         //ViewServer.get(this).removeWindow(this); // TODO REMOVE THIS
-    }  
+    }
+	
+	@Override
+	public void onPause() {
+		super.onPause();
+	}
    
+	@Override
     public void onResume() {  
         super.onResume();  
         //ViewServer.get(this).setFocusedWindow(this); // TODO REMOVE THIS
