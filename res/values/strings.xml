@@ -25,6 +25,8 @@
     <string name="enable_palette_effects_summary">Colors change and swirl in realtime</string>
     <string name="enable_frameskipping_title">Enable frameskipping</string>
     <string name="enable_frameskipping_summary">If framerate is capped (or drops) below 60fps, prevent slow-motion</string>
+    <string name="enable_panning_title">Enable wallpaper panning</string>
+    <string name="enable_panning_summary">Allow wallpaper to slide when swiping between home screens (on supported launchers)</string>
     <string name="clear_cache_title">Clear cache</string>
     <string name="clear_cache_summary">Clear internal data + thumbnails</string>
     <string name="double_tap_behavior_title">Double tap behavior</string>

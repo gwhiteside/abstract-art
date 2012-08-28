@@ -63,6 +63,11 @@
                 android:defaultValue="true"
                 android:title="@string/enable_frameskipping_title"
                 android:summary="@string/enable_frameskipping_summary" />
+            
+            <CheckBoxPreference android:key="enablePanning"
+                android:defaultValue="true"
+                android:title="@string/enable_panning_title"
+                android:summary="@string/enable_panning_summary" />
         
 	        <CheckBoxPreference android:key="enableEnemies"
 	            android:defaultValue="true"

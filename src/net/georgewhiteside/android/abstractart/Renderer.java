@@ -117,6 +117,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	boolean enableSmoothScaling = true;
 	
+	private boolean enablePanning = false;
 	private boolean refreshOutput = false;
 	private boolean forceReload = false;
 	private boolean requestNewBackground = false;
@@ -124,6 +125,11 @@ public class Renderer implements GLWallpaperService.Renderer
 	private long currentTime;
 	private long previousTime;
 	private float deltaTime;
+	
+	private boolean isPreview = false;
+	
+	int fps;
+	float renderUpdatePeriod;
 	
 	public boolean ready = false;
 	
@@ -212,11 +218,21 @@ public class Renderer implements GLWallpaperService.Renderer
 		refreshOutput = true;
 	}
 	
-	//int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
-	//float renderUpdatePeriodMs = 1.0f / fps * 1000;
+	public void setOffsets(float xOffset, float yOffset) {
+		this.xOffset = xOffset;
+		this.yOffset = yOffset;
+	}
 	
-	int fps;
-	float renderUpdatePeriod;
+	float xOffset;
+	float yOffset;
+	
+	public void setEnablePanning(boolean value) {
+		enablePanning = value;
+	}
+	
+	public void setIsPreview(boolean value) {
+		isPreview = value;
+	}
 	
 	public void onDrawFrame(GL10 unused)
 	{
@@ -708,7 +724,9 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		GLES20.glUseProgram(hFXProgram);
 		
-		GLES20.glViewport(mSurfaceHorizontalOffset, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
+		int horizontalOffset = enablePanning && !isPreview ? (int) (xOffset * mSurfaceHorizontalOffset * 2) : mSurfaceHorizontalOffset;
+		
+		GLES20.glViewport(horizontalOffset, mSurfaceVerticalOffset, mSurfaceWidth, mSurfaceHeight);		// now we're scaling the framebuffer up to size
 		
 		hMVPMatrix = GLES20.glGetUniformLocation(hFXProgram, "uMVPMatrix");/* projection and camera */
 		

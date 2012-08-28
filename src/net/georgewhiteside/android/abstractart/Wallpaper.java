@@ -94,10 +94,6 @@ public class Wallpaper extends GLWallpaperService
 		}
 	}
 	
-	private void setCycleBehavior(int behavior) {
-		cycleBehavior = behavior;
-	}
-	
 	public class AbstractArtEngine extends GLEngine
 	{
 		public net.georgewhiteside.android.abstractart.Renderer renderer;
@@ -154,6 +150,11 @@ public class Wallpaper extends GLWallpaperService
 				// update frameskipping option
 				
 				enableFrameskipping = sharedPreferences.getBoolean("enableFrameskipping", false);
+				
+				// update background panning option
+				
+				boolean enablePanning = sharedPreferences.getBoolean("enablePanning", false);
+				renderer.setEnablePanning(enablePanning);
 				
 				// update background auto cycle behavior and interval
 				
@@ -296,6 +297,7 @@ public class Wallpaper extends GLWallpaperService
 	        
 			renderer = new net.georgewhiteside.android.abstractart.Renderer(glws);
 			renderer.setPersistBackgroundSelection(true);
+			renderer.setIsPreview(isPreview());
 			
 			handleUpgrades(); // just as it sounds
 			
@@ -314,6 +316,12 @@ public class Wallpaper extends GLWallpaperService
 		public void onDestroy() {
 			super.onDestroy();
 			engineInstances.remove(this);
+		}
+		
+		@Override
+		public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
+			movingAverage.addSample(xOffset);
+			renderer.setOffsets(movingAverage.getAverage(), yOffset);
 		}
 		
 		@Override
