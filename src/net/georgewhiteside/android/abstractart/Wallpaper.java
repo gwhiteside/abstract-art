@@ -188,7 +188,11 @@ public class Wallpaper extends GLWallpaperService
 						
 					case CYCLE_NEVER:
 						renderer.setPersistBackgroundSelection(true);
-						renderer.requestNewBackground(false); // cancel any pending background change
+						if(backgroundListIsDirty) {
+							renderer.requestNewBackground(true);
+						} else {
+							renderer.requestNewBackground(false); // cancel any pending background change (if background playlist hasn't changed)
+						}
 						backgroundCyclerHandler.removeCallbacks(backgroundCyclerRunnable);
 						break;
 				}
