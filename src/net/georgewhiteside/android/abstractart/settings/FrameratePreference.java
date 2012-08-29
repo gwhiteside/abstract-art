@@ -50,12 +50,18 @@ public class FrameratePreference extends DialogPreference
 	}
 	
 	public FrameratePreference(Context context, AttributeSet attrs) {
-		this(context, attrs, 0);
+		//this(context, attrs, 0);
+		
+		super(context, attrs);
+		init();
 	}
 
 	public FrameratePreference(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
-		
+		init();
+	}
+	
+	private void init() {
 		this.setDialogLayoutResource(R.layout.framerate_preference);
 		
 		setPositiveButtonText(android.R.string.ok);

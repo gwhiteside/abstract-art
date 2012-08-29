@@ -62,11 +62,18 @@ public class TimerPicker extends DialogPreference {
 	}
 	
 	public TimerPicker(Context context, AttributeSet attrs) {
-		this(context, attrs, 0);
+		//this(context, attrs, 0);
+		
+		super(context, attrs);
+		init();
 	}
 
 	public TimerPicker(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
+		init();
+	}
+	
+	private void init() {
 		setDialogLayoutResource(R.layout.timer_picker);
 		
 		setPositiveButtonText(android.R.string.ok);
