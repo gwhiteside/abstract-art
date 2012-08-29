@@ -10,7 +10,7 @@
     <string name="wallpaper_settings">Abstract Art Settings</string>
     
     <string name="settings_background_selector_title">Background viewer</string>
-    <string name="settings_background_selector_summary">View backgrounds and pick your favorite(s)</string>
+    <string name="settings_background_selector_summary">View and pick your favorite(s)</string>
     <string name="settings_rendering_title">Rendering</string>
     <string name="settings_rendering_summary">Scaling, framerate, etc.</string>
     <string name="settings_behavior_title">Behavior</string>
