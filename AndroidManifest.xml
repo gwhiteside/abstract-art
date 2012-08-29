@@ -21,22 +21,21 @@
         
         <activity
             android:label="@string/wallpaper_settings"
-            android:name="net.georgewhiteside.android.abstractart.Settings"
-            android:exported="true" />
+            android:name="net.georgewhiteside.android.abstractart.Settings">
+			
+            <intent-filter>
+                <category android:name="android.intent.category.PREFERENCE" />
+                <action android:name="android.intent.action.MAIN" />
+             </intent-filter>
+             
+        </activity>
         
         <activity
             android:label="@string/settings_background_selector_title"
             android:screenOrientation="portrait"
             android:name="net.georgewhiteside.android.abstractart.settings.BackgroundSelector"
-            android:theme="@android:style/Theme.NoTitleBar"
-            android:exported="false" />
+            android:theme="@android:style/Theme.NoTitleBar" />
         
-        <activity
-            android:label="title"
-            android:name="net.georgewhiteside.android.abstractart.ServiceDialog"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" 
-            android:exported="false" />
-        
-    </application>
+</application>
 
 </manifest>
