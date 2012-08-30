@@ -102,7 +102,7 @@ public class ShaderFactory
 		put("$BG_OFFSET_X", "offset.x");
 		put("$BG_OFFSET_Y", "offset.y");
 		put("$BG_DIST_TYPE", "dist_type");
-		put("$BG_DISTORTION_OFFSET", "distortion_offset");
+		put("$BG_DISTORTION_OFFSET", "dist_offset");
 		put("$BG_DIST_AMPL", "dist[AMPL]");
 		put("$BG_DIST_FREQ", "dist[FREQ]");
 		put("$BG_DIST_SPEED", "dist[SPEED]");
@@ -142,7 +142,9 @@ public class ShaderFactory
 				"void main()\n" +
 				"{\n" +
 				"    float y = v_texCoord.y * 256.0;\n" + 
-				"    if(y < " + letterBoxSize + " || y > 224.0 - " + letterBoxSize + ") { gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0); } else {";
+				"    if(y < " + letterBoxSize + " || y > 224.0 - " + letterBoxSize + ") {\n" +
+				"        gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0);\n" +
+				"    } else {\n";
 			
 			// iterate over both layers and construct the smallest shader possible
 			
@@ -163,7 +165,7 @@ public class ShaderFactory
 				// we always want the bottom layer, but skip the top layer if it's null
 				if(layer == bbg.bg3 || layer == bbg.bg4 && layer.getIndex() != 0)
 				{
-					fragmentShader += "vec2 $BG_OFFSET = vec2(0.0);\n";
+					fragmentShader += "    vec2 $BG_OFFSET = vec2(0.0);\n";
 					
 					// distortion
 					
@@ -174,7 +176,7 @@ public class ShaderFactory
 					
 					if(numberOfEffects != 0)
 					{
-						fragmentShader += "float $BG_DISTORTION_OFFSET = ($BG_DIST_AMPL * sin($BG_DIST_FREQ * y + $BG_DIST_SPEED));\n";
+						fragmentShader += "    float $BG_DISTORTION_OFFSET = ($BG_DIST_AMPL * sin($BG_DIST_FREQ * y + $BG_DIST_SPEED));\n";
 						
 						if(numberOfEffects == 1)
 						{
@@ -184,39 +186,39 @@ public class ShaderFactory
 									break;
 									
 								case 1:
-									fragmentShader += "$BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n";
+									fragmentShader += "    $BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 2:
-									fragmentShader += "$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n";
+									fragmentShader += "    $BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n";
 									break;
 									
 								case 3:
-									fragmentShader += "$BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n";
+									fragmentShader += "    $BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n";
 									break;
 									
 								case 4:
-									fragmentShader += "$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
-													"$BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n";
+									fragmentShader += "    $BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+													"    $BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n";
 									break;
 							}
 						}
 						else // 2 or more effects are used
 						{
-							fragmentShader +=	"if($BG_DIST_TYPE == 1) {\n" +
-													"$BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n" +
+							fragmentShader +=	"    if($BG_DIST_TYPE == 1) {\n" +
+												"        $BG_OFFSET_X = $BG_DISTORTION_OFFSET;\n" +
 									
-												"} else if($BG_DIST_TYPE == 2) {\n" +
-													"$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+												"    } else if($BG_DIST_TYPE == 2) {\n" +
+												"        $BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
 												
-												"} else if($BG_DIST_TYPE == 3) {\n" +
-													"$BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n" +
-												"}\n" +
+												"    } else if($BG_DIST_TYPE == 3) {\n" +
+												"        $BG_OFFSET_Y = mod($BG_DISTORTION_OFFSET, resolution.y);\n" +
+												"    }\n" +
 												
-												"if($BG_DIST_TYPE == 4) {\n" +
-													"$BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
-													"$BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n" +
-												"}\n";
+												"    if($BG_DIST_TYPE == 4) {\n" +
+												"        $BG_OFFSET_X = floor(mod(y, 2.0)) == 0.0 ? $BG_DISTORTION_OFFSET : -$BG_DISTORTION_OFFSET;\n" +
+												"        $BG_OFFSET_X += (y * ($BG_COMPRESSION / resolution.y));\n" +
+												"    }\n";
 						}
 					}
 
@@ -225,7 +227,7 @@ public class ShaderFactory
 					
 					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
 					{
-						fragmentShader += "$BG_OFFSET_Y += (y * ($BG_COMPRESSION / resolution.y));\n";
+						fragmentShader += "    $BG_OFFSET_Y += (y * ($BG_COMPRESSION / resolution.y));\n";
 					}
 					
 					// layer scrolling
@@ -233,19 +235,19 @@ public class ShaderFactory
 					if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
 						layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
 					{
-						fragmentShader += "$BG_OFFSET += $BG_SCROLL;\n";
+						fragmentShader += "    $BG_OFFSET += $BG_SCROLL;\n";
 					}
 					
 					// divide offset down to correct range
 					
-					fragmentShader += "$BG_OFFSET /= resolution;\n";
+					fragmentShader += "    $BG_OFFSET /= resolution;\n";
 					
 					if(enablePaletteEffects == true) {
 						
 						// get palette index
 						
-						fragmentShader += "float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
-						fragmentShader += "$BG_INDEX *= 256.0;\n";
+						fragmentShader += "    float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
+						fragmentShader += "    $BG_INDEX *= 256.0;\n";
 						
 						// add palette cycling code if required
 					
@@ -258,69 +260,69 @@ public class ShaderFactory
 							case 1:
 								// rotate palette subrange left
 								fragmentShader +=
-									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
-									"{\n" +
-									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
-									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
-									"    if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
-									"        $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
-									"    }\n" +
-									"}\n";
+									"    if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
+									"    {\n" +
+									"        float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"        $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"        if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
+									"            $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
+									"        }\n" +
+									"    }\n";
 								break;
 							
 							case 2:
 								// rotate two palette subranges left
 								fragmentShader +=
-									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
-									"{\n" +
-									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
-									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
-									"    if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
-									"        $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
+									"    if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
+									"    {\n" +
+									"        float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"        $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"        if($BG_INDEX < $BG_PALETTE_BEGIN1) {\n" +
+									"            $BG_INDEX = $BG_PALETTE_END1 + 1.0 - abs($BG_PALETTE_BEGIN1 - $BG_INDEX);\n" +
+									"        }\n" +
 									"    }\n" +
-									"}\n" +
-									"else if($BG_INDEX >= $BG_PALETTE_BEGIN2 - 0.5 && $BG_INDEX <= $BG_PALETTE_END2 + 0.5)\n" +
-									"{\n" +
-									"    float range = $BG_PALETTE_END2 - $BG_PALETTE_BEGIN2;\n" +
-									"    $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
-									"    if($BG_INDEX < $BG_PALETTE_BEGIN2) {\n" +
-									"        $BG_INDEX = $BG_PALETTE_END2 + 1.0 - abs($BG_PALETTE_BEGIN2 - $BG_INDEX);\n" +
-									"    }\n" +
-									"}\n";
+									"    else if($BG_INDEX >= $BG_PALETTE_BEGIN2 - 0.5 && $BG_INDEX <= $BG_PALETTE_END2 + 0.5)\n" +
+									"    {\n" +
+									"        float range = $BG_PALETTE_END2 - $BG_PALETTE_BEGIN2;\n" +
+									"        $BG_INDEX = $BG_INDEX - $BG_ROTATION;\n" +
+									"        if($BG_INDEX < $BG_PALETTE_BEGIN2) {\n" +
+									"            $BG_INDEX = $BG_PALETTE_END2 + 1.0 - abs($BG_PALETTE_BEGIN2 - $BG_INDEX);\n" +
+									"        }\n" +
+									"    }\n";
 								break;
 							
 							case 3:
 								// "mirror rotate" palette subrange left (indices cycle like a triangle waveform)
 								fragmentShader +=
-									"if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
-									"{\n" +
-									"    float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
-									"    $BG_INDEX = $BG_INDEX + $BG_ROTATION - $BG_PALETTE_BEGIN1;\n" +
-									"    range = floor(range + 0.5);\n" +
-									"    $BG_INDEX = floor($BG_INDEX + 0.5);\n" +
-									"    if($BG_INDEX > range * 2.0 + 1.0) {\n" +
-									"        $BG_INDEX = $BG_PALETTE_BEGIN1 + ($BG_INDEX - ((range * 2.0) + 2.0));\n" +
-									"    }\n" +
-									"    else if($BG_INDEX > range) {\n" +
-									"        $BG_INDEX = $BG_PALETTE_END1 - ($BG_INDEX - (range + 1.0));\n" +
-									"    }\n" +
-									"    else {\n" +
-									"        $BG_INDEX += $BG_PALETTE_BEGIN1;\n" +
-									"    }\n" +
-									"}\n";
+									"    if($BG_INDEX >= $BG_PALETTE_BEGIN1 - 0.5 && $BG_INDEX <= $BG_PALETTE_END1 + 0.5)\n" +
+									"    {\n" +
+									"        float range = $BG_PALETTE_END1 - $BG_PALETTE_BEGIN1;\n" +
+									"        $BG_INDEX = $BG_INDEX + $BG_ROTATION - $BG_PALETTE_BEGIN1;\n" +
+									"        range = floor(range + 0.5);\n" +
+									"        $BG_INDEX = floor($BG_INDEX + 0.5);\n" +
+									"        if($BG_INDEX > range * 2.0 + 1.0) {\n" +
+									"            $BG_INDEX = $BG_PALETTE_BEGIN1 + ($BG_INDEX - ((range * 2.0) + 2.0));\n" +
+									"        }\n" +
+									"        else if($BG_INDEX > range) {\n" +
+									"            $BG_INDEX = $BG_PALETTE_END1 - ($BG_INDEX - (range + 1.0));\n" +
+									"        }\n" +
+									"        else {\n" +
+									"            $BG_INDEX += $BG_PALETTE_BEGIN1;\n" +
+									"        }\n" +
+									"    }\n";
 								break;
 						}
 					
 						// divide color index down into texture lookup range
 						
-						fragmentShader += "$BG_INDEX /= 16.0;\n";
+						fragmentShader += "    $BG_INDEX /= 16.0;\n";
 						
 						// actual palette color lookup
 						
 						float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
-						fragmentShader += "vec4 $BG_COLOR = texture2D(s_palette, vec2($BG_INDEX, " + paletteRow + " / 16.0));\n";
+						fragmentShader += "    vec4 $BG_COLOR = texture2D(s_palette, vec2($BG_INDEX, " + paletteRow + " / 16.0));\n";
 					} else {
-						fragmentShader += "vec4 $BG_COLOR = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord);\n";
+						fragmentShader += "    vec4 $BG_COLOR = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord);\n";
 					}
 					
 					// replace placeholder tags with values
@@ -335,27 +337,37 @@ public class ShaderFactory
 			{
 				// both layers are active; perform an alpha blend with BG4 at 50% opacity
 				fragmentShader += 
-					"bg4_color.a *= 0.5;\n" +
-					"gl_FragColor.rgb = bg4_color.rgb * bg4_color.a + bg3_color.rgb * (1.0 - bg4_color.a);\n" +
-					"gl_FragColor.a = 1.0;\n";
+					"    bg4_color.a *= 0.5;\n" +
+					"    gl_FragColor.rgb = bg4_color.rgb * bg4_color.a + bg3_color.rgb * (1.0 - bg4_color.a);\n" +
+					"    gl_FragColor.a = 1.0;\n";
 			}
 			else
 			{
 				fragmentShader +=
-					"gl_FragColor.rgb = bg3_color.rgb;\n" +
-					"gl_FragColor.a = 1.0;\n";
+					"    gl_FragColor.rgb = bg3_color.rgb;\n" +
+					"    gl_FragColor.a = 1.0;\n";
 			}
 		
 			// ...aaand the final curly brace:
 			
-			fragmentShader += "}}\n";
+			fragmentShader += "    }\n";
+			fragmentShader += "}\n";
 		}
 		
 		//Log.d("shader", vertexShader);
 		//Log.d("shader", fragmentShader);
 		
 		int result = createProgram(vertexShader, fragmentShader);
-		if(result == 0) { throw new RuntimeException("[...] shader compilation failed"); }
+		
+		if(result == 0) {
+			String error = "Shader compilation failed!";
+			error += "\n \n-- VERTEX SHADER\n \n";
+			error += vertexShader;
+			error += "\n \n-- FRAGMENT SHADER\n \n";
+			error += fragmentShader;
+			throw new RuntimeException(error);
+		}
+		
 		return result;
 	}
 	
