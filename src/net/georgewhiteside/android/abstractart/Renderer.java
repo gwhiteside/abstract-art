@@ -182,7 +182,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		refreshOutput();
 		
-		Log.i(TAG, "Renderer created");
+		//Log.i(TAG, "Renderer created");
 	}
 	
 	public Renderer(Context context, boolean mirrorVertical)
@@ -470,7 +470,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	{	
 		synchronized(lock) {
 			currentBackground = index;
-			Log.i(Wallpaper.TAG, "Loading battle group " + index);
+			//Log.i(Wallpaper.TAG, "Loading battle group " + index);
 			battleGroup.load(index, forceReload);
 			forceReload = false;
 			

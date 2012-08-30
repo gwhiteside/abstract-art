@@ -11,7 +11,6 @@ import java.util.List;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.util.Log;
 
 /*
 Animation Bank
@@ -56,7 +55,7 @@ SNES BG3 (main) and BG4 (sub)
  */
 public class BattleBackground
 {
-	private static final String TAG = "BattleBackground";
+	//private static final String TAG = "BattleBackground";
 	private static final int OFFSET = 0xA0200;
 	SharedPreferences sharedPreferences;
 	Context context;
@@ -192,7 +191,7 @@ public class BattleBackground
 		// allowing a reload here so that enabling/disabling palette effects (or whatever else) can be seen immediately
 		if(currentIndex != index || forceReload == true)
 		{
-			Log.d(TAG, "background group index: " + index);
+			//Log.d(TAG, "background group index: " + index);
 			
 			int layerA = layerTable[index][0];
 			int layerB = layerTable[index][1];
@@ -207,7 +206,7 @@ public class BattleBackground
 	{
 		bg3.loadLayer(A);
 		bg4.loadLayer(B);
-		Log.d(TAG, "loaded layers: " + A + ", " + B);
+		//Log.d(TAG, "loaded layers: " + A + ", " + B);
 		
 		// small optimization: the bg4 layer isn't active for most backgrounds, so we don't waste time
 		// updating its render logic when it's unused

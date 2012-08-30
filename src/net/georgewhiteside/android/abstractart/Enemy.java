@@ -178,7 +178,7 @@ public class Enemy
 		
 		if(cacheFile.exists())
 		{
-			Log.i(TAG, "Loading existing sprite: " + cacheFileName);
+			//Log.i(TAG, "Loading existing sprite: " + cacheFileName);
 			// TODO: integrate the nitty-gritty into the Cache class
 
 			ByteBuffer bitmapBuffer = ByteBuffer.allocate(dimensions.width * dimensions.height * 4);
@@ -229,7 +229,7 @@ public class Enemy
 			}
 			
 			// save the image to cache
-			Log.i(TAG, "Saving sprite " + mName + " to cache");
+			//Log.i(TAG, "Saving sprite " + mName + " to cache");
 			
 			cacheFile.getParentFile().mkdirs(); // safely does nothing if path exists
  			
@@ -282,7 +282,7 @@ public class Enemy
 		// load palette
 		
 		int paletteNum = attributes.get(0x35);
-		Log.i(TAG, mName + " palette number: " + paletteNum);
+		//Log.i(TAG, mName + " palette number: " + paletteNum);
 		spriteData.position(PALETTES - GRAPHICS_CHUNK_OFFSET);
 		ShortBuffer paletteData = spriteData.asShortBuffer().slice();
 		
