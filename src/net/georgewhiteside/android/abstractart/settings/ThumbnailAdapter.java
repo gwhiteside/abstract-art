@@ -9,7 +9,9 @@ import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
 import android.content.Context;
 import android.graphics.Bitmap;
+import android.os.Debug;
 import android.os.Handler;
+import android.support.v4.util.LruCache;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,11 +36,20 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	private List<Integer> backgroundList;
 	
+	private static LruCache<Integer, Bitmap> lruCache;
+	
 	private static final int LOADING_VIEW = 0;
 	private static final int THUMBNAIL_VIEW = 1;
 	
-	public ThumbnailAdapter(Context context, List<Integer> backgroundList, boolean renderEnemies)
-	{
+	public static class ViewHolder {
+    	public int index;
+    	ViewSwitcher viewSwitcher;
+        TextView text;
+        ImageView thumbnail;
+        ImageView thumbnailCheckmark;
+    }
+	
+	public ThumbnailAdapter(Context context, List<Integer> backgroundList, boolean renderEnemies) {
 		this.backgroundList = backgroundList;
 		thumbnailWidth = 128; thumbnailHeight = 112;
 		
@@ -56,23 +67,17 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         imageLoader.start();
 	}
 	
-	
-	public int getCount()
-	{
+	public int getCount() {
 		return renderer.getBackgroundsTotal();
 	}
 
-	public Object getItem(int position)
-	{
+	public Object getItem(int position) {
 		return position;
 	}
 
-	public long getItemId(int position)
-	{
+	public long getItemId(int position) {
 		return position;
 	}
-	
-	
 	
 	/**
      * Make a view to hold each row.
@@ -106,61 +111,71 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         }
  		
  		holder.index = position; // set the image index for the on-screen GridView element so onImageLoaded doesn't override it if it scrolls out of view
- 		holder.viewSwitcher.setDisplayedChild(LOADING_VIEW);
-        imageLoader.queueImageLoad(position, holder);
+ 		
+ 		if(lruCache == null) {
+ 			int safetyBuffer = 1024 * 1024;
+ 			double availableMemory = Math.max(getAvailableMemory() - safetyBuffer, 0);
+ 			int thumbnailBytes = thumbnailWidth * thumbnailHeight * 4;
+ 			// I have no idea how reasonable this calculation is (if at all)
+ 			int maxCacheThumbs = Math.min((int) Math.ceil(availableMemory / thumbnailBytes), getCount());
+ 			lruCache = new LruCache<Integer, Bitmap>(maxCacheThumbs);
+ 			Log.i("ThumbnailAdapter", "Created LruCache for up to " + maxCacheThumbs + " of " + getCount() + " thumbnails");
+ 		}
+ 		
+ 		Bitmap bitmap = lruCache.get(Integer.valueOf(position));
+ 		
+ 		if(bitmap != null) {
+			setThumb(holder, bitmap, position);
+ 		} else {
+	 		holder.viewSwitcher.setDisplayedChild(LOADING_VIEW);
+	        imageLoader.queueImageLoad(position, holder);
+ 		}
         
         return convertView;
     }
-    
-    public void setBackgroundList(List<Integer> backgroundList)
-    {
+
+    public void setBackgroundList(List<Integer> backgroundList) {
     	this.backgroundList = backgroundList;
     }
 
-    public static class ViewHolder
-    {
-    	public int index;
-    	ViewSwitcher viewSwitcher;
-        TextView text;
-        ImageView thumbnail;
-        ImageView thumbnailCheckmark;
-    }
-    
-    public void updateCheckmark(ViewHolder viewHolder)
-    {
-    	if(backgroundList.contains(Integer.valueOf(viewHolder.index)))
-		{
+    public void updateCheckmark(ViewHolder viewHolder) {
+    	if(backgroundList.contains(Integer.valueOf(viewHolder.index))) {
 			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
-    	}
-		else
-		{
+    	} else {
     		viewHolder.thumbnailCheckmark.setVisibility(ImageView.INVISIBLE);
     	}
     }
 
-	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position)
-	{
-		handler.post(new Runnable()
-		{
-			public void run()
-			{
+	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position) {
+		handler.post(new Runnable() {
+			public void run() {
 				// set the grid item to the image thumbnail only if it hasn't scrolled off screen and been recycled
-				if(viewHolder.index == position)
-				{
-					viewHolder.thumbnail.setImageBitmap(bitmap);
-					viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
-					
-					updateCheckmark(viewHolder);
-					
-					viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
+				if(viewHolder.index == position) {
+					setThumb(viewHolder, bitmap, position);
 				}
 			}
 		});
+		
+		lruCache.put(Integer.valueOf(position), bitmap);
 	}
+	
+	private void setThumb(ViewHolder viewHolder, Bitmap bitmap, int position) {
+		viewHolder.thumbnail.setImageBitmap(bitmap);
+		viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
+		updateCheckmark(viewHolder);
+		viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
+	}
+	
+    double getAvailableMemory() {
+    	double heapSize =  Runtime.getRuntime().totalMemory();
+    	double heapRemaining = Runtime.getRuntime().freeMemory();   
+    	double nativeUsage  =  Debug.getNativeHeapAllocatedSize();
+    	double memoryAvailable = Runtime.getRuntime().maxMemory() - (heapSize - heapRemaining) - nativeUsage;
+    	return memoryAvailable;
+    }
 	
 	public void cleanup() {
 		Log.i("ThumbnailAdapter", "Cleaning up...");
 		imageLoader.stopThread();
-		//renderer.stopRendering();
 	}
 }
