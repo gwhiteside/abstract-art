@@ -7,7 +7,6 @@ import net.georgewhiteside.android.abstractart.ImageLoader.ImageLoadListener;
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
-import net.georgewhiteside.android.abstractart.Wallpaper;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Handler;
@@ -25,8 +24,6 @@ import android.widget.ViewSwitcher;
 
 public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 {
-	private static final String TAG = "ThumbnailAdapter";
-	private Context context;
 	private LayoutInflater mInflater;
 	private ImageLoader imageLoader;
 	private Handler handler;
@@ -42,8 +39,6 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	public ThumbnailAdapter(Context context, List<Integer> backgroundList, boolean renderEnemies)
 	{
-		this.context = context;
-		
 		this.backgroundList = backgroundList;
 		thumbnailWidth = 128; thumbnailHeight = 112;
 		
@@ -133,7 +128,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
     
     public void updateCheckmark(ViewHolder viewHolder)
     {
-    	if(backgroundList.contains(new Integer(viewHolder.index)))
+    	if(backgroundList.contains(Integer.valueOf(viewHolder.index)))
 		{
 			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
     	}

@@ -4,17 +4,11 @@ import net.georgewhiteside.android.abstractart.R;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.preference.DialogPreference;
-import android.preference.ListPreference;
-import android.preference.Preference;
 import android.util.AttributeSet;
 import android.util.Log;
-import android.view.MotionEvent;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.view.View.OnFocusChangeListener;
-import android.view.View.OnTouchListener;
 import android.widget.EditText;
-import android.widget.TextView;
 
 public class TimerPicker extends DialogPreference {
 	private EditText hoursEditText;

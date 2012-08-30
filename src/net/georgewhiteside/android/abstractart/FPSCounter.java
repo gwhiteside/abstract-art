@@ -2,7 +2,6 @@ package net.georgewhiteside.android.abstractart;
 
 import net.georgewhiteside.utility.MovingAverage;
 import android.util.Log;
-import android.os.SystemClock;
 
 public class FPSCounter {
 	

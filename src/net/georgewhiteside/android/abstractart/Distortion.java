@@ -3,8 +3,6 @@ package net.georgewhiteside.android.abstractart;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
-import android.util.Log;
-
 // 0xAF908 - OFFSET + bgData.get(13 + i) * 17
 
 /*

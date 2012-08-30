@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.IntBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,6 @@ import android.util.Log;
 
 public class Layer
 {
-	private final String TAG = "Layer";
 	private ByteBuffer romData;
 	private static final int OFFSET = 0xA0200;
 	
@@ -58,7 +56,6 @@ public class Layer
 	private byte[][][] paletteData = new byte[8][PALETTE_MAX][3];
 	
 	private int tileDataLength;
-	private int arrangeDataLength;	// in case I want to dynamically allocate space
 	
 	private int loadedIndex = -1;
 	
@@ -68,7 +65,7 @@ public class Layer
 	
 	private int paletteId; // hack for disabled color effects
 	
-	private int paletteRotation, triangle;
+	private int paletteRotation;
 	private float mTick;
  	
  	public static final int DIST_NONE = 0x00;
@@ -385,7 +382,7 @@ public class Layer
 		
 		romData.position(0xADB3D - OFFSET + index * 4);
 		int pArrangeData = RomUtil.toHex(romData.getInt()) - OFFSET;
-		arrangeDataLength = RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
+		RomUtil.decompress(pArrangeData, arrangeData, ARRANGE_MAX, romData);
 	}
 	
 	public boolean checkIfCached(int imageNumber)

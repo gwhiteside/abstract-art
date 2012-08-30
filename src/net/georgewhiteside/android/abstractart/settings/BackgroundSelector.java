@@ -23,7 +23,6 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.text.Html;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -335,7 +334,7 @@ public class BackgroundSelector extends Activity
 	
 	public void toggleItem(View view, int position)
 	{
-		Integer item = new Integer(position);
+		Integer item = Integer.valueOf(position);
 		if(backgroundList.contains(item))
 		{
 			backgroundList.remove(item);

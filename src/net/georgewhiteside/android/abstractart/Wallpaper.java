@@ -22,7 +22,6 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
-import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
 import android.graphics.Bitmap;
@@ -30,7 +29,6 @@ import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.Message;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.Display;
@@ -58,8 +56,6 @@ public class Wallpaper extends GLWallpaperService
 	
 	//private static boolean refreshOutput = false;
 	//private static boolean refreshPreview = false; // refreshOutput, but for LWP preview
-	
-	private static int currentBackground;
 	
 	public static final int CYCLE_HIDDEN = 1;
 	public static final int CYCLE_INTERVAL = 2;
@@ -107,7 +103,6 @@ public class Wallpaper extends GLWallpaperService
         private Thread renderThread;
     	private RenderRunnable renderRunnable = new RenderRunnable();
     	
-    	private FPSCounter mFPSCounter = new FPSCounter();
     	MovingAverage movingAverage = new MovingAverage(5);
     	
     	private Handler backgroundCyclerHandler = new Handler();
@@ -539,7 +534,6 @@ public class Wallpaper extends GLWallpaperService
 			selection = random.nextInt(renderer.battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		}
 		
-		currentBackground = selection;
 		renderer.loadBattleBackground(selection);
 	}
 	
@@ -635,7 +629,7 @@ public class Wallpaper extends GLWallpaperService
  		
 		for(int i = 0; i < total; i++)
 		{
-			bgList.add(new Integer(i));
+			bgList.add(Integer.valueOf(i));
 		}
 		
 	    return bgList;

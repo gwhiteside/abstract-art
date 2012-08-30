@@ -2,8 +2,6 @@ package net.georgewhiteside.android.abstractart;
 
 import android.content.Context;
 import android.util.AttributeSet;
-import android.util.Log;
-import android.view.View;
 import android.widget.GridView;
 
 public class UniformGridView extends GridView
@@ -48,10 +46,6 @@ public class UniformGridView extends GridView
             
             if(columns > 1)
             {
-            	int paddingTop = ((View)this.getParent()).getPaddingTop();
-	            int paddingLeft = ((View)this.getParent()).getPaddingLeft();
-	            int paddingRight = ((View)this.getParent()).getPaddingRight();
-	            
 	            // can't seem to figure out how to calculate the extra view space... width % mColumnWidth
 	            // was what I figured, and when the number of columns is as expected it *looks* perfect,
 	            // but it causes the grid to drop a column way too soon when you start shrinking the spacing...

@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.nio.Buffer;
 import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -16,19 +15,12 @@ import javax.microedition.khronos.opengles.GL10;
 
 import android.content.Context;
 import android.content.SharedPreferences;
-import android.graphics.Bitmap;
-import android.graphics.PixelFormat;
 import android.opengl.GLES20;
-import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
-import android.view.Display;
-import android.view.WindowManager;
 
 import net.georgewhiteside.android.abstractart.Wallpaper;
-import net.georgewhiteside.android.abstractart.Wallpaper.AbstractArtEngine;
-import net.georgewhiteside.utility.MovingAverage;
 
 import org.jf.GLWallpaper.GLWallpaperService;
 
@@ -54,24 +46,18 @@ public class Renderer implements GLWallpaperService.Renderer
 	private int mProgram, hFXProgram;
 	private int mPositionHandle, hPosition;
 	private int mTextureHandle, hTexture;
-	private int mBaseMapTexId;
-	private int mBg3TextureLoc, hTextureA;
+	private int mBg3TextureLoc;
 	private int mBg4TextureLoc;
 	private int hBaseMap;
 	private int mPaletteLoc;
 	
-	private int mPaletteRotation;
-	
 	private int mResolutionLoc;
-	private int mCompressionLoc;
 	private int mBg3DistTypeLoc, mBg4DistTypeLoc;
 	private int mBg3DistLoc, mBg4DistLoc;
-	private int mDistTypeLoc;
 	private int mBg3Scroll, mBg4Scroll;
 	private int mBg3PaletteLoc, mBg4PaletteLoc;
 	private int mBg3CompressionLoc, mBg4CompressionLoc;
 	private int mBg3RotationLoc, mBg4RotationLoc;
-	private int mCycleTypeLoc;
 	
 	private int mSurfaceWidth;
 	private int mSurfaceHeight;
@@ -616,12 +602,6 @@ public class Renderer implements GLWallpaperService.Renderer
 			mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
 			mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
 			
-			// old stuff
-			mCycleTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_cycle_type");
-			mDistTypeLoc = GLES20.glGetUniformLocation(mProgram, "u_dist_type");
-			
-			
-			
 			/* enemy loading stuff */
 			if(mRenderEnemies)
 			{
@@ -909,6 +889,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		return body.toString();
 	}
 	
+	/*
 	private void queryGl(GL10 gl10)
 	{
 		//String extensions = GLES20.glGetString(GLES20.GL_EXTENSIONS);
@@ -918,4 +899,5 @@ public class Renderer implements GLWallpaperService.Renderer
 		GLES20.glGetIntegerv(GLES20.GL_ALIASED_LINE_WIDTH_RANGE, params, 0);
 		Log.i("GLInfo", String.format("GLES20.GL_ALIASED_LINE_WIDTH_RANGE: %d - %d", params[0], params[1]));
 	}
+	*/
 }

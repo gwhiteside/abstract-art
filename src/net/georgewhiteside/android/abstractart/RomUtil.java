@@ -1,10 +1,6 @@
 package net.georgewhiteside.android.abstractart;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
 import java.util.Arrays;
 
 public final class RomUtil
@@ -37,7 +33,6 @@ public final class RomUtil
 	 */
     public static int decompress(int cdata, byte[] output, int maxlen, byte[] rom)
     {
-        int start = cdata;
         int bpos = 0, bpos2 = 0;
         short tmp;
         while (unsigned(rom[cdata]) != 0xFF)

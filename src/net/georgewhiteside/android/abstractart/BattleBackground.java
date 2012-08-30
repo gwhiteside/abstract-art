@@ -1,24 +1,12 @@
 package net.georgewhiteside.android.abstractart;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.ObjectOutputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
-
-import org.json.JSONArray;
-import org.json.JSONException;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -75,7 +63,7 @@ public class BattleBackground
 	
 	private ByteBuffer romData;
 	private int currentIndex;
-	private int currentRomBackgroundIndex;
+	//private int currentRomBackgroundIndex;
 	
 	//private List<short[]> layerTable;
 	private short[][] layerTable;
@@ -116,7 +104,7 @@ public class BattleBackground
 		bg4 = new Layer(romData, context);
 		
 		currentIndex = -1;
-		currentRomBackgroundIndex = -1;
+		//currentRomBackgroundIndex = -1;
 		
 		//loadBackgroundSet();
 	}
@@ -211,7 +199,7 @@ public class BattleBackground
 			
 			setLayers(layerA, layerB);
 			currentIndex = index;
-			currentRomBackgroundIndex = layerTable[index][2];
+			//currentRomBackgroundIndex = layerTable[index][2];
 		}
 	}
 	

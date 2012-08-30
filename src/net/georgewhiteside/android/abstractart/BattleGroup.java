@@ -5,8 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.ArrayList;
-import java.util.List;
 
 import android.content.Context;
 
@@ -93,9 +91,11 @@ public class BattleGroup
 		
 		enemyBattleGroupData.position(pBattleGroup);
 		//List<Integer> enemyBattleGroup = new ArrayList<Integer>();
-		int amount = 0;
 		
-		amount = RomUtil.unsigned(enemyBattleGroupData.get());
+		//int amount = 0;
+		
+		//amount = RomUtil.unsigned(enemyBattleGroupData.get()); // amount
+		enemyBattleGroupData.get(); // amount
 		enemyIndex = RomUtil.unsigned(enemyBattleGroupData.getShort());
 		
 		enemy.load(enemyIndex);

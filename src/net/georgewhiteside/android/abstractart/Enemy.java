@@ -38,10 +38,10 @@ public class Enemy
 	private static final int PALETTES = 0xE6714;
 	//private static final int NUM_GRAPHIC_ENTRIES = 110;
 	
-	private static final int ATTRIBUTES_CHUNK_OFFSET = 0x159789;
-	private static final int ATTRIBUTES = 0x159789;
-	private static final int NUM_ATTRIBUTE_ENTRIES = 231;
-	private static final int ATTRIBUTE_ENTRY_LEN = 94;
+	//private static final int ATTRIBUTES_CHUNK_OFFSET = 0x159789;
+	//private static final int ATTRIBUTES = 0x159789;
+	//private static final int NUM_ATTRIBUTE_ENTRIES = 231;
+	//private static final int ATTRIBUTE_ENTRY_LEN = 94;
 	
 	private int currentIndex;
 	
@@ -198,7 +198,7 @@ public class Enemy
 		{
 			// build sprite image from ROM data
 			
-			int decompLen = RomUtil.decompress(pSpriteData, buffer, buffer.length, graphics);
+			RomUtil.decompress(pSpriteData, buffer, buffer.length, graphics);
 			
 			Arrays.fill(spriteIndexedBuffer, (byte) 0);
 			

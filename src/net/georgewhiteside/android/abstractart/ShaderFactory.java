@@ -4,6 +4,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -95,27 +96,32 @@ public class ShaderFactory
 		"#define BEGIN2 2\n" +
 		"#define END2   3\n";
 	
-	private static Map<String, String> map = new HashMap<String, String>()
-	{{
-		put("$BG_TEXTURE", "texture");
-		put("$BG_OFFSET", "offset");
-		put("$BG_OFFSET_X", "offset.x");
-		put("$BG_OFFSET_Y", "offset.y");
-		put("$BG_DIST_TYPE", "dist_type");
-		put("$BG_DISTORTION_OFFSET", "dist_offset");
-		put("$BG_DIST_AMPL", "dist[AMPL]");
-		put("$BG_DIST_FREQ", "dist[FREQ]");
-		put("$BG_DIST_SPEED", "dist[SPEED]");
-		put("$BG_COMPRESSION", "compression");
-		put("$BG_INDEX", "index");
-		put("$BG_SCROLL", "scroll");
-		put("$BG_COLOR", "color");
-		put("$BG_PALETTE_BEGIN1", "palette[BEGIN1]");
-		put("$BG_PALETTE_END1", "palette[END1]");
-		put("$BG_PALETTE_BEGIN2", "palette[BEGIN2]");
-		put("$BG_PALETTE_END2", "palette[END2]");
-		put("$BG_ROTATION", "rotation");
-	}};
+	private static final Map<String, String> map;
+	
+	static {
+		Map<String, String> initMap = new HashMap<String, String>();
+		
+		initMap.put("$BG_TEXTURE", "texture");
+		initMap.put("$BG_OFFSET", "offset");
+		initMap.put("$BG_OFFSET_X", "offset.x");
+		initMap.put("$BG_OFFSET_Y", "offset.y");
+		initMap.put("$BG_DIST_TYPE", "dist_type");
+		initMap.put("$BG_DISTORTION_OFFSET", "dist_offset");
+		initMap.put("$BG_DIST_AMPL", "dist[AMPL]");
+		initMap.put("$BG_DIST_FREQ", "dist[FREQ]");
+		initMap.put("$BG_DIST_SPEED", "dist[SPEED]");
+		initMap.put("$BG_COMPRESSION", "compression");
+		initMap.put("$BG_INDEX", "index");
+		initMap.put("$BG_SCROLL", "scroll");
+		initMap.put("$BG_COLOR", "color");
+		initMap.put("$BG_PALETTE_BEGIN1", "palette[BEGIN1]");
+		initMap.put("$BG_PALETTE_END1", "palette[END1]");
+		initMap.put("$BG_PALETTE_BEGIN2", "palette[BEGIN2]");
+		initMap.put("$BG_PALETTE_END2", "palette[END2]");
+		initMap.put("$BG_ROTATION", "rotation");
+		
+		map = Collections.unmodifiableMap(initMap);
+	}
 	
 	public ShaderFactory(Context context)
 	{
