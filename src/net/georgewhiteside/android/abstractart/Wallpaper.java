@@ -246,7 +246,7 @@ public class Wallpaper extends GLWallpaperService
 			}
 
 			public synchronized void stop() {
-				Log.i(TAG, "stopping render update thread");
+				//Log.i(TAG, "stopping render update thread");
 				renderer.ready = false;
 				running = false;
 			}
