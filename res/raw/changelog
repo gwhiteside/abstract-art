@@ -26,6 +26,7 @@ $ 1.1.1
   % 1.1.1 (Struttin' Evil Mushroom)
   _ August 30, 2012
     * Enabled Holo theme for Honeycomb and newer devices
+    * Fixed crashy slider widget in the framerate cap preference
     * Added some extra information to crash reports to help me debug
     ! Thanks for your patience and understanding while I work through the bugs, I really appreciate it!
 

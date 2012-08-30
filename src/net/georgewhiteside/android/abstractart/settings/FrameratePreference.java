@@ -14,9 +14,9 @@ import android.widget.TextView;
 
 public class FrameratePreference extends DialogPreference
 {
-	private int mMinimum = 5;
-	private int mMaximum = 60;
-	private int mStep = 5;
+	private static final int mMinimum = 5;
+	private static final int mMaximum = 60;
+	private static final int mStep = 5;
 	
 	private String persistedValue;
 	private int workingValue;
@@ -27,12 +27,9 @@ public class FrameratePreference extends DialogPreference
 	OnSeekBarChangeListener seekBarChangeListener = new OnSeekBarChangeListener() {
 		public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
 		{
-			int rawValue = progress - (progress % mStep);
-			int displayValue = rawValue + mMinimum;
+			int displayValue = progress + mMinimum / mStep;
 			
-			seekBar.setProgress(rawValue);
-			
-			framerateTextViewValue.setText(String.valueOf(displayValue) + " FPS");
+			framerateTextViewValue.setText(String.valueOf(displayValue * mStep) + " FPS");
 			workingValue = displayValue;
 		}
 
@@ -49,8 +46,6 @@ public class FrameratePreference extends DialogPreference
 	}
 	
 	public FrameratePreference(Context context, AttributeSet attrs) {
-		//this(context, attrs, 0);
-		
 		super(context, attrs);
 		init();
 	}
@@ -75,12 +70,12 @@ public class FrameratePreference extends DialogPreference
 		
 		framerateTextViewValue = (TextView)view.findViewById(R.id.framerate_textview_value);
 		
-		workingValue = Integer.valueOf(persistedValue);
+		workingValue = Integer.valueOf(persistedValue) / mStep;
 		
 		framerateSeekBar = (SeekBar)view.findViewById(R.id.framerate_seekbar);
-		framerateSeekBar.setProgress(workingValue - mMinimum);
+		framerateSeekBar.setProgress(workingValue - mMinimum / mStep);
 		framerateSeekBar.setOnSeekBarChangeListener(seekBarChangeListener);
-		framerateSeekBar.setMax(mMaximum - mMinimum);
+		framerateSeekBar.setMax(mMaximum / mStep - 1);
 	}
 
 	@Override
@@ -89,7 +84,7 @@ public class FrameratePreference extends DialogPreference
 		super.onDialogClosed(positiveResult);
 
 		if(positiveResult) {
-			String outValue = String.valueOf(workingValue);
+			String outValue = String.valueOf(workingValue * mStep);
 			if(callChangeListener(outValue)) {
 				setValue(outValue);
 			}
