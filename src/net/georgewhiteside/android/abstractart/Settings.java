@@ -63,7 +63,7 @@ public class Settings extends PreferenceActivity implements OnSharedPreferenceCh
                 Intent send = new Intent(Intent.ACTION_SENDTO);
                 String uriText;
 
-                uriText = "mailto:george@georgewhiteside.net" + 
+                uriText = "mailto:gedwardwhiteside@gmail.com" + 
                           "?subject=Abstract Art";
                 uriText = uriText.replace(" ", "%20");
                 Uri uri = Uri.parse(uriText);
