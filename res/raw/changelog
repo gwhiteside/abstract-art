@@ -25,7 +25,8 @@
 $ 1.1.2
   % 1.1.2 (Struttin' Evil Mushroom)
   _ August 30, 2012
-    * Nice performance fix for the scrolling thumbnail list in the background viewer
+    * Nice performance upgrade for the scrolling thumbnail list in the background viewer
+    * (Potentially) fixed a crash bug in the new rendering thread code
     
 $ 1.1.1
   % 1.1.1 (Struttin' Evil Mushroom)

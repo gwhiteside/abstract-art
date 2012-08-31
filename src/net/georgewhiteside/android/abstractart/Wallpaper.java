@@ -9,8 +9,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import net.georgewhiteside.utility.MovingAverage;
-
 import org.jf.GLWallpaper.GLWallpaperService;
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -102,8 +100,6 @@ public class Wallpaper extends GLWallpaperService
         
         private Thread renderThread;
     	private RenderRunnable renderRunnable = new RenderRunnable();
-    	
-    	MovingAverage movingAverage = new MovingAverage(5);
     	
     	private Handler backgroundCyclerHandler = new Handler();
     	
@@ -245,7 +241,7 @@ public class Wallpaper extends GLWallpaperService
 				}
 			}
 
-			public synchronized void stop() {
+			public void stop() {
 				//Log.i(TAG, "stopping render update thread");
 				renderer.ready = false;
 				running = false;
@@ -264,6 +260,55 @@ public class Wallpaper extends GLWallpaperService
 			renderRunnable.stop();
 			renderThread = null;
 		}
+		
+		@Override
+        public Bundle onCommand(final String action, int x, int y, int z, final Bundle extras, final boolean resultRequested)
+        {
+            if (action.equals(WallpaperManager.COMMAND_TAP))
+            {
+            	long thisTap = System.currentTimeMillis();
+            	if(thisTap - lastTap < TAP_THRESHOLD)
+            	{
+            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", null);
+            		
+            		if(behavior.equals("nothing"))
+            		{
+            			// do nothing
+            		}
+            		else if(behavior.equals("next"))
+            		{
+            			// load next background
+            			queueEvent( new Runnable() {
+	            			public void run() {
+	            				setNewBackground(renderer);
+	            			}
+	            		});
+            		}
+            		else if(behavior.equals("chooser"))
+            		{
+            			Intent myIntent = new Intent();
+            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.settings.BackgroundSelector"));
+            			startActivity(myIntent);
+            		}
+            		else if(behavior.equals("settings"))
+            		{
+            			Intent myIntent = new Intent();
+            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.Settings"));
+            			startActivity(myIntent);
+            		}
+            		
+            		lastTap = 0;
+            	}
+            	else
+            	{
+            		lastTap = thisTap;
+            	}
+            }
+
+            return super.onCommand(action, x, y, z, extras, resultRequested);
+        }
 		
 		@Override
 	    public void onCreate(SurfaceHolder surfaceHolder) {
@@ -300,27 +345,37 @@ public class Wallpaper extends GLWallpaperService
 			setEGLContextClientVersion(2);
 			setRenderer(renderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
-			//setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 			renderer.setRenderWhenDirty(true);
-			
-			startRendering();
 	    }
 		
 		@Override
 		public void onDestroy() {
 			super.onDestroy();
+			stopRendering();
 			engineInstances.remove(this);
 		}
 		
 		@Override
 		public void onOffsetsChanged(float xOffset, float yOffset, float xOffsetStep, float yOffsetStep, int xPixelOffset, int yPixelOffset) {
+			super.onOffsetsChanged(xOffset, yOffset, xOffsetStep, yOffsetStep, xPixelOffset, yPixelOffset);
 			renderer.setOffsets(xOffset, yOffset);
+		}
+		
+		@Override
+		public void onSurfaceCreated(SurfaceHolder holder) {
+			super.onSurfaceCreated(holder);
+			startRendering();
+		}
+		
+		@Override
+        public void onSurfaceDestroyed(SurfaceHolder holder) {
+			super.onSurfaceDestroyed(holder);
+			stopRendering();
 		}
 		
 		@Override
         public void onVisibilityChanged(final boolean visible) {
 			super.onVisibilityChanged(visible);
-			
 			if(renderer != null) {
 				if(visible) {
 					startRendering();
@@ -328,12 +383,6 @@ public class Wallpaper extends GLWallpaperService
 					stopRendering();
 				}
 			}
-		}
-		
-		@Override
-        public void onSurfaceDestroyed(SurfaceHolder holder) {
-			super.onSurfaceDestroyed(holder);
-			//stopRendering();
 		}
 		
 		/*
@@ -386,55 +435,6 @@ public class Wallpaper extends GLWallpaperService
 				e.printStackTrace();
 			}
 		}
-		
-		@Override
-        public Bundle onCommand(final String action, int x, int y, int z, final Bundle extras, final boolean resultRequested)
-        {
-            if (action.equals(WallpaperManager.COMMAND_TAP))
-            {
-            	long thisTap = System.currentTimeMillis();
-            	if(thisTap - lastTap < TAP_THRESHOLD)
-            	{
-            		String behavior = sharedPreferences.getString("stringDoubleTapBehavior", null);
-            		
-            		if(behavior.equals("nothing"))
-            		{
-            			// do nothing
-            		}
-            		else if(behavior.equals("next"))
-            		{
-            			// load next background
-            			queueEvent( new Runnable() {
-	            			public void run() {
-	            				setNewBackground(renderer);
-	            			}
-	            		});
-            		}
-            		else if(behavior.equals("chooser"))
-            		{
-            			Intent myIntent = new Intent();
-            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.settings.BackgroundSelector"));
-            			startActivity(myIntent);
-            		}
-            		else if(behavior.equals("settings"))
-            		{
-            			Intent myIntent = new Intent();
-            			myIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-            			myIntent.setComponent(new ComponentName("net.georgewhiteside.android.abstractart", "net.georgewhiteside.android.abstractart.Settings"));
-            			startActivity(myIntent);
-            		}
-            		
-            		lastTap = 0;
-            	}
-            	else
-            	{
-            		lastTap = thisTap;
-            	}
-            }
-
-            return super.onCommand(action, x, y, z, extras, resultRequested);
-        }
 		
 		private boolean detectPaletteBug()
 		{
