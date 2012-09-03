@@ -221,7 +221,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	public void onDrawFrame(GL10 unused)
 	{
-		if(refreshOutput == true) {
+		if(refreshOutput == true && ready) {
 			int fps = Integer.valueOf(sharedPreferences.getString("framerateCap", null));
 			renderUpdatePeriod = 1.0f / fps;
 			
@@ -230,7 +230,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			refreshOutput = false;
 		}
 		
-		if(requestNewBackground == true) {
+		if(requestNewBackground == true && ready) {
 			requestNewBackground = false;
 			Wallpaper.setNewBackground(this);
 		}

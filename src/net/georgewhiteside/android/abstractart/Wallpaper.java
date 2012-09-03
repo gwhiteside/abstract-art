@@ -350,9 +350,9 @@ public class Wallpaper extends GLWallpaperService
 		
 		@Override
 		public void onDestroy() {
-			super.onDestroy();
 			stopRendering();
 			engineInstances.remove(this);
+			super.onDestroy();
 		}
 		
 		@Override
@@ -369,19 +369,22 @@ public class Wallpaper extends GLWallpaperService
 		
 		@Override
         public void onSurfaceDestroyed(SurfaceHolder holder) {
-			super.onSurfaceDestroyed(holder);
 			stopRendering();
+			super.onSurfaceDestroyed(holder);
 		}
 		
 		@Override
         public void onVisibilityChanged(final boolean visible) {
-			super.onVisibilityChanged(visible);
 			if(renderer != null) {
 				if(visible) {
+					super.onVisibilityChanged(visible);
 					startRendering();
 				} else {
 					stopRendering();
+					super.onVisibilityChanged(visible);
 				}
+			} else {
+				super.onVisibilityChanged(visible);
 			}
 		}
 		
