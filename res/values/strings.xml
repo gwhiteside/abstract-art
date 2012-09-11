@@ -2,6 +2,9 @@
 <resources>
     <string name="null_string"></string>
     
+    <string name="launcher_text">Hello, and thank you for downloading Abstract Art! Click the button below to go directly to your live wallpaper settings!</string>
+    <string name="live_wallpaper_settings">Live Wallpaper Settings</string>
+    
     <string name="message_palette_bug">It looks like palette cycling effects don\'t work on your particular phone (yet), so I\'ve disabled them by default in the settings.</string>
     
     <string name="app_name">Abstract Art</string>

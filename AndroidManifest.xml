@@ -12,6 +12,20 @@
 
     <application android:name=".AbstractArt" android:icon="@drawable/icon" android:label="@string/app_name" >
         
+        <activity
+            android:label="Helper"
+            android:name=".Helper"
+            android:theme="@android:style/Theme.Dialog">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                
+                <!--category android:name="android.intent.category.DEFAULT" /-->
+                <!--category android:name="android.intent.category.LAUNCHER" /-->
+                
+                <category android:name="android.intent.category.INFO" />
+            </intent-filter>
+        </activity>
+        
         <service android:label="@string/app_name" android:name=".Wallpaper" android:permission="android.permission.BIND_WALLPAPER">
 			<intent-filter>
 				<action android:name="android.service.wallpaper.WallpaperService" />
