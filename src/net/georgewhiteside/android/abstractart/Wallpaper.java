@@ -1,13 +1,21 @@
 package net.georgewhiteside.android.abstractart;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
+import java.util.zip.ZipFile;
+
+import net.georgewhiteside.android.aapreset.Preset;
 
 import org.jf.GLWallpaper.GLWallpaperService;
 import org.json.JSONArray;
@@ -22,10 +30,13 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.AssetFileDescriptor;
+import android.content.res.AssetManager;
 import android.graphics.Bitmap;
 import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.util.Log;
@@ -78,6 +89,9 @@ public class Wallpaper extends GLWallpaperService
 		
 		AbstractArtEngine engine = new AbstractArtEngine(this);
 		engineInstances.add(engine);
+		
+		//masterPresetList();
+		loadPresetTest();
 		
 		return engine;
 	}
@@ -224,9 +238,11 @@ public class Wallpaper extends GLWallpaperService
 							sleepyGuard = 0;
 							
 							if(enableFrameskipping) {
-								renderer.battleGroup.battleBackground.doTick(deltaTime);
+								//renderer.battleGroup.battleBackground.doTick(deltaTime);
+								preset.update(deltaTime);
 							} else {
-								renderer.battleGroup.battleBackground.doTick(Math.min(deltaTime, 1 / 60.0f));
+								//renderer.battleGroup.battleBackground.doTick(Math.min(deltaTime, 1 / 60.0f));
+								preset.update(Math.min(deltaTime, 1 / 60.0f));
 							}
 							
 							requestRender();
@@ -346,6 +362,8 @@ public class Wallpaper extends GLWallpaperService
 			setRenderer(renderer);
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 			renderer.setRenderWhenDirty(true);
+			
+			renderer.setPreset(preset);
 	    }
 		
 		@Override
@@ -537,6 +555,9 @@ public class Wallpaper extends GLWallpaperService
 			selection = random.nextInt(renderer.battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		}
 		
+		loadPresetTest();
+		renderer.setPreset(preset);
+		
 		renderer.loadBattleBackground(selection);
 	}
 	
@@ -656,4 +677,141 @@ public class Wallpaper extends GLWallpaperService
 		
 		return backgroundList;
 	}
+	
+	public void masterPresetList() {
+		String[] presets = null;
+		
+		String path = "presets";
+		
+		try {
+			presets = context.getAssets().list(path);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		for(String preset : presets) {
+			//Log.i("Presets", preset);
+		}
+	}
+	
+	static Preset preset;
+	
+	public static void loadPresetTest() {
+		String presetsPath = "presets";
+		String number = "";
+		
+		try {
+			int numpresets = context.getAssets().list(presetsPath).length;
+			int rand = random.nextInt(numpresets) + 1;
+			number = String.format("%03d", rand);
+		} catch (IOException e1) {
+			e1.printStackTrace();
+		}
+		
+		String filename = "Mother2Battle" + number + ".aapreset";
+		try {
+			InputStream is = context.getAssets().open(presetsPath + File.separator + filename);
+			preset = new Preset(is);
+            
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	
+	/*
+	private void copyAssets() {
+	    AssetManager assetManager = getAssets();
+	    String[] files = null;
+	    try {
+	        files = assetManager.list("backgrounds");
+	    } catch (IOException e) {
+	        Log.e("tag", e.getMessage());
+	    }
+	    for(String filename : files) {
+	        InputStream in = null;
+	        OutputStream out = null;
+	        try {
+	          in = assetManager.open(filename);
+	          //out = new FileOutputStream("/sdcard/" + filename);
+	          
+	          out = context.openFileOutput(filename, MODE_PRIVATE);
+	          copyFile(in, out);
+	          in.close();
+	          in = null;
+	          out.flush();
+	          out.close();
+	          out = null;
+	        } catch(Exception e) {
+	            Log.e("tag", e.getMessage());
+	        }       
+	    }
+	}
+	private void copyFile(InputStream in, OutputStream out) throws IOException {
+	    byte[] buffer = new byte[1024];
+	    int read;
+	    while((read = in.read(buffer)) != -1){
+	      out.write(buffer, 0, read);
+	    }
+	}
+	
+	
+	
+	public void asdfasdfa() {
+		context.getFilesDir()
+	}
+	
+	
+	
+	public void cfasdf(String filename) {
+		AssetManager assetManager = context.getAssets();
+		FileDescriptor inFileDescriptor = null;
+		FileDescriptor outFileDescriptor = null;
+		try {
+			inFileDescriptor = assetManager.openFd(filename).getFileDescriptor();
+		    outFileDescriptor = context.openFileOutput(filename, MODE_PRIVATE).getFD();
+		    
+		    
+	
+		    FileInputStream fileInputStream = new FileInputStream(inFileDescriptor);
+		    FileOutputStream fileOutputStream = new FileOutputStream(outFileDescriptor);
+		    FileChannel inChannel = fileInputStream.getChannel();
+		    FileChannel outChannel = fileOutputStream.getChannel();
+		    
+		    inChannel.transferTo(0, inChannel.size(), outChannel);
+		    
+		    if (fileInputStream != null)
+		    	fileInputStream.close();
+	        if (fileOutputStream != null)
+	        	fileOutputStream.close();
+	
+		} catch (IOException e) {
+		    e.printStackTrace();
+		}
+	}
+	
+	
+	*/
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 }

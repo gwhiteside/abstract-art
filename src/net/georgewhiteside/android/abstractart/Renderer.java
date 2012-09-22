@@ -8,6 +8,7 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.List;
 import java.util.Random;
 
 import javax.microedition.khronos.egl.EGLConfig;
@@ -20,6 +21,9 @@ import android.opengl.Matrix;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
+import net.georgewhiteside.android.aapreset.DistortionEffect;
+import net.georgewhiteside.android.aapreset.Preset;
+import net.georgewhiteside.android.aapreset.TranslationEffect;
 import net.georgewhiteside.android.abstractart.Wallpaper;
 
 import org.jf.GLWallpaper.GLWallpaperService;
@@ -425,45 +429,66 @@ public class Renderer implements GLWallpaperService.Renderer
 	private void updateShaderVariables()
 	{
 		// glUniform* calls always act on the current program that is bound with glUseProgram
-		// have this method take an argument to determine which program to apply to
 		
-		Layer bg3 = battleGroup.battleBackground.getBg3();
-		Layer bg4 = battleGroup.battleBackground.getBg4();
+		int numLayers = preset.getLayers().size();
 		
-		boolean updateBg4 = bg4.getIndex() != 0 ? true : false;
+		net.georgewhiteside.android.aapreset.Layer bg3 = null;
+		net.georgewhiteside.android.aapreset.Layer bg4 = null;
+		
+		switch(numLayers) {
+		case 2: bg4 = preset.getLayers().get(1); // FALLTHROUGH
+		case 1: bg3 = preset.getLayers().get(0);
+			break;
+		}
 		
 		// update shader resolution
 		
 		GLES20.glUniform2f(mResolutionLoc, mRenderWidth, mRenderHeight);
 		
-		// update distortion effect variables for the shader program
+		// update shader variables for distortion, translation, and palette effects
 		
-		GLES20.glUniform1i(mBg3DistTypeLoc, bg3.distortion.getType());
-		GLES20.glUniform3f(mBg3DistLoc, bg3.distortion.computeShaderAmplitude(), bg3.distortion.computeShaderFrequency(), bg3.distortion.computeShaderSpeed());
-		GLES20.glUniform1f(mBg3CompressionLoc, bg3.distortion.computeShaderCompression());
-		
-		// update translation effect variables for the shader program
-		
-		GLES20.glUniform2f(mBg3Scroll, bg3.translation.getHorizontalOffset(), bg3.translation.getVerticalOffset());
-		
-		// update palette
-		
-		GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3.getPaletteCycle1Begin(), (float)bg3.getPaletteCycle1End(), (float)bg3.getPaletteCycle2Begin(), (float)bg3.getPaletteCycle2End());
-		
-		GLES20.glUniform1f(mBg3RotationLoc, (float)bg3.getPaletteRotation());
-		
-		if(updateBg4) {
-			GLES20.glUniform1i(mBg4DistTypeLoc, bg4.distortion.getType());
-			GLES20.glUniform3f(mBg4DistLoc, bg4.distortion.computeShaderAmplitude(), bg4.distortion.computeShaderFrequency(), bg4.distortion.computeShaderSpeed());
-			GLES20.glUniform1f(mBg4CompressionLoc, bg4.distortion.computeShaderCompression());
-			GLES20.glUniform2f(mBg4Scroll, bg4.translation.getHorizontalOffset(), bg4.translation.getVerticalOffset());
-			GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
-			GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());
+		if(bg3 != null) {
+			DistortionEffect bg3Dist = bg3.getDistortionEffect();
+			if(bg3Dist != null) {
+				GLES20.glUniform1i(mBg3DistTypeLoc, bg3Dist.runningType());
+				GLES20.glUniform3f(mBg3DistLoc, bg3Dist.runningAmplitude(), bg3Dist.runningFrequency(), bg3Dist.runningSpeed());
+				GLES20.glUniform1f(mBg3CompressionLoc, bg3Dist.runningCompression());
+			}
+			
+			TranslationEffect bg3Trans = bg3.getTranslationEffect();
+			if(bg3Trans != null) {
+				GLES20.glUniform2f(mBg3Scroll, bg3Trans.currentHorizontalOffset(), bg3Trans.currentVerticalOffset());
+			}
 		}
 		
-		// old stuff
-		//GLES20.glUniform2i(mDistTypeLoc, bg3.distortion.getType(), bg4.distortion.getType());
-		//GLES20.glUniform2i(mCycleTypeLoc, bg3.getPaletteCycleType(), bg4.getPaletteCycleType());
+		/*
+		GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3.getPaletteCycle1Begin(), (float)bg3.getPaletteCycle1End(), (float)bg3.getPaletteCycle2Begin(), (float)bg3.getPaletteCycle2End());
+		GLES20.glUniform1f(mBg3RotationLoc, (float)bg3.getPaletteRotation());
+		*/
+		
+		if(bg4 != null) {
+			DistortionEffect bg4Dist = bg4.getDistortionEffect();
+			if(bg4Dist != null) {
+				GLES20.glUniform1i(mBg4DistTypeLoc, bg4Dist.runningType());
+				GLES20.glUniform3f(mBg4DistLoc, bg4Dist.runningAmplitude(), bg4Dist.runningFrequency(), bg4Dist.runningSpeed());
+				GLES20.glUniform1f(mBg4CompressionLoc, bg4Dist.runningCompression());
+			}
+			
+			TranslationEffect bg4Trans = bg4.getTranslationEffect();
+			if(bg4Trans != null) {
+				GLES20.glUniform2f(mBg3Scroll, bg4Trans.currentHorizontalOffset(), bg4Trans.currentVerticalOffset());
+			}
+			
+			/*
+			GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
+			GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());*/
+		}
+	}
+	
+	Preset preset;
+	
+	public void setPreset(Preset preset) {
+		this.preset = preset;
 	}
 	
 	public void loadBattleBackground(int index)
@@ -474,10 +499,31 @@ public class Renderer implements GLWallpaperService.Renderer
 			battleGroup.load(index, forceReload);
 			forceReload = false;
 			
-			byte[] dataA = battleGroup.battleBackground.getBg3().getImage();
-			byte[] dataB = battleGroup.battleBackground.getBg4().getImage();
-			byte[] paletteBg3 = battleGroup.battleBackground.getBg3().getPalette();
-			byte[] paletteBg4 = battleGroup.battleBackground.getBg4().getPalette();
+			List<net.georgewhiteside.android.aapreset.Layer> layers = preset.getLayers();
+			
+			
+			byte[] dataA;
+			byte[] dataB;
+			byte[] paletteBg3;
+			byte[] paletteBg4;
+			
+			if(layers.size() == 2) {
+				dataA = layers.get(0).getImage().getBytes();
+				dataB = layers.get(1).getImage().getBytes();
+				paletteBg3 = layers.get(0).getImage().getPalette().getBytes();
+				paletteBg4 = layers.get(1).getImage().getPalette().getBytes();
+			} else if(layers.size() == 1) {
+				dataA = layers.get(0).getImage().getBytes();
+				dataB = new byte[256 * 256];
+				paletteBg3 = layers.get(0).getImage().getPalette().getBytes();
+				paletteBg4 = new byte[16 * 1 * 4];
+			} else {
+				dataA = new byte[256 * 256];
+				dataB = new byte[256 * 256];
+				paletteBg3 = new byte[16 * 1 * 4];
+				paletteBg4 = new byte[16 * 1 * 4];
+			}
+			
 			int filter = mFilterBackgrounds ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
 			
 			//bbg.layerA.distortion.dump(0);
@@ -561,7 +607,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	        	{
 	        		// attempt to include the existing extra space as a portion of the background's specified letter box
 	        		// mLetterBoxSize = (battleGroup.getLetterBoxPixelSize() - outputPadding / outputScaler);
-	        		mLetterBoxSize = battleGroup.getLetterBoxPixelSize();
+	        		mLetterBoxSize = preset.getLetterbox();
 	        	}
 	        	else if(letterboxSize.equals("none")) {
 	        		mLetterBoxSize = 0;
