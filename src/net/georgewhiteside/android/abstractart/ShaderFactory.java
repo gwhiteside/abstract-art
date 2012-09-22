@@ -6,9 +6,15 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import net.georgewhiteside.android.aapreset.DistortionEffect;
+import net.georgewhiteside.android.aapreset.PaletteEffect;
+import net.georgewhiteside.android.aapreset.Preset;
+import net.georgewhiteside.android.aapreset.TranslationEffect;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -129,7 +135,7 @@ public class ShaderFactory
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 	}
 	
-	public int getShader(BattleBackground bbg, float letterBoxSize)
+	public int getShader(Preset preset, float letterBoxSize)
 	{
 		String fragmentShader = "";
 		boolean enablePaletteEffects = sharedPreferences.getBoolean("enablePaletteEffects", false); // SharedPreference
@@ -152,32 +158,30 @@ public class ShaderFactory
 				"        gl_FragColor.rgba = vec4(0.0, 0.0, 0.0, 1.0);\n" +
 				"    } else {\n";
 			
-			// iterate over both layers and construct the smallest shader possible
-			
-			for(int i = 0; i < 2; i++)
+			// iterate over layer(s) and tailor the most efficient shader possible
+			List<net.georgewhiteside.android.aapreset.Layer> layers = preset.getLayers();
+			int numLayers = layers.size();
+			for(int i = 0; i < numLayers; i++)
 			{
-				Layer layer = null;
+				net.georgewhiteside.android.aapreset.Layer layer = layers.get(i);
 				String prefix = null;
 				
 				if(i == 0) {
-					layer = bbg.bg3;
 					prefix = "bg3_";
 				}
-				if (i == 1) {
-					layer = bbg.bg4;
+				if(i == 1) {
 					prefix = "bg4_";
 				}
+
+				fragmentShader += "    vec2 $BG_OFFSET = vec2(0.0);\n";
 				
-				// we always want the bottom layer, but skip the top layer if it's null
-				if(layer == bbg.bg3 || layer == bbg.bg4 && layer.getIndex() != 0)
-				{
-					fragmentShader += "    vec2 $BG_OFFSET = vec2(0.0);\n";
-					
-					// distortion
-					
-					// TODO: probe battle background layer to determine if multiple distortions are used, and which ones; if more than one, support them
-					
-					int numberOfEffects = layer.distortion.getNumberOfEffects();
+				DistortionEffect dist = layer.getDistortionEffect();
+				TranslationEffect trans = layer.getTranslationEffect();
+				
+				// distortion
+				
+				if(dist != null) {
+					int numberOfEffects = dist.getNumberOfEffects();
 					//numberOfEffects = 0;
 					
 					if(numberOfEffects != 0)
@@ -186,7 +190,7 @@ public class ShaderFactory
 						
 						if(numberOfEffects == 1)
 						{
-							switch(layer.distortion.getType())
+							switch(dist.getType())
 							{
 								default:
 									break;
@@ -227,37 +231,39 @@ public class ShaderFactory
 												"    }\n";
 						}
 					}
-
 					
 					// vertical compression
 					
-					if(layer.distortion.getType() != 4 && layer.distortion.getCompression() != 0 && layer.distortion.getCompressionDelta() != 0)
+					if(dist.getType() != 4 && dist.getCompression() != 0 && dist.getCompressionDelta() != 0)
 					{
 						fragmentShader += "    $BG_OFFSET_Y += (y * ($BG_COMPRESSION / resolution.y));\n";
 					}
-					
-					// layer scrolling
-					
-					if(	layer.translation.getHorizontalAcceleration() != 0 || layer.translation.getHorizontalVelocity() != 0 ||
-						layer.translation.getVerticalAcceleration() != 0 || layer.translation.getVerticalVelocity() != 0 )
+				}
+				
+				// layer scrolling
+				if(trans != null) {
+					if(	trans.getHorizontalAcceleration() != 0 || trans.getHorizontalVelocity() != 0 ||
+						trans.getVerticalAcceleration() != 0 || trans.getVerticalVelocity() != 0 )
 					{
 						fragmentShader += "    $BG_OFFSET += $BG_SCROLL;\n";
 					}
+				}
+				
+				// divide offset down to correct range
+				
+				fragmentShader += "    $BG_OFFSET /= resolution;\n";
+				
+				if(enablePaletteEffects == true) {
 					
-					// divide offset down to correct range
+					// get palette index
 					
-					fragmentShader += "    $BG_OFFSET /= resolution;\n";
+					fragmentShader += "    float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
+					fragmentShader += "    $BG_INDEX *= 256.0;\n";
 					
-					if(enablePaletteEffects == true) {
-						
-						// get palette index
-						
-						fragmentShader += "    float $BG_INDEX = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord).r;\n";
-						fragmentShader += "    $BG_INDEX *= 256.0;\n";
-						
-						// add palette cycling code if required
-					
-						switch(layer.getPaletteCycleType())
+					// add palette cycling code if required
+					PaletteEffect pal = layer.getPaletteEffect();
+					if(pal != null) {
+						switch(pal.getType())
 						{
 							default:
 								// no palette cycling
@@ -318,28 +324,27 @@ public class ShaderFactory
 									"    }\n";
 								break;
 						}
-					
-						// divide color index down into texture lookup range
-						
-						fragmentShader += "    $BG_INDEX /= 16.0;\n";
-						
-						// actual palette color lookup
-						
-						float paletteRow = layer == bbg.bg3 ? 0.0f : 1.0f;
-						fragmentShader += "    vec4 $BG_COLOR = texture2D(s_palette, vec2($BG_INDEX, " + paletteRow + " / 16.0));\n";
-					} else {
-						fragmentShader += "    vec4 $BG_COLOR = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord);\n";
 					}
+					// divide color index down into texture lookup range
 					
-					// replace placeholder tags with values
+					fragmentShader += "    $BG_INDEX /= 16.0;\n";
 					
-					fragmentShader = interpolate(fragmentShader, map, prefix);
+					// actual palette color lookup
+					
+					float paletteRow = i == 0 ? 0.0f : 1.0f; // i == 0 in the outer loop is the bottom layer; 1 is the top
+					fragmentShader += "    vec4 $BG_COLOR = texture2D(s_palette, vec2($BG_INDEX, " + paletteRow + " / 16.0));\n";
+				} else {
+					fragmentShader += "    vec4 $BG_COLOR = texture2D($BG_TEXTURE, $BG_OFFSET + v_texCoord);\n";
 				}
+				
+				// replace placeholder tags with values
+				
+				fragmentShader = interpolate(fragmentShader, map, prefix);
 			}
 			
 			// output blending
 			
-			if(bbg.bg4.getIndex() != 0)
+			if(numLayers == 2)
 			{
 				// both layers are active; perform an alpha blend with BG4 at 50% opacity
 				fragmentShader += 

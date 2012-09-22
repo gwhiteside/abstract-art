@@ -22,6 +22,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import net.georgewhiteside.android.aapreset.DistortionEffect;
+import net.georgewhiteside.android.aapreset.PaletteEffect;
 import net.georgewhiteside.android.aapreset.Preset;
 import net.georgewhiteside.android.aapreset.TranslationEffect;
 import net.georgewhiteside.android.abstractart.Wallpaper;
@@ -40,7 +41,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private SharedPreferences sharedPreferences;
 	
-	public BattleGroup battleGroup;
 	private ShaderFactory shader;
 	
 	private FloatBuffer quadVertexBuffer;
@@ -128,10 +128,15 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	private static final float MAX_TIMESKIP = 1.0f; // maximum allowed delta time between two frame logic updates
 	
+	Preset preset;
+	Preset nextPreset;
+	
+	/*
 	public int getRomBackgroundIndex(int address)
 	{
 		return battleGroup.battleBackground.getRomBackgroundIndex(address);
 	}
+	*/
 	
 	public int getCacheableImagesTotal()
 	{
@@ -140,10 +145,12 @@ public class Renderer implements GLWallpaperService.Renderer
 		return images;
 	}
 	
+	/*
 	public int getBackgroundsTotal()
 	{
 		return battleGroup.battleBackground.getNumberOfBackgrounds();
 	}
+	*/
 	
 	public void cacheImage(int index)
 	{
@@ -152,11 +159,13 @@ public class Renderer implements GLWallpaperService.Renderer
 		Log.e(TAG, "cacheImage() is deprecated! Pay attention to me!");
 	}
 	
+	/*
 	public void setRandomBackground()
 	{
 		int number = Wallpaper.random.nextInt(battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		loadBattleBackground(number);
 	}
+	*/
 	
 	public void setPersistBackgroundSelection(boolean value)
 	{
@@ -175,7 +184,6 @@ public class Renderer implements GLWallpaperService.Renderer
 	{
 		this.context = context;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-		battleGroup = new BattleGroup(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
 		mTextureB = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -223,6 +231,11 @@ public class Renderer implements GLWallpaperService.Renderer
 		isPreview = value;
 	}
 	
+	public void queueImmediate(Preset preset) {
+		nextPreset = preset;
+		requestNewBackground = true;
+	}
+	
 	public void onDrawFrame(GL10 unused)
 	{
 		if(refreshOutput == true && ready) {
@@ -236,6 +249,9 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		if(requestNewBackground == true && ready) {
 			requestNewBackground = false;
+			preset = nextPreset;
+			nextPreset = null;
+			//loadBattleBackground(preset);
 			Wallpaper.setNewBackground(this);
 		}
 		
@@ -269,7 +285,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		//Log.i(TAG, "deltaTime: " + deltaTime * 1000 + "ms");
 		
 		if(!renderWhenDirty) {
-			battleGroup.battleBackground.doTick(deltaTime);
+			preset.update(deltaTime);
 		}
 		
 		renderScene();
@@ -397,7 +413,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]); // do I need to do this here?
 		GLES20.glFramebufferTexture2D(GLES20.GL_FRAMEBUFFER, GLES20.GL_COLOR_ATTACHMENT0, GLES20.GL_TEXTURE_2D, mRenderTexture[0], 0); // specify texture as color attachment
 		
-		if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
+		/*if(persistBackgroundSelection && currentBackground >= 0 && currentBackground < getBackgroundsTotal())
 		{
 			if(!Wallpaper.backgroundListIsDirty || isChooserPreviewRenderer) {
 				loadBattleBackground(currentBackground);
@@ -405,7 +421,7 @@ public class Renderer implements GLWallpaperService.Renderer
 				Wallpaper.setNewBackground(this);
 			}
 		}
-		else
+		else*/
 		{
 			Wallpaper.setNewBackground(this);
 		}
@@ -450,7 +466,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		if(bg3 != null) {
 			DistortionEffect bg3Dist = bg3.getDistortionEffect();
 			if(bg3Dist != null) {
-				GLES20.glUniform1i(mBg3DistTypeLoc, bg3Dist.runningType());
+				GLES20.glUniform1i(mBg3DistTypeLoc, bg3Dist.getType());
 				GLES20.glUniform3f(mBg3DistLoc, bg3Dist.runningAmplitude(), bg3Dist.runningFrequency(), bg3Dist.runningSpeed());
 				GLES20.glUniform1f(mBg3CompressionLoc, bg3Dist.runningCompression());
 			}
@@ -459,17 +475,18 @@ public class Renderer implements GLWallpaperService.Renderer
 			if(bg3Trans != null) {
 				GLES20.glUniform2f(mBg3Scroll, bg3Trans.currentHorizontalOffset(), bg3Trans.currentVerticalOffset());
 			}
+			
+			PaletteEffect bg3Pal = bg3.getPaletteEffect();
+			if(bg3Pal != null) {
+				GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3Pal.getCycle1Begin(), (float)bg3Pal.getCycle1End(), (float)bg3Pal.getCycle2Begin(), (float)bg3Pal.getCycle2End());
+				GLES20.glUniform1f(mBg3RotationLoc, (float)bg3Pal.getRotation());
+			}
 		}
-		
-		/*
-		GLES20.glUniform4f(mBg3PaletteLoc, (float)bg3.getPaletteCycle1Begin(), (float)bg3.getPaletteCycle1End(), (float)bg3.getPaletteCycle2Begin(), (float)bg3.getPaletteCycle2End());
-		GLES20.glUniform1f(mBg3RotationLoc, (float)bg3.getPaletteRotation());
-		*/
 		
 		if(bg4 != null) {
 			DistortionEffect bg4Dist = bg4.getDistortionEffect();
 			if(bg4Dist != null) {
-				GLES20.glUniform1i(mBg4DistTypeLoc, bg4Dist.runningType());
+				GLES20.glUniform1i(mBg4DistTypeLoc, bg4Dist.getType());
 				GLES20.glUniform3f(mBg4DistLoc, bg4Dist.runningAmplitude(), bg4Dist.runningFrequency(), bg4Dist.runningSpeed());
 				GLES20.glUniform1f(mBg4CompressionLoc, bg4Dist.runningCompression());
 			}
@@ -479,28 +496,22 @@ public class Renderer implements GLWallpaperService.Renderer
 				GLES20.glUniform2f(mBg3Scroll, bg4Trans.currentHorizontalOffset(), bg4Trans.currentVerticalOffset());
 			}
 			
-			/*
-			GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4.getPaletteCycle1Begin(), (float)bg4.getPaletteCycle1End(), (float)bg4.getPaletteCycle2Begin(), (float)bg4.getPaletteCycle2End());
-			GLES20.glUniform1f(mBg4RotationLoc, (float)bg4.getPaletteRotation());*/
+			PaletteEffect bg4Pal = bg4.getPaletteEffect();
+			if(bg4Pal != null) {
+				GLES20.glUniform4f(mBg3PaletteLoc, (float)bg4Pal.getCycle1Begin(), (float)bg4Pal.getCycle1End(), (float)bg4Pal.getCycle2Begin(), (float)bg4Pal.getCycle2End());
+				GLES20.glUniform1f(mBg3RotationLoc, (float)bg4Pal.getRotation());
+			}
 		}
 	}
 	
-	Preset preset;
-	
-	public void setPreset(Preset preset) {
-		this.preset = preset;
-	}
-	
-	public void loadBattleBackground(int index)
+	public void loadBattleBackground(Preset preset)
 	{	
 		synchronized(lock) {
-			currentBackground = index;
-			//Log.i(Wallpaper.TAG, "Loading battle group " + index);
-			battleGroup.load(index, forceReload);
+			this.preset = preset;
+			//currentBackground = index;
 			forceReload = false;
 			
 			List<net.georgewhiteside.android.aapreset.Layer> layers = preset.getLayers();
-			
 			
 			byte[] dataA;
 			byte[] dataB;
@@ -626,7 +637,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			
 	        /* shader for effects, update program uniforms */
 			
-			mProgram = shader.getShader(battleGroup.battleBackground, mLetterBoxSize);
+			mProgram = shader.getShader(preset, mLetterBoxSize);
 			
 			mPositionHandle = GLES20.glGetAttribLocation(mProgram, "a_position"); // a_position
 			mTextureHandle = GLES20.glGetAttribLocation(mProgram, "a_texCoord"); // a_texCoord
@@ -648,7 +659,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
 			mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
 			
-			/* enemy loading stuff */
+			/* enemy loading stuff 
 			if(mRenderEnemies)
 			{
 				byte[] spriteData = battleGroup.enemy.getBattleSprite();
@@ -713,6 +724,7 @@ public class Renderer implements GLWallpaperService.Renderer
 				enemyTextureVertexBuffer.put(textureMap);
 				enemyTextureVertexBuffer.position(0);
 			}
+			*/
 			
 			if(mRenderEnemies) {
 				GLES20.glEnable(GLES20.GL_BLEND);

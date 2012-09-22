@@ -68,7 +68,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	}
 	
 	public int getCount() {
-		return renderer.getBackgroundsTotal();
+		return 180; // TODO _NEWFIX 
+		// TODO _NEWFIX return renderer.getBackgroundsTotal();
 	}
 
 	public Object getItem(int position) {
@@ -161,7 +162,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	private void setThumb(ViewHolder viewHolder, Bitmap bitmap, int position) {
 		viewHolder.thumbnail.setImageBitmap(bitmap);
-		viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
+		// TODO _NEWFIX viewHolder.text.setText(String.valueOf(renderer.getRomBackgroundIndex(position)));
 		updateCheckmark(viewHolder);
 		viewHolder.viewSwitcher.setDisplayedChild(THUMBNAIL_VIEW);
 	}

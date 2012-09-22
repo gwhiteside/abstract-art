@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.zip.ZipFile;
@@ -87,11 +88,10 @@ public class Wallpaper extends GLWallpaperService
         PreferenceManager.setDefaultValues(context, R.xml.settings, true); // fill out the default preference values if they're not yet set
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
 		
+		loadPresetTest();
+		
 		AbstractArtEngine engine = new AbstractArtEngine(this);
 		engineInstances.add(engine);
-		
-		//masterPresetList();
-		loadPresetTest();
 		
 		return engine;
 	}
@@ -363,7 +363,8 @@ public class Wallpaper extends GLWallpaperService
 			setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
 			renderer.setRenderWhenDirty(true);
 			
-			renderer.setPreset(preset);
+			preset = getRandomPreset();
+			renderer.queueImmediate(preset);
 	    }
 		
 		@Override
@@ -424,7 +425,7 @@ public class Wallpaper extends GLWallpaperService
 		            editor.putInt("previousVersionCode", currentVersionCode);
 		            
 		            // detect the dreaded palette bug
-		            if(detectPaletteBug())
+		            /*if(detectPaletteBug())
 					{
 		            	Log.w(TAG, "Palette cycling bug detected. Effect disabled by default.");
 		            	clearCache();
@@ -434,7 +435,7 @@ public class Wallpaper extends GLWallpaperService
 					} else {
 						editor.putBoolean("enablePaletteEffects", true);
 						editor.putBoolean("infoPaletteBugDetected", false);
-					}
+					}*/ editor.putBoolean("enablePaletteEffects", true);
 		            
 		            // versionCode 8 will need to regenerate thumbnails (indices are different), so detect and clear out any old cache
 		            // TODO: make thumbnail filenames independent of gridview position indices (should just be the ROM background index)
@@ -457,6 +458,7 @@ public class Wallpaper extends GLWallpaperService
 			}
 		}
 		
+		/*
 		private boolean detectPaletteBug()
 		{
 			int width = 256, height = 256;
@@ -493,6 +495,7 @@ public class Wallpaper extends GLWallpaperService
 			
 			return true;
 		}
+		*/
 	}
 	
 	public static void clearCache()
@@ -527,6 +530,7 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static void setNewBackground(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
+		/*
 		// if the playlist hasn't been loaded yet
 		if(backgroundList == null)
 		{
@@ -554,17 +558,42 @@ public class Wallpaper extends GLWallpaperService
 		{
 			selection = random.nextInt(renderer.battleGroup.battleBackground.getNumberOfBackgrounds() - 1) + 1;
 		}
+		*/
 		
-		loadPresetTest();
-		renderer.setPreset(preset);
+		Preset newPreset = getRandomPreset();
+		preset = newPreset;
 		
-		renderer.loadBattleBackground(selection);
+		//renderer.queueImmediate(preset);
+		renderer.loadBattleBackground(preset);
+	}
+	
+	public static Preset getRandomPreset() {
+		int rand = random.nextInt(presetList.size());
+		String filename = presetList.get(rand);
+		InputStream is = null;
+		Preset newPreset = null;
+		try {
+			is = context.getAssets().open(presetsPath + File.separator + filename);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		try {
+			newPreset = new Preset(is);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return newPreset;
 	}
 	
 	/**
 	 * Gets the saved background list file. If it doesn't exist, it creates the default one and returns that.
 	 * @return
 	 */
+	/*
 	public static List<Integer> getBackgroundListFromFile(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
 		List<Integer> bgList = null;
@@ -615,6 +644,7 @@ public class Wallpaper extends GLWallpaperService
 		
 		return bgList;
 	}
+	*/
 	
 	public static void saveBackgroundList(List<Integer> bgList)
 	{
@@ -646,6 +676,7 @@ public class Wallpaper extends GLWallpaperService
 		}
 	}
 	
+	/*
 	public static List<Integer> createInitialBackgroundList(net.georgewhiteside.android.abstractart.Renderer renderer)
 	{
 		int total = renderer.getBackgroundsTotal();
@@ -677,37 +708,35 @@ public class Wallpaper extends GLWallpaperService
 		
 		return backgroundList;
 	}
-	
-	public void masterPresetList() {
-		String[] presets = null;
-		
-		String path = "presets";
-		
-		try {
-			presets = context.getAssets().list(path);
-		} catch (IOException e) {
-			e.printStackTrace();
-		}
-		
-		for(String preset : presets) {
-			//Log.i("Presets", preset);
-		}
-	}
+	*/
 	
 	static Preset preset;
+	static List<String> presetList;
+	static String presetsPath = "presets";
 	
-	public static void loadPresetTest() {
-		String presetsPath = "presets";
+	public static void loadPresetTest()
+	{	
 		String number = "";
 		
 		try {
-			int numpresets = context.getAssets().list(presetsPath).length;
-			int rand = random.nextInt(numpresets) + 1;
-			number = String.format("%03d", rand);
+			presetList = new ArrayList<String>();
+			String[] filenames = context.getAssets().list(presetsPath);
+			
+			for(int i = 0; i < filenames.length; i++) {
+				if(filenames[i].endsWith(".aapreset")) {
+					presetList.add(filenames[i]);
+				}
+			}
+			
+			Collections.addAll(presetList, filenames);
+			//int numpresets = context.getAssets().list(presetsPath).length;
+			//int rand = random.nextInt(numpresets) + 1;
+			//number = String.format("%03d", rand);
 		} catch (IOException e1) {
 			e1.printStackTrace();
 		}
 		
+		/*
 		String filename = "Mother2Battle" + number + ".aapreset";
 		try {
 			InputStream is = context.getAssets().open(presetsPath + File.separator + filename);
@@ -718,100 +747,7 @@ public class Wallpaper extends GLWallpaperService
 		} catch (JSONException e) {
 			e.printStackTrace();
 		}
+		*/
 	}
-	
-	
-	/*
-	private void copyAssets() {
-	    AssetManager assetManager = getAssets();
-	    String[] files = null;
-	    try {
-	        files = assetManager.list("backgrounds");
-	    } catch (IOException e) {
-	        Log.e("tag", e.getMessage());
-	    }
-	    for(String filename : files) {
-	        InputStream in = null;
-	        OutputStream out = null;
-	        try {
-	          in = assetManager.open(filename);
-	          //out = new FileOutputStream("/sdcard/" + filename);
-	          
-	          out = context.openFileOutput(filename, MODE_PRIVATE);
-	          copyFile(in, out);
-	          in.close();
-	          in = null;
-	          out.flush();
-	          out.close();
-	          out = null;
-	        } catch(Exception e) {
-	            Log.e("tag", e.getMessage());
-	        }       
-	    }
-	}
-	private void copyFile(InputStream in, OutputStream out) throws IOException {
-	    byte[] buffer = new byte[1024];
-	    int read;
-	    while((read = in.read(buffer)) != -1){
-	      out.write(buffer, 0, read);
-	    }
-	}
-	
-	
-	
-	public void asdfasdfa() {
-		context.getFilesDir()
-	}
-	
-	
-	
-	public void cfasdf(String filename) {
-		AssetManager assetManager = context.getAssets();
-		FileDescriptor inFileDescriptor = null;
-		FileDescriptor outFileDescriptor = null;
-		try {
-			inFileDescriptor = assetManager.openFd(filename).getFileDescriptor();
-		    outFileDescriptor = context.openFileOutput(filename, MODE_PRIVATE).getFD();
-		    
-		    
-	
-		    FileInputStream fileInputStream = new FileInputStream(inFileDescriptor);
-		    FileOutputStream fileOutputStream = new FileOutputStream(outFileDescriptor);
-		    FileChannel inChannel = fileInputStream.getChannel();
-		    FileChannel outChannel = fileOutputStream.getChannel();
-		    
-		    inChannel.transferTo(0, inChannel.size(), outChannel);
-		    
-		    if (fileInputStream != null)
-		    	fileInputStream.close();
-	        if (fileOutputStream != null)
-	        	fileOutputStream.close();
-	
-		} catch (IOException e) {
-		    e.printStackTrace();
-		}
-	}
-	
-	
-	*/
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
+
 }

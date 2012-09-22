@@ -96,7 +96,7 @@ public class ImageLoader extends Thread
 		 				glOffscreenSurface.setRenderer(renderer);
 		 			}
 		 			
-		 			renderer.loadBattleBackground(position);
+		 			// TODO _NEWFIX renderer.loadBattleBackground(position);
 		 			
 		 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
 		 			

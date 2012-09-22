@@ -68,7 +68,7 @@ public class BackgroundSelector extends Activity
 	{
 		glSurfaceView.queueEvent(new Runnable(){
             public void run() {
-            	renderer.loadBattleBackground(index);
+            	// TODO _NEWFIX renderer.loadBattleBackground(index);
             }
         });
 	}
@@ -97,7 +97,7 @@ public class BackgroundSelector extends Activity
 		renderer.setIsChooserPreviewRenderer(true);
 		renderer.setPersistBackgroundSelection(true);
 		
-		backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
+		// TODO _NEWFIX backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
 		
 		glSurfaceView.setEGLContextClientVersion(2);
 		glSurfaceView.setRenderer(renderer);
@@ -138,7 +138,7 @@ public class BackgroundSelector extends Activity
 			animationSet.addAnimation(outAnimation);
 			animationSet.setFillAfter(true);
 			
-			nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(selectedPosition)));
+			// TODO _NEWFIX nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(selectedPosition)));
 			nameTextView.setBackgroundColor(0x60000000);
 			nameTextView.setTextColor(0xFFFFFFFF);
 			
@@ -193,7 +193,8 @@ public class BackgroundSelector extends Activity
 	
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item)
-	{
+	{// TODO _NEWFIX 
+		/*
 	    switch (item.getItemId())
 	    {
 	        case R.id.select_all:
@@ -217,6 +218,8 @@ public class BackgroundSelector extends Activity
 	        default:
 	            return super.onOptionsItemSelected(item);
 	    }
+	    */
+		return false; // TODO _NEWFIX 
 	}
 	
 	/*
@@ -316,7 +319,7 @@ public class BackgroundSelector extends Activity
         		// cool fading name text
         		if(renderEnemies)
         		{
-	        		nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(position)));
+        			// TODO _NEWFIX nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(position)));
 	        		nameTextView.startAnimation(animationSet);
         		}
         	}
