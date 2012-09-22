@@ -372,6 +372,7 @@ public class ShaderFactory
 		
 		if(result == 0) {
 			String error = "Shader compilation failed!";
+			error += "\n \nPreset: " + preset.getTitle();
 			error += "\n \n-- VERTEX SHADER\n \n";
 			error += vertexShader;
 			error += "\n \n-- FRAGMENT SHADER\n \n";
