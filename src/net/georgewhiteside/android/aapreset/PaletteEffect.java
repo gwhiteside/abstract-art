@@ -1,7 +1,5 @@
 package net.georgewhiteside.android.aapreset;
 
-import net.georgewhiteside.android.abstractart.Layer;
-
 import org.json.JSONException;
 import org.json.JSONObject;
 

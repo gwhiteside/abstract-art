@@ -22,6 +22,7 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import net.georgewhiteside.android.aapreset.DistortionEffect;
+import net.georgewhiteside.android.aapreset.Layer;
 import net.georgewhiteside.android.aapreset.PaletteEffect;
 import net.georgewhiteside.android.aapreset.Preset;
 import net.georgewhiteside.android.aapreset.TranslationEffect;
@@ -448,8 +449,8 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		int numLayers = preset.getLayers().size();
 		
-		net.georgewhiteside.android.aapreset.Layer bg3 = null;
-		net.georgewhiteside.android.aapreset.Layer bg4 = null;
+		Layer bg3 = null;
+		Layer bg4 = null;
 		
 		switch(numLayers) {
 		case 2: bg4 = preset.getLayers().get(1); // FALLTHROUGH
@@ -511,7 +512,7 @@ public class Renderer implements GLWallpaperService.Renderer
 			//currentBackground = index;
 			forceReload = false;
 			
-			List<net.georgewhiteside.android.aapreset.Layer> layers = preset.getLayers();
+			List<Layer> layers = preset.getLayers();
 			
 			byte[] dataA;
 			byte[] dataB;
