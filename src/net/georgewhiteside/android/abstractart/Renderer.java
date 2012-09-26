@@ -124,6 +124,8 @@ public class Renderer implements GLWallpaperService.Renderer
 	private boolean isPreview = false;
 	private boolean isChooserPreviewRenderer = false;
 	
+	int numSprites = 0;
+	
 	int fps;
 	float renderUpdatePeriod;
 	
@@ -500,18 +502,16 @@ public class Renderer implements GLWallpaperService.Renderer
 			
 			TranslationEffect bg4Trans = bg4.getTranslationEffect();
 			if(bg4Trans != null) {
-				GLES20.glUniform2f(mBg3Scroll, bg4Trans.currentHorizontalOffset(), bg4Trans.currentVerticalOffset());
+				GLES20.glUniform2f(mBg4Scroll, bg4Trans.currentHorizontalOffset(), bg4Trans.currentVerticalOffset());
 			}
 			
 			PaletteEffect bg4Pal = bg4.getPaletteEffect();
 			if(bg4Pal != null) {
-				GLES20.glUniform4f(mBg3PaletteLoc, (float)bg4Pal.getCycle1Begin(), (float)bg4Pal.getCycle1End(), (float)bg4Pal.getCycle2Begin(), (float)bg4Pal.getCycle2End());
-				GLES20.glUniform1f(mBg3RotationLoc, (float)bg4Pal.getRotation());
+				GLES20.glUniform4f(mBg4PaletteLoc, (float)bg4Pal.getCycle1Begin(), (float)bg4Pal.getCycle1End(), (float)bg4Pal.getCycle2Begin(), (float)bg4Pal.getCycle2End());
+				GLES20.glUniform1f(mBg4RotationLoc, (float)bg4Pal.getRotation());
 			}
 		}
 	}
-	
-	int numSprites = 0;
 	
 	public void loadBattleBackground(Preset preset)
 	{	
