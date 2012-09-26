@@ -74,6 +74,7 @@ public class Preset implements Updateable {
 			for(int i = 0; i < spritesArray.length(); i++) {
 				JSONObject spriteObject = spritesArray.getJSONObject(i);
 				Sprite sprite = new Sprite(spriteObject, resources);
+				sprite.setTextureId(i); // identifier unique to the sprite's texture, but not the sprite itself
 				sprites.add(sprite);
 			}
 		}

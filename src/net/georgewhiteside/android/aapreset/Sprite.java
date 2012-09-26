@@ -7,21 +7,16 @@ import org.json.JSONObject;
 
 public class Sprite {
 
-	byte[] bytes;
+	Image image;
 	int amount;
+	int row;
+	int textureId;
 	
 	public Sprite(JSONObject spriteObject, Map<String, byte[]> resources) throws JSONException {
-		String file = spriteObject.getString("file");
-		bytes = resources.get(file);
+		JSONObject imageObject = spriteObject.getJSONObject("image");
+		image = new Image(imageObject, resources);
 		amount = spriteObject.getInt("amount");
-	}
-
-	public byte[] getBytes() {
-		return bytes;
-	}
-
-	public void setBytes(byte[] bytes) {
-		this.bytes = bytes;
+		row = spriteObject.getInt("row");
 	}
 
 	public int getAmount() {
@@ -30,5 +25,29 @@ public class Sprite {
 
 	public void setAmount(int amount) {
 		this.amount = amount;
+	}
+	
+	public Image getImage() {
+		return image;
+	}
+	
+	public int getHeight() {
+		return image.getHeight();
+	}
+	
+	public int getWidth() {
+		return image.getWidth();
+	}
+	
+	public int getRow() {
+		return row;
+	}
+	
+	public int getTextureId() {
+		return textureId;
+	}
+	
+	public void setTextureId(int id) {
+		textureId = id;
 	}
 }

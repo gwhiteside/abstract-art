@@ -8,6 +8,7 @@ import java.nio.BufferOverflowException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.FloatBuffer;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
@@ -22,10 +23,13 @@ import android.preference.PreferenceManager;
 import android.util.Log;
 
 import net.georgewhiteside.android.aapreset.DistortionEffect;
+import net.georgewhiteside.android.aapreset.Image;
 import net.georgewhiteside.android.aapreset.Layer;
 import net.georgewhiteside.android.aapreset.PaletteEffect;
 import net.georgewhiteside.android.aapreset.Preset;
+import net.georgewhiteside.android.aapreset.Sprite;
 import net.georgewhiteside.android.aapreset.TranslationEffect;
+import net.georgewhiteside.android.abstractart.RectanglePacker.Rectangle;
 import net.georgewhiteside.android.abstractart.Wallpaper;
 
 import org.jf.GLWallpaper.GLWallpaperService;
@@ -94,7 +98,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	private ByteBuffer mTextureA, mTextureB;
 	private ByteBuffer mPalette;
 	
-	private int[] mBattleSpriteId = new int[1];
+	private int[] mBattleSpriteId;
 	private int mBattleSpriteProgramId;
 	
 	private int currentBackground;
@@ -131,6 +135,8 @@ public class Renderer implements GLWallpaperService.Renderer
 	
 	Preset preset;
 	Preset nextPreset;
+	
+	TextureAtlas spriteAtlas = new TextureAtlas();
 	
 	/*
 	public int getRomBackgroundIndex(int address)
@@ -505,12 +511,16 @@ public class Renderer implements GLWallpaperService.Renderer
 		}
 	}
 	
+	int numSprites = 0;
+	
 	public void loadBattleBackground(Preset preset)
 	{	
 		synchronized(lock) {
 			this.preset = preset;
 			//currentBackground = index;
 			forceReload = false;
+			
+			Log.d("debug", "Preset name: " + preset.getTitle());
 			
 			List<Layer> layers = preset.getLayers();
 			
@@ -520,12 +530,12 @@ public class Renderer implements GLWallpaperService.Renderer
 			byte[] paletteBg4;
 			
 			if(layers.size() == 2) {
-				dataA = layers.get(0).getImage().getBytes();
-				dataB = layers.get(1).getImage().getBytes();
+				dataA = layers.get(0).getImage().getIndexedBytes();
+				dataB = layers.get(1).getImage().getIndexedBytes();
 				paletteBg3 = layers.get(0).getImage().getPalette().getBytes();
 				paletteBg4 = layers.get(1).getImage().getPalette().getBytes();
 			} else if(layers.size() == 1) {
-				dataA = layers.get(0).getImage().getBytes();
+				dataA = layers.get(0).getImage().getIndexedBytes();
 				dataB = new byte[256 * 256];
 				paletteBg3 = layers.get(0).getImage().getPalette().getBytes();
 				paletteBg4 = new byte[16 * 1 * 4];
@@ -537,9 +547,6 @@ public class Renderer implements GLWallpaperService.Renderer
 			}
 			
 			int filter = mFilterBackgrounds ? GLES20.GL_LINEAR : GLES20.GL_NEAREST;
-			
-			//bbg.layerA.distortion.dump(0);
-			//bbg.layerA.translation.dump(0);
 			
 			// http://code.google.com/p/android/issues/detail?id=6641
 			mRenderEnemies = sharedPreferences.getBoolean("enableEnemies", false); // set instance variable here once so we're not loading the preference every frame
@@ -660,7 +667,161 @@ public class Renderer implements GLWallpaperService.Renderer
 			mBg4CompressionLoc = GLES20.glGetUniformLocation(mProgram, "bg4_compression");
 			mBg4RotationLoc = GLES20.glGetUniformLocation(mProgram, "bg4_rotation");
 			
-			/* enemy loading stuff 
+			// enemy loading stuff 
+			
+			if(mRenderEnemies)
+			{
+				List<Sprite> uniqueSprites = preset.getSprites();
+				
+				// add all the sprites, including duplicates, to a new list
+				List<Sprite> sprites = new ArrayList<Sprite>();
+				for(Sprite sprite : uniqueSprites) {
+					for(int i = 0; i < sprite.getAmount(); i++) {
+						sprites.add(sprite);
+					}
+				}
+				
+				numSprites = sprites.size();
+				
+				// create a texture atlas for the (unique) sprite image(s)
+				List<Image> images = new ArrayList<Image>();
+				for(Sprite sprite : uniqueSprites) {
+					images.add(sprite.getImage());
+				}
+				spriteAtlas.generateAtlas(images);
+				
+				enemyVertexBuffer = ByteBuffer
+						.allocateDirect(numSprites * 3 * 6 * 4) // numSprites * coordinates (3) * vertices (6) * float (4 bytes)
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer(); 
+				
+				enemyTextureVertexBuffer = ByteBuffer
+						.allocateDirect(numSprites * 2 * 6 * 4) // numSprites * coordinates (2) * vertices (6) * float (4 bytes)
+						.order(ByteOrder.nativeOrder())
+						.asFloatBuffer();
+				
+				byte[] spriteData = spriteAtlas.getAtlas();
+				ByteBuffer texture = ByteBuffer.allocateDirect(spriteData.length);
+				texture.put(spriteData).position(0);
+				
+				mBattleSpriteId = new int[1];
+				
+				GLES20.glGenTextures(1, mBattleSpriteId, 0);
+				
+				GLES20.glBindTexture(GLES20.GL_TEXTURE_2D, mBattleSpriteId[0]);
+				
+		        GLES20.glTexImage2D(GLES20.GL_TEXTURE_2D, 0, GLES20.GL_RGBA, spriteAtlas.getWidth(), spriteAtlas.getHeight(), 0, GLES20.GL_RGBA, GLES20.GL_UNSIGNED_BYTE, texture);
+		        
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MIN_FILTER, GLES20.GL_LINEAR);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_MAG_FILTER, GLES20.GL_NEAREST);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_S, GLES20.GL_CLAMP_TO_EDGE);
+		        GLES20.glTexParameteri(GLES20.GL_TEXTURE_2D, GLES20.GL_TEXTURE_WRAP_T, GLES20.GL_CLAMP_TO_EDGE);
+		        
+		        mBattleSpriteProgramId = shader.getSpriteShader();
+		        
+		        mEnemyPositionHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_position"); // a_position
+				mEnemyTextureHandle = GLES20.glGetAttribLocation(mBattleSpriteProgramId, "a_texCoord"); // a_texCoord
+				mEnemyTextureLoc = GLES20.glGetUniformLocation(mBattleSpriteProgramId, "s_texture");
+				
+				
+				
+				// calculate total width
+				int rowWidth = 0;
+				for(Sprite sprite : sprites) {
+					rowWidth += sprite.getWidth();
+				}
+				rowWidth += 8 * (sprites.size() - 1); // 8px space between sprites
+				// GL surface width runs -1 .. +1
+				float xOffset = 0 - (1.0f / 256.0f) * rowWidth;
+				
+				Log.d("debug", "sprites: ");
+				
+				for(int i = 0; i < sprites.size(); i++) {
+					Sprite sprite = sprites.get(i);
+					
+					float yOffset = -1.0f + (1.0f / 224.0f) * 80 * 2 + (1.0f / 224.0f) * sprite.getRow() * 16 * 2; // row 0 == front; row 1 == back (back is 16px above front)
+					
+					/*if(battleGroup.enemy.getCurrentName().equals("Giygas")) {
+						// quick hack to get the one Giygas background aligned properly in lieu of supporting multiple enemies
+						// and their rows (for now)
+						rowOffset = battleGroup.enemy.getRow() * (1.0f / 224.0f) * 32.0f;
+					}*/
+					
+					Rectangle rect = spriteAtlas.packer.findRectangle(sprite.getTextureId());
+					
+					int width = rect.width;
+					int height = rect.height;
+					
+					float x = (1.0f / 256.0f) * (width) * 2;
+					float y = (1.0f / 224.0f) * (height) * 2;
+					
+					float quadVertices[] =
+					{
+						// triangle 0
+						xOffset,		yOffset,	 0.0f,	// 0
+						xOffset + x,	yOffset,	 0.0f,	// 1
+						xOffset,		yOffset + y,	 0.0f,	// 2
+						
+						// triangle 1
+						xOffset,		yOffset + y,	 0.0f,	// 2
+						xOffset + x,	yOffset,	 0.0f,	// 1
+						xOffset + x,	yOffset + y,	 0.0f,	// 3
+					};
+					
+					xOffset += (1.0f / 256.0f) * 8 * 2 + x;
+					
+					float px = 1.0f / spriteAtlas.getWidth();
+					float py = 1.0f / spriteAtlas.getHeight();
+					
+					
+					
+					float spriteX = px * rect.x;
+					float spriteY = py * rect.y;
+					float spriteWidth = px * rect.width;
+					float spriteHeight = py * rect.height;
+					
+					float textureMap[] =
+					{
+							
+						// triangle 0
+						spriteX,	spriteY + spriteHeight,
+						spriteX + spriteWidth,	spriteY + spriteHeight,
+						spriteX,	spriteY,
+						
+						// triangle 1
+						spriteX,	spriteY,
+						spriteX + spriteWidth,	spriteY + spriteHeight,
+						spriteX + spriteWidth,	spriteY
+							
+						
+					/*
+						// triangle 0
+						0.0f,	1.0f,
+						1.0f,	1.0f,
+						0.0f,	0.0f,
+						
+						// triangle 1
+						0.0f,	0.0f,
+						1.0f,	1.0f,
+						1.0f,	0.0f
+					*/
+					};
+					
+					
+					enemyVertexBuffer.put(quadVertices);
+					enemyTextureVertexBuffer.put(textureMap);
+				}
+				
+				enemyVertexBuffer.position(0);
+				enemyTextureVertexBuffer.position(0);
+				
+				GLES20.glEnable(GLES20.GL_BLEND);
+				GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
+			} else {
+				GLES20.glDisable(GLES20.GL_BLEND);
+			}
+			
+			/*
 			if(mRenderEnemies)
 			{
 				byte[] spriteData = battleGroup.enemy.getBattleSprite();
@@ -727,13 +888,6 @@ public class Renderer implements GLWallpaperService.Renderer
 			}
 			*/
 			
-			if(mRenderEnemies) {
-				GLES20.glEnable(GLES20.GL_BLEND);
-				GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA);
-			} else {
-				GLES20.glDisable(GLES20.GL_BLEND);
-			}
-			
 			ready = true;
 		}
 	}
@@ -749,10 +903,11 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		GLES20.glBindFramebuffer(GLES20.GL_FRAMEBUFFER, mFramebuffer[0]);
 		
-		/* it may be prudent to check the framebuffer status here before continuing... */
-		
 		renderBattleBackground();
-		if(mRenderEnemies) renderEnemy();
+		
+		if(mRenderEnemies && numSprites > 0) {
+			renderEnemy();
+		}
 		
 		/* now, try to render the texture? */
 		
@@ -851,7 +1006,7 @@ public class Renderer implements GLWallpaperService.Renderer
 		
 		/* draw the triangles */
 		
-		GLES20.glDrawArrays(GLES20.GL_TRIANGLE_STRIP, 0, 4);
+		GLES20.glDrawArrays(GLES20.GL_TRIANGLES, 0, 6 * numSprites);
 	}
 	
 	private void checkGlError(String op)
