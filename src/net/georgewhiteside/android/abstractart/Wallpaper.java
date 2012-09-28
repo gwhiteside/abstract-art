@@ -75,10 +75,16 @@ public class Wallpaper extends GLWallpaperService
 	
 	private static List<AbstractArtEngine> engineInstances = new ArrayList<AbstractArtEngine>();
 	
+	private static PresetManager presetManager;
+	
 	public Wallpaper()
 	{
 		super();
 		context = this;
+	}
+	
+	public static PresetManager getPresetManager() {
+		return presetManager;
 	}
 	
 	@Override
@@ -89,6 +95,19 @@ public class Wallpaper extends GLWallpaperService
 		backgroundListFile = new File(context.getFilesDir(), backgroundListFileName);
 		
 		loadPresetTest();
+		
+		presetManager = new PresetManager(context.getApplicationContext());
+		
+		/*
+		List<String> groups = presetManager.getGroups();
+		for(String group : groups) {
+			Log.i("debug", "preset group: " + group);
+			List<String> presetNames = presetManager.listGroup(group);
+			for(String presetName : presetNames) {
+				Log.i("debug", "preset name: " + presetName);
+			}
+		}
+		*/
 		
 		AbstractArtEngine engine = new AbstractArtEngine(this);
 		engineInstances.add(engine);
@@ -712,7 +731,7 @@ public class Wallpaper extends GLWallpaperService
 	
 	static Preset preset;
 	static List<String> presetList;
-	static String presetsPath = "presets";
+	static String presetsPath = "presets" + File.separator + "Mother2";
 	
 	public static void loadPresetTest()
 	{	

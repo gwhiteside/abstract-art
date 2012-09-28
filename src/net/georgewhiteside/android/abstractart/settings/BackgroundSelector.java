@@ -4,6 +4,7 @@ package net.georgewhiteside.android.abstractart.settings;
 
 import java.util.List;
 
+import net.georgewhiteside.android.abstractart.PresetManager;
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.Renderer;
 import net.georgewhiteside.android.abstractart.UniformGridView;
@@ -53,6 +54,10 @@ public class BackgroundSelector extends Activity
 	boolean renderEnemies;
 	
 	private List<Integer> backgroundList;
+	private PresetManager presetManager;
+	private String group = "Mother2"; // TODO: temporary assignment for development
+	
+	private List<String> groupEntries;
 	
 	TextView nameTextView;
 	AnimationSet animationSet;
@@ -97,13 +102,16 @@ public class BackgroundSelector extends Activity
 		renderer.setIsChooserPreviewRenderer(true);
 		renderer.setPersistBackgroundSelection(true);
 		
-		// TODO _NEWFIX backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
-		
 		glSurfaceView.setEGLContextClientVersion(2);
 		glSurfaceView.setRenderer(renderer);
 		glSurfaceView.setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 		
-		thumbnailAdapter = new ThumbnailAdapter(this, backgroundList, renderEnemies);
+		// TODO _NEWFIX backgroundList = Wallpaper.getBackgroundListFromFile(renderer);
+		presetManager = Wallpaper.getPresetManager();
+		groupEntries = presetManager.listGroup(group);
+		
+		thumbnailAdapter = new ThumbnailAdapter(this, presetManager, renderEnemies);
+		thumbnailAdapter.setEntries(groupEntries);
 		
 		gridView = (UniformGridView)findViewById(R.id.bgThumbUniformGridView);
 		gridView.setColumnWidth(128);
@@ -320,7 +328,7 @@ public class BackgroundSelector extends Activity
         		if(renderEnemies)
         		{
         			// TODO _NEWFIX nameTextView.setText(renderer.battleGroup.enemy.getName(renderer.battleGroup.getEnemyIndex(position)));
-	        		nameTextView.startAnimation(animationSet);
+	        		//nameTextView.startAnimation(animationSet);
         		}
         	}
         }

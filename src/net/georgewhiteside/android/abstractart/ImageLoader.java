@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
+import net.georgewhiteside.android.aapreset.Preset;
 import net.georgewhiteside.android.abstractart.settings.ThumbnailAdapter.ViewHolder;
 
 import android.content.Context;
@@ -29,13 +30,15 @@ public class ImageLoader extends Thread
 	private Context context;
 	private GLOffscreenSurface glOffscreenSurface;
 	private Renderer renderer;
+	private PresetManager presetManager;
 	
-	public ImageLoader(Context context, Renderer renderer, GLOffscreenSurface glOffscreenSurface, ImageLoadListener lListener, boolean renderEnemies)
+	public ImageLoader(Context context, Renderer renderer, GLOffscreenSurface glOffscreenSurface, ImageLoadListener lListener, PresetManager presetManager, boolean renderEnemies)
 	{
 		this.context = context;
 		mListener = lListener;
 		this.renderer = renderer;
 		this.glOffscreenSurface = glOffscreenSurface;
+		this.presetManager = presetManager;
 		this.renderEnemies = renderEnemies;
 	}
 	
@@ -97,6 +100,8 @@ public class ImageLoader extends Thread
 		 			}
 		 			
 		 			// TODO _NEWFIX renderer.loadBattleBackground(position);
+		 			Preset preset = presetManager.load(null);
+		 			renderer.loadBattleBackground(null);
 		 			
 		 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
 		 			

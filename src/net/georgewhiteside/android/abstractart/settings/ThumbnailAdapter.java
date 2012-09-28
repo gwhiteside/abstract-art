@@ -4,6 +4,7 @@ import java.util.List;
 
 import net.georgewhiteside.android.abstractart.ImageLoader;
 import net.georgewhiteside.android.abstractart.ImageLoader.ImageLoadListener;
+import net.georgewhiteside.android.abstractart.PresetManager;
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.GLOffscreenSurface;
 import net.georgewhiteside.android.abstractart.Renderer;
@@ -38,6 +39,10 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	private static LruCache<Integer, Bitmap> lruCache;
 	
+	private PresetManager presetManager;
+	private List<String> presetEntries;
+	//private String group = "Mother2"; // temporary measure for refactoring
+	
 	private static final int LOADING_VIEW = 0;
 	private static final int THUMBNAIL_VIEW = 1;
 	
@@ -49,8 +54,8 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         ImageView thumbnailCheckmark;
     }
 	
-	public ThumbnailAdapter(Context context, List<Integer> backgroundList, boolean renderEnemies) {
-		this.backgroundList = backgroundList;
+	public ThumbnailAdapter(Context context, PresetManager manager, boolean renderEnemies) {
+		presetManager = manager;
 		thumbnailWidth = 128; thumbnailHeight = 112;
 		
 		renderer = new Renderer(context);
@@ -63,20 +68,27 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
         handler = new Handler();
         
         
-        imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this, renderEnemies);
+        imageLoader = new ImageLoader(context, renderer, glOffscreenSurface, this, presetManager, renderEnemies);
         imageLoader.start();
 	}
 	
+	public void setEntries(List<String> entries) {
+		presetEntries = entries;
+	}
+	
 	public int getCount() {
-		return 180; // TODO _NEWFIX 
+		return presetEntries.size();
+		//return presetManager.getCount(group);
 		// TODO _NEWFIX return renderer.getBackgroundsTotal();
 	}
 
 	public Object getItem(int position) {
+		// getItem defines the item that getItemAtPosition returns
 		return position;
 	}
 
 	public long getItemId(int position) {
+		// would return the rowId if viewing db records or something I think? so, not relevant
 		return position;
 	}
 	
