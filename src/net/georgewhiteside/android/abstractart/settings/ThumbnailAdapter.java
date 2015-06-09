@@ -37,7 +37,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	private List<Integer> backgroundList;
 	
-	private static LruCache<Integer, Bitmap> lruCache;
+	private static LruCache<String, Bitmap> lruCache;
 	
 	private PresetManager presetManager;
 	private List<String> presetEntries;
@@ -48,6 +48,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 	
 	public static class ViewHolder {
     	public int index;
+    	public String presetEntry;
     	ViewSwitcher viewSwitcher;
         TextView text;
         ImageView thumbnail;
@@ -123,7 +124,9 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
             holder = (ViewHolder) convertView.getTag();
         }
  		
+        String presetEntry = presetEntries.get(position);
  		holder.index = position; // set the image index for the on-screen GridView element so onImageLoaded doesn't override it if it scrolls out of view
+ 		holder.presetEntry = presetEntry;
  		
  		if(lruCache == null) {
  			int safetyBuffer = 1024 * 1024;
@@ -131,11 +134,11 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
  			int thumbnailBytes = thumbnailWidth * thumbnailHeight * 4;
  			// I have no idea how reasonable this calculation is (if at all)
  			int maxCacheThumbs = Math.min((int) Math.ceil(availableMemory / thumbnailBytes), getCount());
- 			lruCache = new LruCache<Integer, Bitmap>(maxCacheThumbs);
+ 			lruCache = new LruCache<String, Bitmap>(maxCacheThumbs);
  			Log.i("ThumbnailAdapter", "Created LruCache for up to " + maxCacheThumbs + " of " + getCount() + " thumbnails");
  		}
  		
- 		Bitmap bitmap = lruCache.get(Integer.valueOf(position));
+ 		Bitmap bitmap = lruCache.get(presetEntry);
  		
  		if(bitmap != null) {
 			setThumb(holder, bitmap, position);
@@ -152,11 +155,13 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
     }
 
     public void updateCheckmark(ViewHolder viewHolder) {
+    	/*
     	if(backgroundList.contains(Integer.valueOf(viewHolder.index))) {
 			viewHolder.thumbnailCheckmark.setVisibility(ImageView.VISIBLE);
     	} else {
     		viewHolder.thumbnailCheckmark.setVisibility(ImageView.INVISIBLE);
     	}
+    	*/
     }
 
 	public void onImageLoaded(final ViewHolder viewHolder, final Bitmap bitmap, final int position) {
@@ -169,7 +174,7 @@ public class ThumbnailAdapter extends BaseAdapter implements ImageLoadListener
 			}
 		});
 		
-		lruCache.put(Integer.valueOf(position), bitmap);
+		lruCache.put(viewHolder.presetEntry, bitmap);
 	}
 	
 	private void setThumb(ViewHolder viewHolder, Bitmap bitmap, int position) {

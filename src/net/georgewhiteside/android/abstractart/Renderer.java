@@ -46,6 +46,8 @@ public class Renderer implements GLWallpaperService.Renderer
 	private static final String TAG = "Renderer";
 	private Context context;
 	
+	private Random random;
+	
 	private SharedPreferences sharedPreferences;
 	
 	private ShaderFactory shader;
@@ -192,6 +194,7 @@ public class Renderer implements GLWallpaperService.Renderer
 	public Renderer(Context context)
 	{
 		this.context = context;
+		random = Wallpaper.random;
 		sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
 		shader = new ShaderFactory(context);
 		mTextureA = ByteBuffer.allocateDirect(256 * 256 * 1);
@@ -693,7 +696,12 @@ public class Renderer implements GLWallpaperService.Renderer
 				for(int i = 0; i < uniqueSprites.size(); i++) {
 					Sprite sprite = uniqueSprites.get(i);
 					Log.d("debug", "enemy id " + sprite.getTextureId() + " amount " + sprite.getAmount());
-					for(int j = 0; j < sprite.getAmount(); j++) {
+					int amount = sprite.getAmount();
+					if(amount == 0) {
+						// some enemies have amount 0; randomly assigning 0 or 1 simulates an enemy calling for help
+						amount = random.nextInt(2);
+					}
+					for(int j = 0; j < amount; j++) {
 						Onscreen onscreen = new Onscreen();
 						onscreen.width = sprite.getWidth();
 						onscreen.height = sprite.getHeight();

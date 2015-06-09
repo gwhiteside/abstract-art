@@ -100,8 +100,8 @@ public class ImageLoader extends Thread
 		 			}
 		 			
 		 			// TODO _NEWFIX renderer.loadBattleBackground(position);
-		 			Preset preset = presetManager.load(null);
-		 			renderer.loadBattleBackground(null);
+		 			Preset preset = presetManager.load(holder.presetEntry);
+		 			renderer.loadBattleBackground(preset);
 		 			
 		 			Bitmap thumbnail = glOffscreenSurface.getBitmap();
 		 			
@@ -143,9 +143,23 @@ public class ImageLoader extends Thread
 			thumbnailDirectory = "thumbnails";
 		}
 		
-		String cacheFileName = String.valueOf(position) + ".png"; //String.format("%03d", index);
+		
+		
+		File subdirAndFile = new File(holder.presetEntry);
+		String subdirName = subdirAndFile.getParent();
+		String fileName = subdirAndFile.getName();
+		
+		String cacheFileName = fileName + ".png";
+		
+		
+		
  		File cacheDir = new File(context.getCacheDir(), thumbnailDirectory);
- 		File cacheFile = new File(cacheDir, cacheFileName);
+ 		File cacheSubdir = new File(cacheDir, subdirName);
+ 		File cacheFile = new File(cacheSubdir, cacheFileName);
+ 		
+ 		cacheSubdir.mkdirs();
+ 		
+ 		Log.i("IMAGELOADER", "cacheFile: " + cacheFile.getPath() + " exists: " + cacheFile.exists());
  		
  		try
 		{

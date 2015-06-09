@@ -667,6 +667,9 @@ public class Wallpaper extends GLWallpaperService
 	
 	public static void saveBackgroundList(List<Integer> bgList)
 	{
+		if(bgList == null) {
+			return;
+		}
 		// write it out to a file
 	    try
 	    {

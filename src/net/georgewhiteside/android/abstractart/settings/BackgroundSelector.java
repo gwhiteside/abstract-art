@@ -4,6 +4,7 @@ package net.georgewhiteside.android.abstractart.settings;
 
 import java.util.List;
 
+import net.georgewhiteside.android.aapreset.Preset;
 import net.georgewhiteside.android.abstractart.PresetManager;
 import net.georgewhiteside.android.abstractart.R;
 import net.georgewhiteside.android.abstractart.Renderer;
@@ -74,6 +75,9 @@ public class BackgroundSelector extends Activity
 		glSurfaceView.queueEvent(new Runnable(){
             public void run() {
             	// TODO _NEWFIX renderer.loadBattleBackground(index);
+            	String presetFilename = groupEntries.get(index);
+            	Preset preset = presetManager.load(presetFilename);
+            	renderer.loadBattleBackground(preset);
             }
         });
 	}
@@ -323,6 +327,7 @@ public class BackgroundSelector extends Activity
         	{
         		selectedPosition = position;
         		loadBattleBackground(position);
+        		
         		
         		// cool fading name text
         		if(renderEnemies)

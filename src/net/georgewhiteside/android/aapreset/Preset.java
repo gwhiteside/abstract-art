@@ -13,6 +13,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 import java.util.zip.ZipInputStream;
 
+import net.georgewhiteside.android.abstractart.Wallpaper;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -68,6 +70,7 @@ public class Preset implements Updateable {
 			layers.add(layer);
 		}
 		
+		/* back when the enemy groups weren't combined into shared backgrounds
 		sprites = new ArrayList<Sprite>();
 		JSONArray spritesArray = data.optJSONArray("sprites");
 		if(spritesArray != null) {
@@ -76,6 +79,25 @@ public class Preset implements Updateable {
 				Sprite sprite = new Sprite(spriteObject, resources);
 				sprite.setTextureId(i); // identifier unique to the sprite's texture, but not the sprite itself
 				sprites.add(sprite);
+			}
+		}
+		*/
+		
+		JSONArray battleGroups = data.optJSONArray("battleGroups");
+		int groups = battleGroups.length();
+		
+		if(groups > 0) {
+			int selection = Wallpaper.random.nextInt(groups);
+			
+			sprites = new ArrayList<Sprite>();
+			JSONArray spritesArray = battleGroups.getJSONArray(selection);
+			if(spritesArray != null) {
+				for(int i = 0; i < spritesArray.length(); i++) {
+					JSONObject spriteObject = spritesArray.getJSONObject(i);
+					Sprite sprite = new Sprite(spriteObject, resources);
+					sprite.setTextureId(i); // identifier unique to the sprite's texture, but not the sprite itself
+					sprites.add(sprite);
+				}
 			}
 		}
 	}
