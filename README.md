@@ -1,11 +1,11 @@
 Abstract Art
 ============
 
-1.0.0 (Struttin' Evil Mushroom)
+1.0.0
 
-This live wallpaper recreates the hypnotic tripped-out visuals featured in the cult classic SNES game Earthbound (Mother 2). Even if you've never heard of it, these animated wallpapers stand on their own. With the hundreds of backgrounds available in this tiny package, you practically can't afford not to download it! Equip it now to give your device sweet visuals with low power consumption, and be the first person on your street with a totally boss wallpaper that doesn't bust the battery.
+This Android live wallpaper recreates the hypnotic tripped-out visuals featured in the cult classic SNES game Earthbound (Mother 2). Even if you've never heard of it, these animated wallpapers stand on their own. With the hundreds of rockin' backgrounds available in this tiny package, you practically can't afford not to download it! Grab it now to give your device sweet visuals with low power consumption, and be the first person on your street with a totally boss wallpaper that doesn't bust the battery.
 
-Flaunt your style while remaining environmentally conscious... Makes a great conversation starter... Use it to help meet the man or woman of your dreams... The possibilities are virtually endless! :)
+Flaunt your style while remaining environmentally conscious... Makes a great conversation starter... Use it to help meet the person of your dreams... The possibilities are virtually endless!
 
 Instructions
 ------------
@@ -30,7 +30,7 @@ Background Chooser
 Changelog
 =========
 
-1.0.0 (Struttin' Evil Mushroom)
+1.0.0
 -------------------------------
 
 August 7, 2012
@@ -39,14 +39,14 @@ August 7, 2012
 
 * Fixed a terrible memory leak in the background selector
 
-0.10.1 (Beautiful UFO)
+0.10.1
 ----------------------
 
 July 26, 2012
 
 * landscape orientation fixes: aspect ratio, scaling, and garbage at sides of screen (thank you for the report, Squishie!)
 
-0.10.0 (Beautiful UFO)
+0.10.0
 ----------------------
 
 July 18, 2012
@@ -61,14 +61,14 @@ July 18, 2012
 
 * incorporated Karsten Priegnitz's handy <a href="http://code.google.com/p/android-change-log/">ChangeLog</a> class
 
-0.9.3 (Criminal Caterpillar)
+0.9.3
 ----------------------------
 
 July 10, 2012
 
 * FINALLY squashed the "backgrounds running at super speed" and "enemy sprite crash" bugs
 
-0.9.0 (Criminal Caterpillar)
+0.9.0
 ----------------------------
 
 May 15, 2012
@@ -83,7 +83,7 @@ May 15, 2012
 
 * fixed an occasional bug where a thumbnail wouldn't update until scrolled out of and back into view
 
-0.8.1 (Criminal Caterpillar)
+0.8.1
 ----------------------------
 
 May 2, 2012
@@ -94,7 +94,7 @@ May 2, 2012
 
 * minor internal corrections
 
-0.7.0 (Criminal Caterpillar)
+0.7.0
 ----------------------------
 
 April 24, 2012
@@ -104,7 +104,7 @@ April 24, 2012
 * published <a href="https://github.com/gwhiteside/abstract-art">source code</a> on GitHub
 
 
-0.6.0 (Criminal Caterpillar)
+0.6.0
 ----------------------------
 
 April 18, 2012
